@@ -8,8 +8,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node ./api/index.js",
     "dev": "nodemon ./api/index.js",
-    "importAgendamentos" : "node ./api/model/agendamentos.js",
-    "importUsuarios" : "node ./api/model/usuarios.js"
+    "importAgendamentos": "node ./api/model/agendamentos.js",
+    "importUsuarios": "node ./api/model/usuarios.js"
   },
   "repository": {
     "type": "git",
@@ -28,6 +28,7 @@
   "homepage": "https://github.com/MathGueff/BarbeariaMongoDB#readme",
   "dependencies": {
     "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "express-validator": "^7.2.1",
     "mongodb": "^6.15.0"

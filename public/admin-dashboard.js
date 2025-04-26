@@ -269,6 +269,8 @@ function initializeAdminDashboard() {
 
       // Atualizar contador
       updateResultsCount(document.querySelectorAll("#appointmentsTableBody tr").length, totalItems - 1)
+      const totalAppointments = await fetchWithErrorHandling("http://localhost:3000/api/agendamentos/total")
+      document.getElementById("totalAppointments").textContent = totalAppointments.count
     } catch (error) {
       console.error(`Falha ao deletar:`, error)
       // Rollback visual se necessário
