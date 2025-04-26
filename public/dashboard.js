@@ -1,7 +1,7 @@
 import { fetchWithErrorHandling } from "./script.js"
 
 // dashboard.js
-const apiUrl = "https://barbearia-mongo-asjkamwl4-mathgueffs-projects.vercel.app/"
+const apiUrl = "https://barbearia-mongo-db-liart.vercel.app/"
 // Módulo do Dashboard de Cliente
 function initializeDashboard() {
   const currentUser = JSON.parse(localStorage.getItem("user"))
@@ -396,7 +396,7 @@ function initializeDashboard() {
     console.log(agendamento)
     try {
       // Se não houver conflito, prosseguir com o agendamento
-      const response = await fetchWithErrorHandling("${apiUrl}api/agendamentos", {
+      const response = await fetchWithErrorHandling(`${apiUrl}api/agendamentos`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(agendamento),

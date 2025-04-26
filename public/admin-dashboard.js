@@ -1,7 +1,7 @@
 // admin-dashboard.js
 import { fetchWithErrorHandling } from "./script.js"
 
-const apiUrl = "https://barbearia-mongo-asjkamwl4-mathgueffs-projects.vercel.app/"
+const apiUrl = "https://barbearia-mongo-db-liart.vercel.app/"
 // Módulo do Dashboard de Administrador
 function initializeAdminDashboard() {
   console.log(apiUrl)
@@ -120,7 +120,7 @@ function initializeAdminDashboard() {
       }
 
       // Atualizar estatísticas
-      const totalAppointments = await fetchWithErrorHandling("${apiUrl}api/agendamentos/total")
+      const totalAppointments = await fetchWithErrorHandling(`${apiUrl}api/agendamentos/total`)
       document.getElementById("totalAppointments").textContent = totalAppointments.count
 
       // Atualizar informações de paginação
@@ -187,48 +187,48 @@ function initializeAdminDashboard() {
     }
   }
 
-  // Função para mostrar o modal de confirmação
-  function showConfirmationModal(button, action) {
-    const appointmentId = button.getAttribute("data-id")
-    let message = ""
-
-    switch (action) {
-      case "confirmed":
-        message = "Deseja confirmar este agendamento?"
-        break
-      case "canceled":
-        message = "Deseja cancelar este agendamento?"
-        break
-      case "delete":
-        message = "Deseja excluir este agendamento permanentemente?"
-        break
-    }
-
-    confirmationMessage.textContent = message
-    confirmationModal.style.display = "flex"
-
-    // Remover eventos anteriores para evitar duplicação
-    confirmActionBtn.replaceWith(confirmActionBtn.cloneNode(true))
-    cancelActionBtn.replaceWith(cancelActionBtn.cloneNode(true))
-
-    // Referenciar novamente após clonagem
-    const newConfirmBtn = document.getElementById("confirmActionBtn")
-    const newCancelBtn = document.getElementById("cancelActionBtn")
-
-    // Adicionar novos eventos
-    newConfirmBtn.addEventListener("click", () => {
-      confirmationModal.style.display = "none"
-      if (action === "delete") {
-        deleteAppointment(appointmentId, button)
-      } else {
-        updateAppointmentStatus(appointmentId, action, button)
-      }
-    })
-
-    newCancelBtn.addEventListener("click", () => {
-      confirmationModal.style.display = "none"
-    })
+  // Definindo a função separadamente
+function handleConfirmClick(appointmentId, action, button) {
+  confirmationModal.style.display = "none";
+  if (action === "delete") {
+    deleteAppointment(appointmentId, button);
+  } else {
+    updateAppointmentStatus(appointmentId, action, button);
   }
+}
+
+function showConfirmationModal(button, action) {
+  const appointmentId = button.getAttribute("data-id");
+  let message = "";
+
+  switch (action) {
+    case "confirmed":
+      message = "Deseja confirmar este agendamento?";
+      break;
+    case "canceled":
+      message = "Deseja cancelar este agendamento?";
+      break;
+    case "delete":
+      message = "Deseja excluir este agendamento permanentemente?";
+      break;
+  }
+
+  confirmationMessage.textContent = message;
+  confirmationModal.style.display = "flex";
+
+  // Remove todos os listeners antigos (criando botão novo)
+  confirmActionBtn.replaceWith(confirmActionBtn.cloneNode(true));
+  cancelActionBtn.replaceWith(cancelActionBtn.cloneNode(true));
+
+  // Atualizar as referências depois de clonar
+  const newConfirmBtn = document.getElementById("confirmActionBtn");
+  const newCancelBtn = document.getElementById("cancelActionBtn");
+
+  newConfirmBtn.addEventListener("click", () => handleConfirmClick(appointmentId, action, button));
+  newCancelBtn.addEventListener("click", () => confirmationModal.style.display = "none");
+}
+
+  
 
   // Função para atualizar o status do agendamento
   async function updateAppointmentStatus(appointmentId, statusValue, button) {
@@ -271,7 +271,7 @@ function initializeAdminDashboard() {
 
       // Atualizar contador
       updateResultsCount(document.querySelectorAll("#appointmentsTableBody tr").length, totalItems - 1)
-      const totalAppointments = await fetchWithErrorHandling("${apiUrl}api/agendamentos/total")
+      const totalAppointments = await fetchWithErrorHandling(`${apiUrl}api/agendamentos/total`)
       document.getElementById("totalAppointments").textContent = totalAppointments.count
     } catch (error) {
       console.error(`Falha ao deletar:`, error)
