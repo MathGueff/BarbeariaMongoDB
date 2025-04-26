@@ -1,8 +1,10 @@
 // admin-dashboard.js
 import { fetchWithErrorHandling } from "./script.js"
 
+const apiUrl = "https://barbearia-mongo-asjkamwl4-mathgueffs-projects.vercel.app/"
 // Módulo do Dashboard de Administrador
 function initializeAdminDashboard() {
+  console.log(apiUrl)
   const currentUser = JSON.parse(localStorage.getItem("user"))
   if (!currentUser || !currentUser.isAdmin) window.location.href = "login.html"
 
@@ -100,7 +102,7 @@ function initializeAdminDashboard() {
 
       // Montar query string com URLSearchParams
       const queryString = new URLSearchParams(filters).toString()
-      const appointmentsUrl = `http://localhost:3000/api/agendamentos${queryString ? "?" + queryString : ""}`
+      const appointmentsUrl = `${apiUrl}api/agendamentos${queryString ? "?" + queryString : ""}`
 
       console.log(appointmentsUrl) // conferindo a URL final
 
@@ -118,7 +120,7 @@ function initializeAdminDashboard() {
       }
 
       // Atualizar estatísticas
-      const totalAppointments = await fetchWithErrorHandling("http://localhost:3000/api/agendamentos/total")
+      const totalAppointments = await fetchWithErrorHandling("${apiUrl}api/agendamentos/total")
       document.getElementById("totalAppointments").textContent = totalAppointments.count
 
       // Atualizar informações de paginação
@@ -237,7 +239,7 @@ function initializeAdminDashboard() {
 
     try {
       row.style.opacity = "0.7" // Feedback visual
-      await fetchWithErrorHandling(`http://localhost:3000/api/agendamentos/${appointmentId}/${action}`, {
+      await fetchWithErrorHandling(`${apiUrl}api/agendamentos/${appointmentId}/${action}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
       })
@@ -259,7 +261,7 @@ function initializeAdminDashboard() {
     const row = button.closest("tr")
     try {
       row.style.opacity = "0.4" // Feedback visual
-      await fetchWithErrorHandling(`http://localhost:3000/api/agendamentos/${appointmentId}`, {
+      await fetchWithErrorHandling(`${apiUrl}api/agendamentos/${appointmentId}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
       })
@@ -269,7 +271,7 @@ function initializeAdminDashboard() {
 
       // Atualizar contador
       updateResultsCount(document.querySelectorAll("#appointmentsTableBody tr").length, totalItems - 1)
-      const totalAppointments = await fetchWithErrorHandling("http://localhost:3000/api/agendamentos/total")
+      const totalAppointments = await fetchWithErrorHandling("${apiUrl}api/agendamentos/total")
       document.getElementById("totalAppointments").textContent = totalAppointments.count
     } catch (error) {
       console.error(`Falha ao deletar:`, error)
