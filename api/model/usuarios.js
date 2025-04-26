@@ -1,8 +1,10 @@
 import { MongoClient } from 'mongodb'
 import { readFileSync } from 'fs'// File System -> acessa arquivos
+import dotenv from 'dotenv';
 
+dotenv.config();
 //PARA RODAR: npm run importausuarios
-const uri = 'mongodb://localhost/27017'
+const uri =  process.env.MONGODB_URI || "mongodb://localhost:27017/barbearia"
 const dbName = 'barbearia'
 const collectionName = 'usuarios'
 
