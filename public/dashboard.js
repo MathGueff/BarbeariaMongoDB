@@ -1,7 +1,7 @@
 import { fetchWithErrorHandling } from "./script.js"
 
 // dashboard.js
-
+const apiUrl = "https://barbearia-mongo-asjkamwl4-mathgueffs-projects.vercel.app/"
 // Módulo do Dashboard de Cliente
 function initializeDashboard() {
   const currentUser = JSON.parse(localStorage.getItem("user"))
@@ -102,7 +102,7 @@ function initializeDashboard() {
   // Função para exibir o último agendamento no card
   async function displayLastAppointment() {
     const response = await fetchWithErrorHandling(
-      `http://localhost:3000/api/agendamentos?client_name=${encodeURIComponent(currentUser.name)}&status=scheduled&status=confirmed&sort=date&order=desc`,
+      `${apiUrl}api/agendamentos?client_name=${encodeURIComponent(currentUser.name)}&status=scheduled&status=confirmed&sort=date&order=desc`,
     )
     lastAppointment = response.data[0]
     if (lastAppointment) {
@@ -131,7 +131,7 @@ function initializeDashboard() {
   async function loadClientAppointments() {
     try {
       const appointments = await fetchWithErrorHandling(
-        `http://localhost:3000/api/agendamentos?client_name=${encodeURIComponent(currentUser.name)}&status=scheduled&status=confirmed`,
+        `${apiUrl}api/agendamentos?client_name=${encodeURIComponent(currentUser.name)}&status=scheduled&status=confirmed`,
       )
       // Atualizar a tabela de agendamentos
       clientAppointmentsTableBody.innerHTML = ""
@@ -197,7 +197,7 @@ function initializeDashboard() {
   // Função para cancelar um agendamento
   async function cancelAppointment(appointmentId) {
     try {
-      await fetchWithErrorHandling(`http://localhost:3000/api/agendamentos/${appointmentId}/cancelar`, {
+      await fetchWithErrorHandling(`${apiUrl}api/agendamentos/${appointmentId}/cancelar`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
       })
@@ -296,7 +296,7 @@ function initializeDashboard() {
     // Obter agendamentos existentes para a data e barbeiro selecionados
     let existingAppointments = []
     try {
-      const url = `http://localhost:3000/api/agendamentos?barber_name=${encodeURIComponent(selectedBarber)}&start_date=${selectedDate}&end_date=${selectedDate}&status=scheduled&status=confirmed`
+      const url = `${apiUrl}api/agendamentos?barber_name=${encodeURIComponent(selectedBarber)}&start_date=${selectedDate}&end_date=${selectedDate}&status=scheduled&status=confirmed`
 
       existingAppointments = await fetchWithErrorHandling(url)
     } catch (error) {
@@ -396,7 +396,7 @@ function initializeDashboard() {
     console.log(agendamento)
     try {
       // Se não houver conflito, prosseguir com o agendamento
-      const response = await fetchWithErrorHandling("http://localhost:3000/api/agendamentos", {
+      const response = await fetchWithErrorHandling("${apiUrl}api/agendamentos", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(agendamento),
@@ -552,7 +552,7 @@ function initializeDashboard() {
     currentEditingAppointmentId = appointmentId
 
     // Buscar os dados do agendamento
-    fetchWithErrorHandling(`http://localhost:3000/api/agendamentos/${appointmentId}`)
+    fetchWithErrorHandling(`${apiUrl}api/agendamentos/${appointmentId}`)
       .then((appointment) => {
         // Preencher o formulário com os dados do agendamento
         const [date, time] = appointment.date.split(" ")
@@ -611,7 +611,7 @@ function initializeDashboard() {
 
     // Obter agendamentos existentes para a data e barbeiro selecionados
     try {
-      const url = `http://localhost:3000/api/agendamentos?barber_name=${encodeURIComponent(selectedBarber)}&start_date=${selectedDate}&end_date=${selectedDate}&status=scheduled&status=confirmed`
+      const url = `${apiUrl}api/agendamentos?barber_name=${encodeURIComponent(selectedBarber)}&start_date=${selectedDate}&end_date=${selectedDate}&status=scheduled&status=confirmed`
       const existingAppointments = await fetchWithErrorHandling(url)
 
       // Extrair os horários ocupados (exceto o horário atual sendo editado)
@@ -702,7 +702,7 @@ function initializeDashboard() {
     console.log(updatedAppointment)
 
     try {
-      await fetchWithErrorHandling(`http://localhost:3000/api/agendamentos/${currentEditingAppointmentId}`, {
+      await fetchWithErrorHandling(`${apiUrl}api/agendamentos/${currentEditingAppointmentId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updatedAppointment),

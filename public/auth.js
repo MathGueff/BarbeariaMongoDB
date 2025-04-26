@@ -1,5 +1,6 @@
 import { fetchWithErrorHandling } from './script.js';
 
+const apiUrl = "https://barbearia-mongo-asjkamwl4-mathgueffs-projects.vercel.app/"
 // Módulo de Autenticação
 function initializeAuth() {
     const loginForm = document.getElementById("loginForm")
@@ -102,7 +103,7 @@ function initializeAuth() {
   
       // Caso não seja administrador, prosseguir com login de cliente
       try {
-        const response = await fetchWithErrorHandling("http://localhost:3000/api/users/login", {
+        const response = await fetchWithErrorHandling("${apiUrl}api/users/login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, password }),
@@ -155,7 +156,7 @@ function initializeAuth() {
       const password = document.getElementById("registerPassword").value
   
       try {
-        const response = await fetchWithErrorHandling("http://localhost:3000/api/users", {
+        const response = await fetchWithErrorHandling("${apiUrl}api/users", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ name, email, password, subscription: false, appointments: 0 }),
