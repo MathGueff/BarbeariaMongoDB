@@ -9,6 +9,7 @@ function initializeDashboard() {
   if (!currentUser) window.location.href = "login.html"
 
   // Configurar informações do usuário
+  console.log(currentUser)
   document.getElementById("userName").textContent = currentUser.name
   document.getElementById("logoutBtn").addEventListener("click", () => {
     localStorage.removeItem("user")

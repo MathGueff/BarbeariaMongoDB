@@ -19,8 +19,6 @@ export const getUsuariosById = async (req, res) => {
         console.error("Falha ao procurar por usuario:", error)
         res.status(500).json({ error: true, message: "Falha ao procurar por usuarios" })
     }
-
-    
 }
 
 // Create new usuarios

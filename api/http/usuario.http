@@ -1,6 +1,6 @@
 // Teste da API REST de agendamentos
 @baseURL = http://localhost:3000/api/usuarios
-@id = 680f8826bc4968bb5d68777f
+@id = 680f8826bc4968bb5d687782
 
 // ------------- GET ------------- //
 
