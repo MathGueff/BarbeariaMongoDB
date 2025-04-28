@@ -123,6 +123,7 @@ export const userLogin = async (req, res) => {
                 name : existingUsuario.name,
                 email: email,
                 password : password
+                isAdmin: existingUsuario.isAdmin
             }
          });
        
