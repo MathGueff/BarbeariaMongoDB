@@ -12,7 +12,7 @@ export const getUsuariosById = async (req, res) => {
             _id : new ObjectId(id)
         })
         if (!usuarios) 
-            return res.status(404).json({ error: true, message: "Usuarios não encontrado" })
+            return res.status(404).json({ error: true, message: "Usuario não encontrado" })
         
         res.status(200).json(usuarios)
     } catch (error) {
@@ -28,13 +28,13 @@ export const createUsuarios = async (req, res) => {
     try {
         const db = req.app.locals.db
 
-        const { nome,
-            login,
-            senha} = req.body
+        const { name,
+            email,
+            password} = req.body
 
             //Checando se já existe um usuario
         const existingUsuario = await db.collection(collectionUsuarios).findOne(
-            {login}
+            {email}
         )
         if (existingUsuario) {
             return res.status(409).json({
@@ -43,24 +43,21 @@ export const createUsuarios = async (req, res) => {
             })
           }
 
-          const newUsuario = {
-            nome,
-            login,
-            senha
-        }
         const result = await db.collection(collectionUsuarios).insertOne({
-            ...newUsuario,
-            nome : nome,
-            login: login,
-            senha : senha
+            name : name,
+            email: email,
+            password : password
         })
       
         res.status(201).json({
-            _id: result.insertedId,
-            ...newUsuario,
-            nome : nome,
-            login: login,
-            senha : senha
+            error: false,
+            message: "Usuário cadastrado com sucesso",
+            data:{
+                _id: result.insertedId,
+                name : name,
+                email: email,
+                password : password
+            }
         })
         } catch (error) {
             console.error("Problema ao criar um usuario:", error)

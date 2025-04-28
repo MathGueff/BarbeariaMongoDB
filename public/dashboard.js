@@ -1,7 +1,8 @@
 import { fetchWithErrorHandling } from "./script.js"
 
 // dashboard.js
-const apiUrl = "https://barbearia-mongo-db-liart.vercel.app/"
+const vercelUrl="https://barbearia-mongo-db-liart.vercel.app/"
+const apiUrl = vercelUrl
 // Módulo do Dashboard de Cliente
 function initializeDashboard() {
   const currentUser = JSON.parse(localStorage.getItem("user"))

@@ -5,15 +5,18 @@ import {
     createUsuarios,
     deleteUsuario,
 }from "../controllers/usuarios.js"
-import {validateObjectId} from "../middleware/validation.js"
+import {validateObjectId, validateUser, validateUserLogin} from "../middleware/validation.js"
 
 const router = express.Router()
 
 // // Get usuario by ID
 router.get("/:id",validateObjectId, getUsuariosById)
 
+// // Fazer login do usuário
+router.post("/login",validateUserLogin, getUsuariosById)
+
 // // Create new usuario
-router.post("/", createUsuarios)
+router.post("/", validateUser,createUsuarios)
 
 // // Delete agendamento
 router.delete("/:id", validateObjectId, deleteUsuario)

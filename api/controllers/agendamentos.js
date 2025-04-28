@@ -164,14 +164,13 @@ export const createAgendamento = async (req, res) => {
             created_at : created_at,
             updated_at : updated_at
         })
-      
+
+        const createdAgendamento = await db.collection(collectionAgendamentos).findOne({_id : result.insertedId})
+       
         res.status(201).json({
-            _id: result.insertedId,
-            ...newAgendamento,
-            status: status, 
-            total_price : total_price,
-            created_at : created_at,
-            updated_at : updated_at
+            error: false,
+            message: "Agendamento cadastrado com sucesso",
+            createdAgendamento
         })
       } catch (error) {
         console.error("Problema ao criar um agendamento:", error)
@@ -237,7 +236,11 @@ export const updateAgendamento = async (req, res) => {
             _id: new ObjectId(id),
         })
     
-        res.status(200).json(updatedAgendamento)
+        res.status(200).json({
+            error: false,
+            message: "Agendamento atualizado com sucesso",
+            updatedAgendamento
+        })
     } catch (error) {
         console.error("Problema ao atualizar um agendamento:", error)
         res.status(500).json({ error: true, message: "Falhou ao atualizar Agendamento" })
@@ -259,7 +262,10 @@ export const deleteAgendamento = async (req, res) => {
                 message : 'Nenhum agendamento encontrado'
             })
 
-        res.status(200).json(result)
+        res.status(200).json({
+            error: false,
+            message: "Agendamento excluído com sucesso"
+        })
         
     } catch (error) {
         console.error("Problema ao deletar um agendamento:", error)

@@ -1,0 +1,77 @@
+// Teste da API REST de agendamentos
+@baseURL = http://localhost:3000/api/usuarios
+@id = 680f8826bc4968bb5d68777f
+
+// ------------- GET ------------- //
+
+###
+// GET - Lista o usuário pelo ID
+GET {{baseURL}}/{{id}}
+Content-Type: application/json
+
+###
+// GET - Lista o usuário pelo ID (com erro)
+GET {{baseURL}}/2
+Content-Type: application/json
+
+###
+// GET - Lista o usuário pelo login (email e senha)
+GET {{baseURL}}/login?email=gueffmatheus@gmail.com&senha=12345
+Content-Type: application/json
+
+
+// ------------- POST ------------- //
+###
+// POST - Faz login do usuário
+POST {{baseURL}}/login
+Content-Type: application/json
+
+{
+    "email" : "gueffmatheus@gmail.com",
+    "password" : "12345"
+}
+
+###
+// POST - Faz login do usuário (com erro)
+POST {{baseURL}}/login
+Content-Type: application/json
+
+{
+    "email" : "gmail.com",
+    "password" : ""
+}
+
+###
+// POST - Insere um novo usuario (Sem erros)
+POST {{baseURL}}
+Content-Type: application/json
+
+{
+    "name" : "Matheus Gueff",
+    "email" : "gueffmatheus@gmail.com",
+    "password" : "12345",
+    "isAdmin" : true
+}
+
+###
+// POST - Insere um novo usuario (Com erros)
+POST {{baseURL}}
+Content-Type: application/json
+
+{
+    "name" : "",
+    "email" : "gueffmatheus@",
+    "password" : "1",
+    "isAdmin" : "sou admin"
+}
+
+// ------------- DELETE ------------- //
+###
+// DELETE - Remove o usuario pelo id
+DELETE {{baseURL}}/{{id}}
+Content-Type: application/json
+
+###
+// DELETE - Remove o usuario pelo id (com erro)
+DELETE {{baseURL}}/2
+Content-Type: application/json

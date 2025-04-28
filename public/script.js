@@ -2,16 +2,81 @@
 
 // Função auxiliar para fazer requisições fetch com tratamento de erros
 export async function fetchWithErrorHandling(url, options = {}) {
+    let responseData = null
+
     try {
-        const response = await fetch(url, options);
-        if (!response.ok) {
-            throw new Error(`Erro ${response.status}: ${response.statusText}`);
-        }
-        return await response.json();
+        const response = await fetch(url, options)
+        responseData = await response.json()
+        console.log(responseData)
+        toastNotification(responseData)
+        return responseData
     } catch (error) {
-        console.error(`Erro na requisição para ${url}:`, error);
-        throw error;
+        console.error(`Erro na requisição para ${url}:`, error)
+        // Cria um objeto de erro para o toast
+        responseData = {
+            error: true,
+            message: error.message || "Ocorreu um erro na requisição",
+        }
+    } finally {
+        // Chama a função de toast com os dados da resposta
+        if (responseData) {
+            toastNotification(responseData)
+        }
     }
+}
+
+export function toastNotification(data) {
+    // Verifica se o objeto data existe e tem as propriedades necessárias
+    if (!data || typeof data.error === "undefined" || !data.message) {
+        return
+    }
+
+    // Cria o elemento toast
+    const toast = document.createElement("div")
+
+    // Estiliza o toast
+    Object.assign(toast.style, {
+        position: "fixed",
+        bottom: "20px",
+        right: "20px",
+        padding: "12px 20px",
+        borderRadius: "4px",
+        color: "white",
+        boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)",
+        zIndex: "9999",
+        minWidth: "250px",
+        maxWidth: "350px",
+        backgroundColor: data.error ? "#f44336" : "#4caf50",
+        fontFamily: "system-ui, -apple-system, sans-serif",
+        animation: "fadeIn 0.3s, fadeOut 0.3s 2.7s",
+    })
+
+    // Adiciona o texto ao toast
+    toast.textContent = data.message
+
+    // Adiciona o CSS para animação
+    const style = document.createElement("style")
+    style.textContent = `
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      @keyframes fadeOut {
+        from { opacity: 1; transform: translateY(0); }
+        to { opacity: 0; transform: translateY(20px); }
+      }
+    `
+    document.head.appendChild(style)
+
+    // Adiciona o toast ao DOM
+    document.body.appendChild(toast)
+
+    // Remove o toast após 3 segundos
+    setTimeout(() => {
+        if (document.body.contains(toast)) {
+            document.body.removeChild(toast)
+        }
+    }, 3000)
 }
 
 // Inicialização por página
