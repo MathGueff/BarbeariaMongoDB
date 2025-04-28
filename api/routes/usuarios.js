@@ -4,6 +4,7 @@ import {
     getUsuariosById,
     createUsuarios,
     deleteUsuario,
+    userLogin
 }from "../controllers/usuarios.js"
 import {validateObjectId, validateUser, validateUserLogin} from "../middleware/validation.js"
 
@@ -13,7 +14,7 @@ const router = express.Router()
 router.get("/:id",validateObjectId, getUsuariosById)
 
 // // Fazer login do usuário
-router.post("/login",validateUserLogin, getUsuariosById)
+router.post("/login", validateUserLogin, userLogin)
 
 // // Create new usuario
 router.post("/", validateUser,createUsuarios)
