@@ -119,6 +119,11 @@ export const userLogin = async (req, res) => {
          return res.status(200).json({
             error: false,
             message: "Autenticado",
+            data:{
+                name : existingUsuario.name,
+                email: email,
+                password : password
+            }
          });
        
         } catch (error) {
