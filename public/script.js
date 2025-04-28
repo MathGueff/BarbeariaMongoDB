@@ -7,22 +7,20 @@ export async function fetchWithErrorHandling(url, options = {}) {
     try {
         const response = await fetch(url, options)
         responseData = await response.json()
-        console.log(responseData)
-        toastNotification(responseData)
-        return responseData
     } catch (error) {
         console.error(`Erro na requisição para ${url}:`, error)
-        // Cria um objeto de erro para o toast
         responseData = {
             error: true,
-            message: error.message || "Ocorreu um erro na requisição",
+            message: error.errors.msg || "Ocorreu um erro na requisição",
         }
     } finally {
         // Chama a função de toast com os dados da resposta
-        if (responseData) {
+        console.log(responseData)
+        if (responseData != null) {
             toastNotification(responseData)
         }
     }
+    return responseData
 }
 
 export function toastNotification(data) {
@@ -51,8 +49,10 @@ export function toastNotification(data) {
         animation: "fadeIn 0.3s, fadeOut 0.3s 2.7s",
     })
 
-    // Adiciona o texto ao toast
-    toast.textContent = data.message
+    if(data.errors)
+        toast.textContent = data.errors[0].msg
+    else
+        toast.textContent = data.message
 
     // Adiciona o CSS para animação
     const style = document.createElement("style")
