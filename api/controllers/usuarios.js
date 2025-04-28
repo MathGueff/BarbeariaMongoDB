@@ -122,7 +122,7 @@ export const userLogin = async (req, res) => {
             data:{
                 name : existingUsuario.name,
                 email: email,
-                password : password
+                password : password,
                 isAdmin: existingUsuario.isAdmin
             }
          });
