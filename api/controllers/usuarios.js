@@ -98,18 +98,18 @@ export const userLogin = async (req, res) => {
 
              //Checando se já existe uma senha
              const existingUsuario = await db.collection(collectionUsuarios).findOne(
-                {login : email}
+                {email : email}
             )
 
             if (!existingUsuario) {
-                return res.status(409).json({
+                return res.status(404).json({
                   error: true,
                   message: "Usuario não encontrado",
                 })
               }
 
-            if(existingUsuario.senha !== password) {
-                return res.status(409).json({
+            if(existingUsuario.password !== password) {
+                return res.status(400).json({
                     error: true,
                     message:"Senha invalida",
                   });
