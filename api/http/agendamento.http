@@ -1,4 +1,3 @@
-// Instale a extensão REST Client para efetuar os testes
 // Teste da API REST de agendamentos
 @baseURL = http://localhost:3000/api/agendamentos
 @id = 680bcf35c00fc4e1c643cef5

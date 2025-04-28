@@ -1,502 +1,80 @@
-[
-  {
-    "nome": "Usuário 1",
-    "login": "usuario1@exemplo.com",
-    "senha": "senha1"
-  },
-  {
-    "nome": "Usuário 2",
-    "login": "usuario2@exemplo.com",
-    "senha": "senha2"
-  },
-  {
-    "nome": "Usuário 3",
-    "login": "usuario3@exemplo.com",
-    "senha": "senha3"
-  },
-  {
-    "nome": "Usuário 4",
-    "login": "usuario4@exemplo.com",
-    "senha": "senha4"
-  },
-  {
-    "nome": "Usuário 5",
-    "login": "usuario5@exemplo.com",
-    "senha": "senha5"
-  },
-  {
-    "nome": "Usuário 6",
-    "login": "usuario6@exemplo.com",
-    "senha": "senha6"
-  },
-  {
-    "nome": "Usuário 7",
-    "login": "usuario7@exemplo.com",
-    "senha": "senha7"
-  },
-  {
-    "nome": "Usuário 8",
-    "login": "usuario8@exemplo.com",
-    "senha": "senha8"
-  },
-  {
-    "nome": "Usuário 9",
-    "login": "usuario9@exemplo.com",
-    "senha": "senha9"
-  },
-  {
-    "nome": "Usuário 10",
-    "login": "usuario10@exemplo.com",
-    "senha": "senha10"
-  },
-  {
-    "nome": "Usuário 11",
-    "login": "usuario11@exemplo.com",
-    "senha": "senha11"
-  },
-  {
-    "nome": "Usuário 12",
-    "login": "usuario12@exemplo.com",
-    "senha": "senha12"
-  },
-  {
-    "nome": "Usuário 13",
-    "login": "usuario13@exemplo.com",
-    "senha": "senha13"
-  },
-  {
-    "nome": "Usuário 14",
-    "login": "usuario14@exemplo.com",
-    "senha": "senha14"
-  },
-  {
-    "nome": "Usuário 15",
-    "login": "usuario15@exemplo.com",
-    "senha": "senha15"
-  },
-  {
-    "nome": "Usuário 16",
-    "login": "usuario16@exemplo.com",
-    "senha": "senha16"
-  },
-  {
-    "nome": "Usuário 17",
-    "login": "usuario17@exemplo.com",
-    "senha": "senha17"
-  },
-  {
-    "nome": "Usuário 18",
-    "login": "usuario18@exemplo.com",
-    "senha": "senha18"
-  },
-  {
-    "nome": "Usuário 19",
-    "login": "usuario19@exemplo.com",
-    "senha": "senha19"
-  },
-  {
-    "nome": "Usuário 20",
-    "login": "usuario20@exemplo.com",
-    "senha": "senha20"
-  },
-  {
-    "nome": "Usuário 21",
-    "login": "usuario21@exemplo.com",
-    "senha": "senha21"
-  },
-  {
-    "nome": "Usuário 22",
-    "login": "usuario22@exemplo.com",
-    "senha": "senha22"
-  },
-  {
-    "nome": "Usuário 23",
-    "login": "usuario23@exemplo.com",
-    "senha": "senha23"
-  },
-  {
-    "nome": "Usuário 24",
-    "login": "usuario24@exemplo.com",
-    "senha": "senha24"
-  },
-  {
-    "nome": "Usuário 25",
-    "login": "usuario25@exemplo.com",
-    "senha": "senha25"
-  },
-  {
-    "nome": "Usuário 26",
-    "login": "usuario26@exemplo.com",
-    "senha": "senha26"
-  },
-  {
-    "nome": "Usuário 27",
-    "login": "usuario27@exemplo.com",
-    "senha": "senha27"
-  },
-  {
-    "nome": "Usuário 28",
-    "login": "usuario28@exemplo.com",
-    "senha": "senha28"
-  },
-  {
-    "nome": "Usuário 29",
-    "login": "usuario29@exemplo.com",
-    "senha": "senha29"
-  },
-  {
-    "nome": "Usuário 30",
-    "login": "usuario30@exemplo.com",
-    "senha": "senha30"
-  },
-  {
-    "nome": "Usuário 31",
-    "login": "usuario31@exemplo.com",
-    "senha": "senha31"
-  },
-  {
-    "nome": "Usuário 32",
-    "login": "usuario32@exemplo.com",
-    "senha": "senha32"
-  },
-  {
-    "nome": "Usuário 33",
-    "login": "usuario33@exemplo.com",
-    "senha": "senha33"
-  },
-  {
-    "nome": "Usuário 34",
-    "login": "usuario34@exemplo.com",
-    "senha": "senha34"
-  },
-  {
-    "nome": "Usuário 35",
-    "login": "usuario35@exemplo.com",
-    "senha": "senha35"
-  },
-  {
-    "nome": "Usuário 36",
-    "login": "usuario36@exemplo.com",
-    "senha": "senha36"
-  },
-  {
-    "nome": "Usuário 37",
-    "login": "usuario37@exemplo.com",
-    "senha": "senha37"
-  },
-  {
-    "nome": "Usuário 38",
-    "login": "usuario38@exemplo.com",
-    "senha": "senha38"
-  },
-  {
-    "nome": "Usuário 39",
-    "login": "usuario39@exemplo.com",
-    "senha": "senha39"
-  },
-  {
-    "nome": "Usuário 40",
-    "login": "usuario40@exemplo.com",
-    "senha": "senha40"
-  },
-  {
-    "nome": "Usuário 41",
-    "login": "usuario41@exemplo.com",
-    "senha": "senha41"
-  },
-  {
-    "nome": "Usuário 42",
-    "login": "usuario42@exemplo.com",
-    "senha": "senha42"
-  },
-  {
-    "nome": "Usuário 43",
-    "login": "usuario43@exemplo.com",
-    "senha": "senha43"
-  },
-  {
-    "nome": "Usuário 44",
-    "login": "usuario44@exemplo.com",
-    "senha": "senha44"
-  },
-  {
-    "nome": "Usuário 45",
-    "login": "usuario45@exemplo.com",
-    "senha": "senha45"
-  },
-  {
-    "nome": "Usuário 46",
-    "login": "usuario46@exemplo.com",
-    "senha": "senha46"
-  },
-  {
-    "nome": "Usuário 47",
-    "login": "usuario47@exemplo.com",
-    "senha": "senha47"
-  },
-  {
-    "nome": "Usuário 48",
-    "login": "usuario48@exemplo.com",
-    "senha": "senha48"
-  },
-  {
-    "nome": "Usuário 49",
-    "login": "usuario49@exemplo.com",
-    "senha": "senha49"
-  },
-  {
-    "nome": "Usuário 50",
-    "login": "usuario50@exemplo.com",
-    "senha": "senha50"
-  },
-  {
-    "nome": "Usuário 51",
-    "login": "usuario51@exemplo.com",
-    "senha": "senha51"
-  },
-  {
-    "nome": "Usuário 52",
-    "login": "usuario52@exemplo.com",
-    "senha": "senha52"
-  },
-  {
-    "nome": "Usuário 53",
-    "login": "usuario53@exemplo.com",
-    "senha": "senha53"
-  },
-  {
-    "nome": "Usuário 54",
-    "login": "usuario54@exemplo.com",
-    "senha": "senha54"
-  },
-  {
-    "nome": "Usuário 55",
-    "login": "usuario55@exemplo.com",
-    "senha": "senha55"
-  },
-  {
-    "nome": "Usuário 56",
-    "login": "usuario56@exemplo.com",
-    "senha": "senha56"
-  },
-  {
-    "nome": "Usuário 57",
-    "login": "usuario57@exemplo.com",
-    "senha": "senha57"
-  },
-  {
-    "nome": "Usuário 58",
-    "login": "usuario58@exemplo.com",
-    "senha": "senha58"
-  },
-  {
-    "nome": "Usuário 59",
-    "login": "usuario59@exemplo.com",
-    "senha": "senha59"
-  },
-  {
-    "nome": "Usuário 60",
-    "login": "usuario60@exemplo.com",
-    "senha": "senha60"
-  },
-  {
-    "nome": "Usuário 61",
-    "login": "usuario61@exemplo.com",
-    "senha": "senha61"
-  },
-  {
-    "nome": "Usuário 62",
-    "login": "usuario62@exemplo.com",
-    "senha": "senha62"
-  },
-  {
-    "nome": "Usuário 63",
-    "login": "usuario63@exemplo.com",
-    "senha": "senha63"
-  },
-  {
-    "nome": "Usuário 64",
-    "login": "usuario64@exemplo.com",
-    "senha": "senha64"
-  },
-  {
-    "nome": "Usuário 65",
-    "login": "usuario65@exemplo.com",
-    "senha": "senha65"
-  },
-  {
-    "nome": "Usuário 66",
-    "login": "usuario66@exemplo.com",
-    "senha": "senha66"
-  },
-  {
-    "nome": "Usuário 67",
-    "login": "usuario67@exemplo.com",
-    "senha": "senha67"
-  },
-  {
-    "nome": "Usuário 68",
-    "login": "usuario68@exemplo.com",
-    "senha": "senha68"
-  },
-  {
-    "nome": "Usuário 69",
-    "login": "usuario69@exemplo.com",
-    "senha": "senha69"
-  },
-  {
-    "nome": "Usuário 70",
-    "login": "usuario70@exemplo.com",
-    "senha": "senha70"
-  },
-  {
-    "nome": "Usuário 71",
-    "login": "usuario71@exemplo.com",
-    "senha": "senha71"
-  },
-  {
-    "nome": "Usuário 72",
-    "login": "usuario72@exemplo.com",
-    "senha": "senha72"
-  },
-  {
-    "nome": "Usuário 73",
-    "login": "usuario73@exemplo.com",
-    "senha": "senha73"
-  },
-  {
-    "nome": "Usuário 74",
-    "login": "usuario74@exemplo.com",
-    "senha": "senha74"
-  },
-  {
-    "nome": "Usuário 75",
-    "login": "usuario75@exemplo.com",
-    "senha": "senha75"
-  },
-  {
-    "nome": "Usuário 76",
-    "login": "usuario76@exemplo.com",
-    "senha": "senha76"
-  },
-  {
-    "nome": "Usuário 77",
-    "login": "usuario77@exemplo.com",
-    "senha": "senha77"
-  },
-  {
-    "nome": "Usuário 78",
-    "login": "usuario78@exemplo.com",
-    "senha": "senha78"
-  },
-  {
-    "nome": "Usuário 79",
-    "login": "usuario79@exemplo.com",
-    "senha": "senha79"
-  },
-  {
-    "nome": "Usuário 80",
-    "login": "usuario80@exemplo.com",
-    "senha": "senha80"
-  },
-  {
-    "nome": "Usuário 81",
-    "login": "usuario81@exemplo.com",
-    "senha": "senha81"
-  },
-  {
-    "nome": "Usuário 82",
-    "login": "usuario82@exemplo.com",
-    "senha": "senha82"
-  },
-  {
-    "nome": "Usuário 83",
-    "login": "usuario83@exemplo.com",
-    "senha": "senha83"
-  },
-  {
-    "nome": "Usuário 84",
-    "login": "usuario84@exemplo.com",
-    "senha": "senha84"
-  },
-  {
-    "nome": "Usuário 85",
-    "login": "usuario85@exemplo.com",
-    "senha": "senha85"
-  },
-  {
-    "nome": "Usuário 86",
-    "login": "usuario86@exemplo.com",
-    "senha": "senha86"
-  },
-  {
-    "nome": "Usuário 87",
-    "login": "usuario87@exemplo.com",
-    "senha": "senha87"
-  },
-  {
-    "nome": "Usuário 88",
-    "login": "usuario88@exemplo.com",
-    "senha": "senha88"
-  },
-  {
-    "nome": "Usuário 89",
-    "login": "usuario89@exemplo.com",
-    "senha": "senha89"
-  },
-  {
-    "nome": "Usuário 90",
-    "login": "usuario90@exemplo.com",
-    "senha": "senha90"
-  },
-  {
-    "nome": "Usuário 91",
-    "login": "usuario91@exemplo.com",
-    "senha": "senha91"
-  },
-  {
-    "nome": "Usuário 92",
-    "login": "usuario92@exemplo.com",
-    "senha": "senha92"
-  },
-  {
-    "nome": "Usuário 93",
-    "login": "usuario93@exemplo.com",
-    "senha": "senha93"
-  },
-  {
-    "nome": "Usuário 94",
-    "login": "usuario94@exemplo.com",
-    "senha": "senha94"
-  },
-  {
-    "nome": "Usuário 95",
-    "login": "usuario95@exemplo.com",
-    "senha": "senha95"
-  },
-  {
-    "nome": "Usuário 96",
-    "login": "usuario96@exemplo.com",
-    "senha": "senha96"
-  },
-  {
-    "nome": "Usuário 97",
-    "login": "usuario97@exemplo.com",
-    "senha": "senha97"
-  },
-  {
-    "nome": "Usuário 98",
-    "login": "usuario98@exemplo.com",
-    "senha": "senha98"
-  },
-  {
-    "nome": "Usuário 99",
-    "login": "usuario99@exemplo.com",
-    "senha": "senha99"
-  },
-  {
-    "nome": "Usuário 100",
-    "login": "usuario100@exemplo.com",
-    "senha": "senha100"
-  }
-]
+[{"name":"Alice Camargo","email":"alice@gmail.com","password":"12345","isAdmin":false},
+{"name":"Aline Barreto","email":"aline@gmail.com","password":"54321","isAdmin":false},
+{"name":"Alonco Muchon","email":"alonco@gmail.com","password":"abcde","isAdmin":false},
+{"name":"Amanda Freitas","email":"amanda@gmail.com","password":"senha1","isAdmin":true},
+{"name":"André Pires","email":"andré@gmail.com","password":"senha2","isAdmin":true},
+{"name":"Anthony Rocha","email":"anthony@gmail.com","password":"12345","isAdmin":true},
+{"name":"Arthur Barreiro","email":"arthur@gmail.com","password":"54321","isAdmin":false},
+{"name":"Augusto Barreto","email":"augusto@gmail.com","password":"abcde","isAdmin":true},
+{"name":"Breno Saldanha","email":"breno@gmail.com","password":"senha1","isAdmin":true},
+{"name":"Bruna Coelho","email":"bruna@gmail.com","password":"senha2","isAdmin":true},
+{"name":"Bruno Barbosa","email":"bruno@gmail.com","password":"12345","isAdmin":true},
+{"name":"Caio Dantas","email":"caio@gmail.com","password":"54321","isAdmin":true},
+{"name":"Camila Ribeiro","email":"camila@gmail.com","password":"abcde","isAdmin":true},
+{"name":"Clara Figueiredo","email":"clara@gmail.com","password":"senha1","isAdmin":true},
+{"name":"Clarice Macedo","email":"clarice@gmail.com","password":"senha2","isAdmin":true},
+{"name":"Daniel Carvalho","email":"daniel@gmail.com","password":"12345","isAdmin":true},
+{"name":"Diego Antunes","email":"diego@gmail.com","password":"54321","isAdmin":true},
+{"name":"Eduarda Maciel","email":"eduarda@gmail.com","password":"abcde","isAdmin":true},
+{"name":"Elisa Fontes","email":"elisa@gmail.com","password":"senha1","isAdmin":true},
+{"name":"Felipe Gonçalves","email":"felipe@gmail.com","password":"senha2","isAdmin":true},
+{"name":"Felipe Prado","email":"felipe2@gmail.com","password":"12345","isAdmin":false},
+{"name":"Fernando Ribeiro","email":"fernando@gmail.com","password":"54321","isAdmin":false},
+{"name":"Fábio Correia","email":"fábio@gmail.com","password":"abcde","isAdmin":false},
+{"name":"Gabriel Oliveira","email":"gabriel@gmail.com","password":"senha1","isAdmin":false},
+{"name":"Gabriela Souza","email":"gabriela@gmail.com","password":"senha2","isAdmin":true},
+{"name":"Giovana Pires","email":"giovana@gmail.com","password":"12345","isAdmin":false},
+{"name":"Guilherme Seabra","email":"guilherme@gmail.com","password":"54321","isAdmin":true},
+{"name":"Gustavo Pinto","email":"gustavo@gmail.com","password":"abcde","isAdmin":true},
+{"name":"Heitor Ribeiro","email":"heitor@gmail.com","password":"senha1","isAdmin":true},
+{"name":"Heloísa Andrade","email":"heloísa@gmail.com","password":"senha2","isAdmin":true},
+{"name":"Heloísa Cordeiro","email":"heloísa2@gmail.com","password":"12345","isAdmin":true},
+{"name":"Henrique Castro","email":"henrique@gmail.com","password":"54321","isAdmin":false},
+{"name":"Henrique Nóbrega","email":"henrique2@gmail.com","password":"abcde","isAdmin":false},
+{"name":"Igor Sales","email":"igor@gmail.com","password":"senha1","isAdmin":true},
+{"name":"Isabela Cardoso","email":"isabela@gmail.com","password":"senha2","isAdmin":true},
+{"name":"Isabella Moreira","email":"isabella@gmail.com","password":"12345","isAdmin":false},
+{"name":"João Monteiro","email":"joão@gmail.com","password":"54321","isAdmin":true},
+{"name":"Larissa Azevedo","email":"larissa@gmail.com","password":"abcde","isAdmin":true},
+{"name":"Laura Rocha","email":"laura@gmail.com","password":"senha1","isAdmin":true},
+{"name":"Leonardo Alencar","email":"leonardo@gmail.com","password":"senha2","isAdmin":false},
+{"name":"Leonardo Teixeira","email":"leonardo2@gmail.com","password":"12345","isAdmin":true},
+{"name":"Letícia Mendes","email":"letícia@gmail.com","password":"54321","isAdmin":false},
+{"name":"Lorenzo Martins","email":"lorenzo@gmail.com","password":"abcde","isAdmin":true},
+{"name":"Louis Carlos","email":"louis@gmail.com","password":"senha1","isAdmin":true},
+{"name":"Luana Siqueira","email":"luana@gmail.com","password":"senha2","isAdmin":true},
+{"name":"Lucas Almeida","email":"lucas@gmail.com","password":"12345","isAdmin":true},
+{"name":"Lucas Rodrigues","email":"lucas2@gmail.com","password":"54321","isAdmin":false},
+{"name":"Lucas Ventura","email":"lucas3@gmail.com","password":"abcde","isAdmin":true},
+{"name":"Luiz Sabino","email":"luiz@gmail.com","password":"senha1","isAdmin":true},
+{"name":"Luísa Teles","email":"luísa@gmail.com","password":"senha2","isAdmin":false},
+{"name":"Lívia Miranda","email":"lívia@gmail.com","password":"12345","isAdmin":true},
+{"name":"Manuela Costa","email":"manuela@gmail.com","password":"54321","isAdmin":true},
+{"name":"Mariana Rangel","email":"mariana@gmail.com","password":"abcde","isAdmin":true},
+{"name":"Matheus Pereira","email":"matheus@gmail.com","password":"senha1","isAdmin":false},
+{"name":"Matheus Silvano","email":"matheus2@gmail.com","password":"senha2","isAdmin":true},
+{"name":"Melissa Cunha","email":"melissa@gmail.com","password":"12345","isAdmin":false},
+{"name":"Nathan Silveira","email":"nathan@gmail.com","password":"54321","isAdmin":true},
+{"name":"Natália Farias","email":"natália@gmail.com","password":"abcde","isAdmin":true},
+{"name":"Otávio França","email":"otávio@gmail.com","password":"senha1","isAdmin":true},
+{"name":"Otávio Silveira","email":"otávio2@gmail.com","password":"senha2","isAdmin":true},
+{"name":"Patrícia Rezende","email":"patrícia@gmail.com","password":"12345","isAdmin":false},
+{"name":"Paula Machado","email":"paula@gmail.com","password":"54321","isAdmin":false},
+{"name":"Paulo Alberto","email":"paulo@gmail.com","password":"abcde","isAdmin":true},
+{"name":"Pedro Fernandes","email":"pedro@gmail.com","password":"senha1","isAdmin":true},
+{"name":"Rafael Cardoso","email":"rafael@gmail.com","password":"senha2","isAdmin":true},
+{"name":"Rafaela Clemente","email":"rafaela@gmail.com","password":"12345","isAdmin":true},
+{"name":"Raquel Assis","email":"raquel@gmail.com","password":"54321","isAdmin":true},
+{"name":"Raul Araújo","email":"raul@gmail.com","password":"abcde","isAdmin":true},
+{"name":"Rebeca Muniz","email":"rebeca@gmail.com","password":"senha1","isAdmin":false},
+{"name":"Rodrigo Batista","email":"rodrigo@gmail.com","password":"senha2","isAdmin":false},
+{"name":"Rodrigo Tavares","email":"rodrigo2@gmail.com","password":"12345","isAdmin":false},
+{"name":"Sabrina Cruz","email":"sabrina@gmail.com","password":"54321","isAdmin":true},
+{"name":"Thiago Rocha","email":"thiago@gmail.com","password":"abcde","isAdmin":true},
+{"name":"Valentina Dias","email":"valentina@gmail.com","password":"senha1","isAdmin":false},
+{"name":"Vinícius Carvalho","email":"vinícius@gmail.com","password":"senha2","isAdmin":true},
+{"name":"Vinícius Cunha","email":"vinícius2@gmail.com","password":"12345","isAdmin":false},
+{"name":"Vitor Passos","email":"vitor@gmail.com","password":"54321","isAdmin":true},
+{"name":"Vitória Lopes","email":"vitória@gmail.com","password":"abcde","isAdmin":false},
+{"name":"Yasmin Silveira","email":"yasmin@gmail.com","password":"senha1","isAdmin":true},
+{"name":"Íris Fernandes","email":"íris@gmail.com","password":"senha2","isAdmin":true}]

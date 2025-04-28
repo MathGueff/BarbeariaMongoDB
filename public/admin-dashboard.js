@@ -1,7 +1,8 @@
 // admin-dashboard.js
 import { fetchWithErrorHandling } from "./script.js"
 
-const apiUrl = "https://barbearia-mongo-db-liart.vercel.app/"
+const vercelUrl="https://barbearia-mongo-db-liart.vercel.app/"
+const apiUrl = vercelUrl
 // Módulo do Dashboard de Administrador
 function initializeAdminDashboard() {
   console.log(apiUrl)
@@ -175,8 +176,22 @@ function initializeAdminDashboard() {
         button.addEventListener("click", () => showConfirmationModal(button, "canceled"))
       })
 
-      document.querySelectorAll(".delete-btn").forEach((button) => {
-        button.addEventListener("click", () => showConfirmationModal(button, "delete"))
+      document.querySelectorAll('.delete-btn').forEach((button) => {
+        button.addEventListener("click", async () => {
+          const appointmentId = button.getAttribute("data-id")
+          const row = button.closest("tr")
+          try {
+            row.style.opacity = "0.4" // Feedback visual
+            await fetchWithErrorHandling(`http://localhost:3000/api/agendamentos/${appointmentId}`, {
+              method: "DELETE",
+              headers: { "Content-Type": "application/json" },
+            })
+          } catch (error) {
+            console.error(`Falha ao deletar:`, error)
+            // Rollback visual se necessário
+            row.style.opacity = "1"
+          }
+        })
       })
     } catch (error) {
       console.log("Não foi possível exibir dados da API " + error)

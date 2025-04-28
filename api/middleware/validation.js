@@ -168,3 +168,43 @@ export const validateUpdateAgendamento = [
   // Aplica as validações
   validateRequest,
 ]
+
+
+export const validateUser = [
+  //Nome do Cliente
+  check('name')
+  .notEmpty()
+  .withMessage("O nome do usuário não pode ser vazio"),
+  check('email')
+  .notEmpty()
+  .withMessage('O email não pode ser vazio')
+  .isEmail()
+  .withMessage('Email inválido'),
+  check('password')
+  .notEmpty()
+  .withMessage('A senha não pode ser vazia')
+  .isLength({min:3})
+  .withMessage('A senha é muito pequena'),
+  check('isAdmin')
+  .notEmpty()
+  .withMessage('O campo é obrigatório')
+  .isBoolean()
+  .withMessage('O campo ')
+  .withMessage("O campo deve ser verdadeiro ou falso"),
+  validateRequest
+]
+
+export const validateUserLogin = [
+  //Nome do Cliente
+  check('email')
+  .notEmpty()
+  .withMessage('O email não pode ser vazio')
+  .isEmail()
+  .withMessage('Email inválido'),
+  check('password')
+  .notEmpty()
+  .withMessage('A senha não pode ser vazia')
+  .isLength({min:3})
+  .withMessage('A senha é muito pequena'),
+  validateRequest
+]
