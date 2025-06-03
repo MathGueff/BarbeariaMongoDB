@@ -2,6 +2,7 @@ import { ObjectId } from "mongodb"
 
 const collectionUsuarios = 'usuarios'
 
+
 // Get usuarios by ID
 export const getUsuariosById = async (req, res) => {
     try {
@@ -114,4 +115,50 @@ export const createUsuarios = async (req, res) => {
         console.error("Problema ao deletar um usuario:", error)
         res.status(500).json({ error: true, message: "Falha ao remover usuario" })
     }
+}
+
+//Verificando login
+export const userLogin = async (req, res) => {
+    try {
+        const db = req.app.locals.db
+
+        const {
+            email,
+            password} = req.body
+
+             //Checando se já existe uma senha
+             const existingUsuario = await db.collection(collectionUsuarios).findOne(
+                {email : email}
+            )
+
+            if (!existingUsuario) {
+                return res.status(404).json({
+                  error: true,
+                  message: "Usuario não encontrado",
+                })
+              }
+
+            if(existingUsuario.password !== password) {
+                return res.status(400).json({
+                    error: true,
+                    message:"Senha invalida",
+                  });
+                }
+            
+        
+         return res.status(200).json({
+            error: false,
+            message: "Autenticado",
+            data:{
+                name : existingUsuario.name,
+                email: email,
+                password : password,
+                isAdmin: existingUsuario.isAdmin
+            }
+         });
+       
+        } catch (error) {
+            console.error("Problema ao fazer login", error)
+            res.status(500).json({ error: true, message: "Falhou ao fazer login" })
+          }
 }

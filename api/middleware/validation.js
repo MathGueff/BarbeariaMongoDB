@@ -23,9 +23,7 @@ export const validateAgendamento = [
     .notEmpty()
     .withMessage('O nome do cliente não pode estar vazio')
     .isLength({ max: 50 })
-    .withMessage("O nome do cliente deve ter no máximo 50 caracteres")
-    .matches(/^[A-Za-zÀ-ú\s()\-.,'"!?]+$/, "i")
-    .withMessage("O nome do cliente deve conter apenas letras, espaços e caracteres especiais válidos"),
+    .withMessage("O nome do cliente deve ter no máximo 50 caracteres"),
   //Nome do barbeiro
   check('barber_name')
     .notEmpty()
@@ -90,9 +88,7 @@ export const validateUpdateAgendamento = [
   check('barber_name')
     .optional()
     .isLength({ max: 50 })
-    .withMessage("O nome do barbeiro deve ter no máximo 50 caracteres")
-    .matches(/^[A-Za-zÀ-ú\s()\-.,'"!?]+$/, "i")
-    .withMessage("O nome do barbeiro deve conter apenas letras, espaços e caracteres especiais válidos"),
+    .withMessage("O nome do barbeiro deve ter no máximo 50 caracteres"),
   //Services
   check('services')
     .optional()
