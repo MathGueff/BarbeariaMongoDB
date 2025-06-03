@@ -657,13 +657,7 @@ function initializeAdminDashboard() {
       adminRegisterMessage.style.color = "#dc3545"
       return
     }
-
-    if (password.length < 6) {
-      adminRegisterMessage.textContent = "A senha deve ter pelo menos 6 caracteres."
-      adminRegisterMessage.style.color = "#dc3545"
-      return
-    }
-
+    
     try {
       adminRegisterMessage.textContent = "Cadastrando administrador..."
       adminRegisterMessage.style.color = "#007bff"
