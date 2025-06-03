@@ -1,420 +1,462 @@
 // admin-dashboard.js
-import { fetchWithErrorHandling } from "./script.js"
+import { fetchWithErrorHandling } from "./script.js";
 
-const vercelUrl = "https://barbearia-mongo-db-liart.vercel.app/"
-const apiUrl = vercelUrl
+const vercelUrl = "https://barbearia-mongo-db-liart.vercel.app/";
+const apiUrl = vercelUrl;
+
 // Módulo do Dashboard de Administrador
 function initializeAdminDashboard() {
-  const currentUser = JSON.parse(localStorage.getItem("user"))
-  if (!currentUser || !currentUser.isAdmin) window.location.href = "login.html"
+  // 1. Verificação de autenticação e configuração inicial
+  const currentUser = JSON.parse(localStorage.getItem("user"));
+  if (!currentUser || !currentUser.isAdmin) window.location.href = "login.html";
 
   // Configurar informações do administrador
-  document.getElementById("adminName").textContent = currentUser.name
+  document.getElementById("adminName").textContent = currentUser.name;
   document.getElementById("logoutBtn").addEventListener("click", () => {
-    localStorage.removeItem("user")
-    window.location.href = "index.html"
-  })
+    localStorage.removeItem("user");
+    window.location.href = "index.html";
+  });
 
-  // Elementos do DOM
-  const statusFilter = document.getElementById("statusFilter")
-  const clientNameInput = document.getElementById("clientNameInput")
-  const barberSelect = document.getElementById("barberSelect")
-  const serviceSelect = document.getElementById("serviceSelect")
-  const startDateFilter = document.getElementById("startDateFilter")
-  const endDateFilter = document.getElementById("endDateFilter")
-  const singleDayFilter = document.getElementById("singleDayFilter")
-  const sortOrderSelect = document.getElementById("sortOrderSelect")
-  const sortColumnSelect = document.getElementById("sortColumnSelect")
-  const todayBtn = document.getElementById("todayBtn")
-  const refreshBtn = document.getElementById("refreshBtn")
-  const clearFiltersBtn = document.getElementById("clearFiltersBtn")
-  const loadingMessage = document.getElementById("loadingMessage")
-  const tableBody = document.getElementById("appointmentsTableBody")
-  const resultsCount = document.getElementById("resultsCount")
-  const prevPageBtn = document.getElementById("prevPageBtn")
-  const nextPageBtn = document.getElementById("nextPageBtn")
-  const paginationNumbers = document.getElementById("paginationNumbers")
-  const itemsPerPageSelect = document.getElementById("itemsPerPage")
-  const confirmationModal = document.getElementById("confirmationModal")
-  const confirmationMessage = document.getElementById("confirmationMessage")
-  const confirmActionBtn = document.getElementById("confirmActionBtn")
-  const cancelActionBtn = document.getElementById("cancelActionBtn")
+  // 2. Seleção de elementos DOM
+  const DOM = {
+    filters: {
+      status: document.getElementById("statusFilter"),
+      clientName: document.getElementById("clientNameInput"),
+      barber: document.getElementById("barberSelect"),
+      service: document.getElementById("serviceSelect"),
+      startDate: document.getElementById("startDateFilter"),
+      endDate: document.getElementById("endDateFilter"),
+      singleDay: document.getElementById("singleDayFilter"),
+      sortOrder: document.getElementById("sortOrderSelect"),
+      sortColumn: document.getElementById("sortColumnSelect"),
+    },
+    buttons: {
+      today: document.getElementById("todayBtn"),
+      refresh: document.getElementById("refreshBtn"),
+      clearFilters: document.getElementById("clearFiltersBtn"),
+      prevPage: document.getElementById("prevPageBtn"),
+      nextPage: document.getElementById("nextPageBtn"),
+    },
+    table: {
+      body: document.getElementById("appointmentsTableBody"),
+      loading: document.getElementById("loadingMessage"),
+      resultsCount: document.getElementById("resultsCount"),
+      paginationNumbers: document.getElementById("paginationNumbers"),
+      itemsPerPage: document.getElementById("itemsPerPage"),
+    },
+    modals: {
+      confirmation: document.getElementById("confirmationModal"),
+      confirmationMessage: document.getElementById("confirmationMessage"),
+      confirmAction: document.getElementById("confirmActionBtn"),
+      cancelAction: document.getElementById("cancelActionBtn"),
+      adminRegistration: document.getElementById("adminRegistrationModal"),
+      adminForm: document.getElementById("adminRegistrationForm"),
+      cancelAdmin: document.getElementById("cancelAdminRegistration"),
+      adminMessage: document.getElementById("adminRegisterMessage"),
+    },
+    adminFormFields: {
+      name: document.getElementById("adminRegisterName"),
+      email: document.getElementById("adminRegisterEmail"),
+      password: document.getElementById("adminRegisterPassword"),
+    },
+    addAdminBtn: document.getElementById("addAdmin"),
+  };
 
-  // Estado da paginação
-  let currentPage = 1
-  let totalPages = 1
-  let itemsPerPage = Number.parseInt(itemsPerPageSelect.value)
-  let totalItems = 0
+  // 3. Estado da aplicação
+  const state = {
+    pendingAction: null,
+    currentPage: 1,
+    totalPages: 1,
+    itemsPerPage: Number.parseInt(DOM.table.itemsPerPage.value),
+    totalItems: 0,
+    simulatedAppointments: JSON.parse(localStorage.getItem("simulatedAppointments")) || [],
+  };
 
-  // Simulação de agendamentos (usando os mesmos dados simulados do dashboard de cliente)
-  const simulatedAppointments = JSON.parse(localStorage.getItem("simulatedAppointments")) || []
+  // 4. Constantes auxiliares
+  const statusLabels = {
+    canceled: "Cancelado",
+    confirmed: "Confirmado",
+    scheduled: "Agendado",
+  };
 
-  // Função para carregar estatísticas e agendamentos
+  // 5. Funções principais
   async function loadStats(page = 1) {
-    loadingMessage.style.display = "block"
-    tableBody.innerHTML = "" // Limpar tabela enquanto carrega
-    currentPage = page
+    DOM.table.loading.style.display = "block";
+    DOM.table.body.innerHTML = "";
+    state.currentPage = page;
 
     try {
-      // Atualizar o número de itens por página
-      itemsPerPage = Number.parseInt(itemsPerPageSelect.value)
-
-      // Montar filtros
-      const filters = {
-        page: page,
-        limit: itemsPerPage,
-      }
-
-      // Pegando valores dos inputs/selects
-      if (statusFilter.value && statusFilter.value !== "all") {
-        filters.status = statusFilter.value
-      }
-
-      // Adicionar filtro de nome do cliente
-      if (clientNameInput.value.trim()) {
-        filters.client_name = clientNameInput.value.trim()
-      }
-
-      // Adicionar filtro de barbeiro
-      if (barberSelect.value && barberSelect.value !== "all") {
-        filters.barber_name = barberSelect.value
-      }
-
-      // Adicionar filtro de serviço
-      if (serviceSelect.value && serviceSelect.value !== "all") {
-        filters.service = serviceSelect.value
-      }
-
-      // Adicionar filtro de data
-      if (startDateFilter.value) {
-        filters.start_date = startDateFilter.value
-      }
-
-      if (endDateFilter.value) {
-        filters.end_date = endDateFilter.value
-      }
-
-      // Adicionar ordenação
-      if (sortColumnSelect.value) {
-        filters.sort = sortColumnSelect.value
-        filters.order = sortOrderSelect.value
-      }
-
-      // Montar query string com URLSearchParams
-      const queryString = new URLSearchParams(filters).toString()
-      const appointmentsUrl = `${apiUrl}api/agendamentos${queryString ? "?" + queryString : ""}`
-
-      console.log(appointmentsUrl) // conferindo a URL final
-
-      const appointments = await fetchWithErrorHandling(appointmentsUrl)
-
-      // Carregar opções de barbeiros e serviços se ainda não foram carregadas
-      if (barberSelect.options.length <= 1) {
-        // Código para carregar barbeiros
-        // await loadBarbers();
-      }
-
-      if (serviceSelect.options.length <= 1) {
-        // Código para carregar serviços
-        // await loadServices();
-      }
-
-      // Atualizar estatísticas
       const totalAppointments = await fetchWithErrorHandling(`${apiUrl}api/agendamentos/total`)
       document.getElementById("totalAppointments").textContent = totalAppointments.count
 
-      // Atualizar informações de paginação
-      totalItems = appointments.pagination.total
-      totalPages = appointments.pagination.pages
-      currentPage = appointments.pagination.page
-      itemsPerPage = appointments.pagination.limit
+      state.itemsPerPage = Number.parseInt(DOM.table.itemsPerPage.value);
+      const filters = buildFilters(page);
+      const appointments = await fetchAppointments(filters);
+      
+      updateStatistics(appointments);
+      renderAppointments(appointments.data);
+      setupActionButtons();
+    } catch (error) {
+      console.log("Não foi possível exibir dados da API " + error);
+      loadStatsSimulated(page);
+    } finally {
+      DOM.table.loading.style.display = "none";
+    }
+  }
 
-      // Atualizar contador de resultados
-      updateResultsCount(appointments.data.length, totalItems)
+  function loadStatsSimulated(page = 1) {
+    DOM.table.loading.style.display = "block";
+    DOM.table.body.innerHTML = "";
+    state.itemsPerPage = Number.parseInt(DOM.table.itemsPerPage.value);
 
-      // Atualizar controles de paginação
-      updatePaginationControls()
+    const filteredAppointments = filterSimulatedAppointments();
+    updatePaginationState(filteredAppointments.length, page);
+    renderSimulatedAppointments(filteredAppointments, page);
+    DOM.table.loading.style.display = "none";
+  }
 
-      const statusLabels = {
-        canceled: "Cancelado",
-        confirmed: "Confirmado",
-        scheduled: "Agendado",
-      }
+  // 6. Funções auxiliares
+  function buildFilters(page) {
+    const filters = {
+      page: page,
+      limit: state.itemsPerPage,
+    };
 
-      // Carregar agendamentos na tabela
-      appointments.data.forEach((appointment) => {
-        const row = document.createElement("tr")
-        row.innerHTML = `
-          <td>${new Date(appointment.date).toLocaleString("pt-BR")}</td>
-          <td>${appointment.client_name}</td>
-          <td>${appointment.services.map((service) => service.name).join(", ")}</td>
-          <td>${appointment.barber_name}</td>
-          <td>${appointment.total_price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
-          <td class='status-${appointment.status}'>${statusLabels[appointment.status] || appointment.status}</td>
-          <td class='appointments-table-actions'>
-            ${appointment.status === "scheduled"
+    if (DOM.filters.status.value && DOM.filters.status.value !== "all") {
+      filters.status = DOM.filters.status.value;
+    }
+
+    if (DOM.filters.clientName.value.trim()) {
+      filters.client_name = DOM.filters.clientName.value.trim();
+    }
+
+    if (DOM.filters.barber.value && DOM.filters.barber.value !== "all") {
+      filters.barber_name = DOM.filters.barber.value;
+    }
+
+    if (DOM.filters.service.value && DOM.filters.service.value !== "all") {
+      filters.service = DOM.filters.service.value;
+    }
+
+    if (DOM.filters.startDate.value) {
+      filters.start_date = DOM.filters.startDate.value;
+    }
+
+    if (DOM.filters.endDate.value) {
+      filters.end_date = DOM.filters.endDate.value;
+    }
+
+    if (DOM.filters.sortColumn.value) {
+      filters.sort = DOM.filters.sortColumn.value;
+      filters.order = DOM.filters.sortOrder.value;
+    }
+
+    return filters;
+  }
+
+  async function fetchAppointments(filters) {
+    const queryString = new URLSearchParams(filters).toString();
+    const appointmentsUrl = `${apiUrl}api/agendamentos${queryString ? "?" + queryString : ""}`;
+    return await fetchWithErrorHandling(appointmentsUrl);
+  }
+
+  function updateStatistics(appointments) {
+    state.totalItems = appointments.pagination.total;
+    state.totalPages = appointments.pagination.pages;
+    state.currentPage = appointments.pagination.page;
+    state.itemsPerPage = appointments.pagination.limit;
+    updateResultsCount(appointments.data.length, state.totalItems);
+    updatePaginationControls();
+  }
+
+  function renderAppointments(appointments) {
+    appointments.forEach(appointment => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${new Date(appointment.date).toLocaleString("pt-BR")}</td>
+        <td>${appointment.client_name}</td>
+        <td>${appointment.services.map(service => service.name).join(", ")}</td>
+        <td>${appointment.barber_name}</td>
+        <td>${appointment.total_price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
+        <td class='status-${appointment.status}'>${statusLabels[appointment.status] || appointment.status}</td>
+        <td class='appointments-table-actions'>
+          ${appointment.status === "scheduled"
             ? `<button class="btn btn-confirm confirm-btn" data-id="${appointment._id}">Confirmar</button>
-                   <button class="btn btn-secondary cancel-btn" data-id="${appointment._id}">Cancelar</button>`
+               <button class="btn btn-secondary cancel-btn" data-id="${appointment._id}">Cancelar</button>`
             : appointment.status === "canceled"
               ? `<button class="btn btn-secondary delete-btn" data-id="${appointment._id}">Deletar</button>`
               : "-"
           }
-          </td>
-        `
-        tableBody.appendChild(row)
-      })
-
-      // Adicionar eventos aos botões de confirmar
-      document.querySelectorAll(".confirm-btn").forEach((button) => {
-        button.addEventListener("click", () => showConfirmationModal(button, "confirmed"))
-      })
-
-      // Adicionar eventos aos botões de cancelar
-      document.querySelectorAll(".cancel-btn").forEach((button) => {
-        button.addEventListener("click", () => showConfirmationModal(button, "canceled"))
-      })
-
-      document.querySelectorAll('.delete-btn').forEach((button) => {
-        button.addEventListener("click", async () => {
-          const appointmentId = button.getAttribute("data-id")
-          const row = button.closest("tr")
-          try {
-            row.style.opacity = "0.4" // Feedback visual
-            await fetchWithErrorHandling(`${apiUrl}api/agendamentos/${appointmentId}`, {
-              method: "DELETE",
-              headers: { "Content-Type": "application/json" },
-            })
-          } catch (error) {
-            console.error(`Falha ao deletar:`, error)
-            // Rollback visual se necessário
-            row.style.opacity = "1"
-          }
-        })
-      })
-    } catch (error) {
-      console.log("Não foi possível exibir dados da API " + error)
-      // Se o backend não estiver disponível, usar a simulação
-      loadStatsSimulated(page)
-    } finally {
-      loadingMessage.style.display = "none"
-    }
+        </td>
+      `;
+      DOM.table.body.appendChild(row);
+    });
   }
 
-  // Definindo a função separadamente
-  function handleConfirmClick(appointmentId, action, button) {
-    confirmationModal.style.display = "none";
-    if (action === "delete") {
-      deleteAppointment(appointmentId, button);
-    } else {
-      updateAppointmentStatus(appointmentId, action, button);
-    }
+  function setupActionButtons() {
+    document.querySelectorAll(".confirm-btn").forEach(button => {
+      button.addEventListener("click", () => showConfirmationModal(button, "confirmed"));
+    });
+
+    document.querySelectorAll(".cancel-btn").forEach(button => {
+      button.addEventListener("click", () => showConfirmationModal(button, "canceled"));
+    });
+
+    document.querySelectorAll(".delete-btn").forEach(button => {
+      button.addEventListener("click", () => showConfirmationModal(button, "delete"));
+    });
   }
 
-  function showConfirmationModal(button, action) {
-    const appointmentId = button.getAttribute("data-id");
-    let message = "";
+  // 7. Funções de manipulação de agendamentos
+ 
+ function showConfirmationModal(button, action) {
+  const appointmentId = button.getAttribute("data-id");
+  let message = "";
 
-    switch (action) {
-      case "confirmed":
-        message = "Deseja confirmar este agendamento?";
-        break;
-      case "canceled":
-        message = "Deseja cancelar este agendamento?";
-        break;
-      case "delete":
-        message = "Deseja excluir este agendamento permanentemente?";
-        break;
-    }
-
-    confirmationMessage.textContent = message;
-    confirmationModal.style.display = "flex";
-
-    // Remove todos os listeners antigos (criando botão novo)
-    confirmActionBtn.replaceWith(confirmActionBtn.cloneNode(true));
-    cancelActionBtn.replaceWith(cancelActionBtn.cloneNode(true));
-
-    // Atualizar as referências depois de clonar
-    const newConfirmBtn = document.getElementById("confirmActionBtn");
-    const newCancelBtn = document.getElementById("cancelActionBtn");
-
-    newConfirmBtn.addEventListener("click", () => handleConfirmClick(appointmentId, action, button));
-    newCancelBtn.addEventListener("click", () => confirmationModal.style.display = "none");
+  switch (action) {
+    case "confirmed": message = "Deseja confirmar este agendamento?"; break;
+    case "canceled": message = "Deseja cancelar este agendamento?"; break;
+    case "delete": message = "Deseja excluir este agendamento permanentemente?"; break;
   }
 
+  // Armazena a ação pendente no state
+  state.pendingAction = {
+    id: appointmentId,
+    action: action,
+    button: button
+  };
 
+  DOM.modals.confirmationMessage.textContent = message;
+  DOM.modals.confirmation.style.display = "flex";
 
-  // Função para atualizar o status do agendamento
+  // Remove todos os listeners antigos
+  DOM.modals.confirmAction.onclick = null;
+  DOM.modals.cancelAction.onclick = null;
+
+  // Adiciona os novos listeners
+  DOM.modals.confirmAction.addEventListener("click", executePendingAction);
+  DOM.modals.cancelAction.addEventListener("click", () => {
+    DOM.modals.confirmation.style.display = "none";
+    state.pendingAction = null;
+  });
+}
+
+function executePendingAction() {
+  if (!state.pendingAction) return;
+  
+  const { id, action, button } = state.pendingAction;
+  DOM.modals.confirmation.style.display = "none";
+  
+  if (action === "delete") {
+    deleteAppointment(id, button);
+  } else {
+    updateAppointmentStatus(id, action, button);
+  }
+  
+  state.pendingAction = null;
+}
+
   async function updateAppointmentStatus(appointmentId, statusValue, button) {
-    const row = button.closest("tr")
-
-    const action = statusValue == "canceled" ? "cancelar" : "confirmar"
-    const statusTextContent = statusValue == "canceled" ? "Cancelado" : "Confirmado"
+    const row = button.closest("tr");
+    const action = statusValue == "canceled" ? "cancelar" : "confirmar";
+    const statusTextContent = statusValue == "canceled" ? "Cancelado" : "Confirmado";
 
     try {
-      row.style.opacity = "0.7" // Feedback visual
+      row.style.opacity = "0.7";
       await fetchWithErrorHandling(`${apiUrl}api/agendamentos/${appointmentId}/${action}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-      })
+      });
 
-      // Atualização direta do DOM (sem recarregar tudo)
-      row.cells[5].textContent = statusTextContent // Status
-      row.cells[5].classList.remove(`status-scheduled`)
-      row.cells[5].classList.add(`status-${statusValue}`)
-      row.cells[6].innerHTML = "-" // Ações
+      // Update DOM directly
+      row.cells[5].textContent = statusTextContent;
+      row.cells[5].classList.remove(`status-scheduled`);
+      row.cells[5].classList.add(`status-${statusValue}`);
+      row.cells[6].innerHTML = "-";
     } catch (error) {
-      console.error(`Falha ao ${action}:`, error)
-      // Rollback visual se necessário
-      row.style.opacity = "1"
+      console.error(`Falha ao ${action}:`, error);
+      row.style.opacity = "1";
     }
   }
 
-  // Função para deletar um agendamento
   async function deleteAppointment(appointmentId, button) {
-    const row = button.closest("tr")
+    const row = button.closest("tr");
     try {
-      row.style.opacity = "0.4" // Feedback visual
+      row.style.opacity = "0.4";
       await fetchWithErrorHandling(`${apiUrl}api/agendamentos/${appointmentId}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-      })
+      });
 
-      // Remover a linha da tabela após exclusão bem-sucedida
-      row.remove()
-
-      // Atualizar contador
-      updateResultsCount(document.querySelectorAll("#appointmentsTableBody tr").length, totalItems - 1)
-      const totalAppointments = await fetchWithErrorHandling(`${apiUrl}api/agendamentos/total`)
-      document.getElementById("totalAppointments").textContent = totalAppointments.count
+      row.remove();
+      updateResultsCount(document.querySelectorAll("#appointmentsTableBody tr").length, state.totalItems - 1);
+      const totalAppointments = await fetchWithErrorHandling(`${apiUrl}api/agendamentos/total`);
+      document.getElementById("totalAppointments").textContent = totalAppointments.count;
     } catch (error) {
-      console.error(`Falha ao deletar:`, error)
-      // Rollback visual se necessário
-      row.style.opacity = "1"
+      console.error(`Falha ao deletar:`, error);
+      row.style.opacity = "1";
     }
   }
 
-  // Função para carregar estatísticas e agendamentos simulados
-  function loadStatsSimulated(page = 1) {
-    loadingMessage.style.display = "block"
-    tableBody.innerHTML = "" // Limpar tabela enquanto carrega
+  // 8. Funções de paginação e filtros
+  function updateResultsCount(currentCount, totalCount) {
+    DOM.table.resultsCount.textContent = `Exibindo ${currentCount} de ${totalCount} agendamentos`;
+  }
 
-    // Atualizar o número de itens por página
-    itemsPerPage = Number.parseInt(itemsPerPageSelect.value)
+  function updatePaginationControls() {
+    DOM.buttons.prevPage.disabled = state.currentPage <= 1;
+    DOM.buttons.nextPage.disabled = state.currentPage >= state.totalPages;
+    DOM.table.paginationNumbers.innerHTML = "";
 
-    // Simulação de clientes (apenas para exibir algo nas estatísticas)
-    const simulatedClients = JSON.parse(localStorage.getItem("simulatedClients")) || [{ name: currentUser.name }]
+    if (state.totalPages <= 0) return;
 
-    // Atualizar estatísticas
-    document.getElementById("totalAppointments").textContent = simulatedAppointments.length
-    document.getElementById("totalClients").textContent = simulatedClients.length
+    let startPage = Math.max(1, state.currentPage - 2);
+    const endPage = Math.min(state.totalPages, startPage + 4);
 
-    // Aplicar filtros aos dados simulados
-    let filteredAppointments = [...simulatedAppointments]
-
-    // Filtrar por status
-    const selectedStatus = statusFilter.value
-    if (selectedStatus !== "all") {
-      filteredAppointments = filteredAppointments.filter((appointment) => appointment.status === selectedStatus)
+    if (endPage - startPage < 4 && startPage > 1) {
+      startPage = Math.max(1, endPage - 4);
     }
 
-    // Filtrar por nome do cliente
-    if (clientNameInput.value.trim()) {
-      const searchTerm = clientNameInput.value.trim().toLowerCase()
-      filteredAppointments = filteredAppointments.filter((appointment) =>
-        appointment.client_name.toLowerCase().includes(searchTerm),
-      )
+    if (startPage > 1) {
+      addPageNumber(1);
+      if (startPage > 2) {
+        addEllipsis();
+      }
     }
 
-    // Filtrar por barbeiro
-    if (barberSelect.value && barberSelect.value !== "all") {
-      filteredAppointments = filteredAppointments.filter((appointment) => appointment.barber_id === barberSelect.value)
+    for (let i = startPage; i <= endPage; i++) {
+      addPageNumber(i);
     }
 
-    // Filtrar por serviço
-    if (serviceSelect.value && serviceSelect.value !== "all") {
-      filteredAppointments = filteredAppointments.filter((appointment) =>
-        appointment.service.some((service) => service.id === serviceSelect.value),
-      )
+    if (endPage < state.totalPages) {
+      if (endPage < state.totalPages - 1) {
+        addEllipsis();
+      }
+      addPageNumber(state.totalPages);
+    }
+  }
+
+  function addPageNumber(pageNum) {
+    const pageElement = document.createElement("div");
+    pageElement.className = `page-number ${pageNum === state.currentPage ? "active" : ""}`;
+    pageElement.textContent = pageNum;
+    pageElement.addEventListener("click", () => {
+      if (pageNum !== state.currentPage) {
+        loadStats(pageNum);
+      }
+    });
+    DOM.table.paginationNumbers.appendChild(pageElement);
+  }
+
+  function addEllipsis() {
+    const ellipsis = document.createElement("div");
+    ellipsis.className = "page-number";
+    ellipsis.textContent = "...";
+    ellipsis.style.cursor = "default";
+    DOM.table.paginationNumbers.appendChild(ellipsis);
+  }
+
+  function clearFilters() {
+    DOM.filters.status.value = "all";
+    DOM.filters.clientName.value = "";
+    DOM.filters.barber.value = "all";
+    DOM.filters.service.value = "all";
+    DOM.filters.startDate.value = "";
+    DOM.filters.endDate.value = "";
+    DOM.filters.singleDay.checked = false;
+    DOM.filters.sortOrder.value = "asc";
+    DOM.filters.sortColumn.value = "date";
+    loadStats(1);
+  }
+
+  function setToday() {
+    const today = new Date().toISOString().split("T")[0];
+    DOM.filters.startDate.value = today;
+    DOM.filters.endDate.value = today;
+    DOM.filters.singleDay.checked = true;
+  }
+
+  function syncDates() {
+    if (DOM.filters.singleDay.checked) {
+      if (this === DOM.filters.startDate) {
+        DOM.filters.endDate.value = DOM.filters.startDate.value;
+      } else {
+        DOM.filters.startDate.value = DOM.filters.endDate.value;
+      }
+    }
+    loadStats();
+  }
+
+  // 9. Funções para dados simulados
+  function filterSimulatedAppointments() {
+    let filteredAppointments = [...state.simulatedAppointments];
+
+    if (DOM.filters.status.value !== "all") {
+      filteredAppointments = filteredAppointments.filter(a => a.status === DOM.filters.status.value);
     }
 
-    // Filtrar por data
-    if (startDateFilter.value) {
-      const startDate = new Date(startDateFilter.value)
-      startDate.setHours(0, 0, 0, 0)
-
-      filteredAppointments = filteredAppointments.filter((appointment) => {
-        const appointmentDate = new Date(appointment.date)
-        return appointmentDate >= startDate
-      })
+    if (DOM.filters.clientName.value.trim()) {
+      const searchTerm = DOM.filters.clientName.value.trim().toLowerCase();
+      filteredAppointments = filteredAppointments.filter(a => a.client_name.toLowerCase().includes(searchTerm));
     }
 
-    if (endDateFilter.value) {
-      const endDate = new Date(endDateFilter.value)
-      endDate.setHours(23, 59, 59, 999)
-
-      filteredAppointments = filteredAppointments.filter((appointment) => {
-        const appointmentDate = new Date(appointment.date)
-        return appointmentDate <= endDate
-      })
+    if (DOM.filters.barber.value && DOM.filters.barber.value !== "all") {
+      filteredAppointments = filteredAppointments.filter(a => a.barber_id === DOM.filters.barber.value);
     }
 
-    // Aplicar ordenação
-    if (sortColumnSelect.value) {
-      const sortColumn = sortColumnSelect.value
-      const sortOrder = sortOrderSelect.value
+    if (DOM.filters.service.value && DOM.filters.service.value !== "all") {
+      filteredAppointments = filteredAppointments.filter(a => a.service.some(s => s.id === DOM.filters.service.value));
+    }
+
+    if (DOM.filters.startDate.value) {
+      const startDate = new Date(DOM.filters.startDate.value);
+      startDate.setHours(0, 0, 0, 0);
+      filteredAppointments = filteredAppointments.filter(a => new Date(a.date) >= startDate);
+    }
+
+    if (DOM.filters.endDate.value) {
+      const endDate = new Date(DOM.filters.endDate.value);
+      endDate.setHours(23, 59, 59, 999);
+      filteredAppointments = filteredAppointments.filter(a => new Date(a.date) <= endDate);
+    }
+
+    if (DOM.filters.sortColumn.value) {
+      const sortColumn = DOM.filters.sortColumn.value;
+      const sortOrder = DOM.filters.sortOrder.value;
 
       filteredAppointments.sort((a, b) => {
-        let valueA, valueB
+        let valueA, valueB;
 
         switch (sortColumn) {
-          case "date":
-            valueA = new Date(a.date)
-            valueB = new Date(b.date)
-            break
-          case "client_name":
-            valueA = a.client_name.toLowerCase()
-            valueB = b.client_name.toLowerCase()
-            break
-          case "barber_name":
-            valueA = a.barber_name.toLowerCase()
-            valueB = b.barber_name.toLowerCase()
-            break
-          case "service":
-            valueA = a.service[0].toLowerCase()
-            valueB = b.service[0].toLowerCase()
-            break
-          default:
-            valueA = new Date(a.date)
-            valueB = new Date(b.date)
+          case "date": valueA = new Date(a.date); valueB = new Date(b.date); break;
+          case "client_name": valueA = a.client_name.toLowerCase(); valueB = b.client_name.toLowerCase(); break;
+          case "barber_name": valueA = a.barber_name.toLowerCase(); valueB = b.barber_name.toLowerCase(); break;
+          case "service": valueA = a.service[0].toLowerCase(); valueB = b.service[0].toLowerCase(); break;
+          default: valueA = new Date(a.date); valueB = new Date(b.date);
         }
 
-        if (sortOrder === "asc") {
-          return valueA > valueB ? 1 : -1
-        } else {
-          return valueA < valueB ? 1 : -1
-        }
-      })
+        return sortOrder === "asc" ? (valueA > valueB ? 1 : -1) : (valueA < valueB ? 1 : -1);
+      });
     }
 
-    // Atualizar informações de paginação para simulação
-    totalItems = filteredAppointments.length
-    totalPages = Math.ceil(totalItems / itemsPerPage)
-    currentPage = page > totalPages ? 1 : page
+    return filteredAppointments;
+  }
 
-    // Aplicar paginação aos dados simulados
-    const startIndex = (currentPage - 1) * itemsPerPage
-    const endIndex = startIndex + itemsPerPage
-    const paginatedAppointments = filteredAppointments.slice(startIndex, endIndex)
+  function updatePaginationState(totalItems, page) {
+    state.totalItems = totalItems;
+    state.totalPages = Math.ceil(totalItems / state.itemsPerPage);
+    state.currentPage = page > state.totalPages ? 1 : page;
+    updateResultsCount(Math.min(state.itemsPerPage, totalItems - (state.currentPage - 1) * state.itemsPerPage), totalItems);
+    updatePaginationControls();
+  }
 
-    // Atualizar contador de resultados
-    updateResultsCount(paginatedAppointments.length, totalItems)
+  function renderSimulatedAppointments(appointments, page) {
+    const startIndex = (page - 1) * state.itemsPerPage;
+    const endIndex = startIndex + state.itemsPerPage;
+    const paginatedAppointments = appointments.slice(startIndex, endIndex);
 
-    // Atualizar controles de paginação
-    updatePaginationControls()
-
-    // Carregar agendamentos na tabela
-    paginatedAppointments.forEach((appointment) => {
-      const row = document.createElement("tr")
+    paginatedAppointments.forEach(appointment => {
+      const row = document.createElement("tr");
       row.innerHTML = `
         <td>${new Date(appointment.date).toLocaleString("pt-BR")}</td>
         <td>${appointment.client_name}</td>
@@ -423,274 +465,135 @@ function initializeAdminDashboard() {
         <td class="status-${appointment.status}">${appointment.status}</td>
         <td>
           ${appointment.status === "scheduled"
-          ? `<button class="btn btn-confirm confirm-btn" data-id="${appointment._id}">Confirmar</button>
-                 <button class="btn btn-secondary cancel-btn" data-id="${appointment._id}">Cancelar</button>`
-          : appointment.status === "canceled"
-            ? `<button class="btn btn-secondary delete-btn" data-id="${appointment._id}">Deletar</button>`
-            : "-"
-        }
+            ? `<button class="btn btn-confirm confirm-btn" data-id="${appointment._id}">Confirmar</button>
+               <button class="btn btn-secondary cancel-btn" data-id="${appointment._id}">Cancelar</button>`
+            : appointment.status === "canceled"
+              ? `<button class="btn btn-secondary delete-btn" data-id="${appointment._id}">Deletar</button>`
+              : "-"
+          }
         </td>
-      `
-      tableBody.appendChild(row)
-    })
+      `;
+      DOM.table.body.appendChild(row);
+    });
 
-    // Adicionar eventos aos botões de confirmar
-    document.querySelectorAll(".confirm-btn").forEach((button) => {
-      button.addEventListener("click", () => showConfirmationModal(button, "confirmed"))
-    })
+    document.querySelectorAll(".confirm-btn").forEach(button => {
+      button.addEventListener("click", () => showConfirmationModal(button, "confirmed"));
+    });
 
-    // Adicionar eventos aos botões de cancelar
-    document.querySelectorAll(".cancel-btn").forEach((button) => {
-      button.addEventListener("click", () => showConfirmationModal(button, "canceled"))
-    })
+    document.querySelectorAll(".cancel-btn").forEach(button => {
+      button.addEventListener("click", () => showConfirmationModal(button, "canceled"));
+    });
 
-    // Adicionar eventos aos botões de deletar
-    document.querySelectorAll(".delete-btn").forEach((button) => {
-      button.addEventListener("click", () => showConfirmationModal(button, "delete"))
-    })
-
-    loadingMessage.style.display = "none"
+    document.querySelectorAll(".delete-btn").forEach(button => {
+      button.addEventListener("click", () => showConfirmationModal(button, "delete"));
+    });
   }
 
-  // Função para atualizar o contador de resultados
-  function updateResultsCount(currentCount, totalCount) {
-    resultsCount.textContent = `Exibindo ${currentCount} de ${totalCount} agendamentos`
-  }
+  // 10. Funções para cadastro de administrador
+  function setupAdminRegistration() {
+    DOM.addAdminBtn.addEventListener("click", () => {
+      DOM.modals.adminRegistration.style.display = "flex";
+      DOM.modals.adminMessage.textContent = "";
+    });
 
-  // Função para atualizar os controles de paginação
-  function updatePaginationControls() {
-    // Atualizar botões de navegação
-    prevPageBtn.disabled = currentPage <= 1
-    nextPageBtn.disabled = currentPage >= totalPages
+    DOM.modals.cancelAdmin.addEventListener("click", () => {
+      DOM.modals.adminRegistration.style.display = "none";
+      DOM.modals.adminForm.reset();
+      DOM.modals.adminMessage.textContent = "";
+    });
 
-    // Limpar e recriar números de página
-    paginationNumbers.innerHTML = ""
-
-    // Se não houver páginas, não mostrar paginação
-    if (totalPages <= 0) {
-      return
-    }
-
-    // Determinar quais números de página mostrar
-    let startPage = Math.max(1, currentPage - 2)
-    const endPage = Math.min(totalPages, startPage + 4)
-
-    // Ajustar se estamos perto do final
-    if (endPage - startPage < 4 && startPage > 1) {
-      startPage = Math.max(1, endPage - 4)
-    }
-
-    // Adicionar primeira página se não estiver incluída
-    if (startPage > 1) {
-      addPageNumber(1)
-      if (startPage > 2) {
-        addEllipsis()
+    DOM.modals.adminRegistration.addEventListener("click", (e) => {
+      if (e.target === DOM.modals.adminRegistration) {
+        DOM.modals.adminRegistration.style.display = "none";
+        DOM.modals.adminForm.reset();
+        DOM.modals.adminMessage.textContent = "";
       }
-    }
+    });
 
-    // Adicionar números de página
-    for (let i = startPage; i <= endPage; i++) {
-      addPageNumber(i)
-    }
+    DOM.modals.adminForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
 
-    // Adicionar última página se não estiver incluída
-    if (endPage < totalPages) {
-      if (endPage < totalPages - 1) {
-        addEllipsis()
+      const name = DOM.adminFormFields.name.value.trim();
+      const email = DOM.adminFormFields.email.value.trim();
+      const password = DOM.adminFormFields.password.value;
+
+      if (!name || !email || !password) {
+        DOM.modals.adminMessage.textContent = "Todos os campos são obrigatórios.";
+        DOM.modals.adminMessage.style.color = "#dc3545";
+        return;
       }
-      addPageNumber(totalPages)
-    }
-  }
+      
+      try {
+        DOM.modals.adminMessage.textContent = "Cadastrando administrador...";
+        DOM.modals.adminMessage.style.color = "#007bff";
 
-  // Função para adicionar um número de página
-  function addPageNumber(pageNum) {
-    const pageElement = document.createElement("div")
-    pageElement.className = `page-number ${pageNum === currentPage ? "active" : ""}`
-    pageElement.textContent = pageNum
-    pageElement.addEventListener("click", () => {
-      if (pageNum !== currentPage) {
-        loadStats(pageNum)
+        const response = await fetchWithErrorHandling(`${apiUrl}api/usuarios`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, email, password, isAdmin: true }),
+        });
+
+        if (!response.error) {
+          DOM.modals.adminMessage.textContent = "Administrador cadastrado com sucesso!";
+          DOM.modals.adminMessage.style.color = "#28a745";
+          DOM.modals.adminForm.reset();
+
+          setTimeout(() => {
+            DOM.modals.adminRegistration.style.display = "none";
+            DOM.modals.adminMessage.textContent = "";
+          }, 2000);
+        } else {
+          DOM.modals.adminMessage.textContent = response.message || "Erro ao cadastrar administrador.";
+          DOM.modals.adminMessage.style.color = "#dc3545";
+        }
+      } catch (error) {
+        console.error("Erro ao cadastrar administrador:", error);
+        DOM.modals.adminMessage.textContent = "Erro de conexão. Tente novamente.";
+        DOM.modals.adminMessage.style.color = "#dc3545";
       }
-    })
-    paginationNumbers.appendChild(pageElement)
+    });
   }
 
-  // Função para adicionar reticências na paginação
-  function addEllipsis() {
-    const ellipsis = document.createElement("div")
-    ellipsis.className = "page-number"
-    ellipsis.textContent = "..."
-    ellipsis.style.cursor = "default"
-    paginationNumbers.appendChild(ellipsis)
-  }
-
-  // Função para limpar todos os filtros
-  function clearFilters() {
-    statusFilter.value = "all"
-    clientNameInput.value = ""
-    barberSelect.value = "all"
-    serviceSelect.value = "all"
-    startDateFilter.value = ""
-    endDateFilter.value = ""
-    singleDayFilter.checked = false
-    sortOrderSelect.value = "asc"
-    sortColumnSelect.value = "date"
-    loadStats(1)
-  }
-
-  // Função para definir a data de hoje
-  function setToday() {
-    const today = new Date().toISOString().split("T")[0]
-    startDateFilter.value = today
-    endDateFilter.value = today
-    singleDayFilter.checked = true
-  }
-
-  // Função para sincronizar datas quando o filtro de dia único está ativado
-  function syncDates() {
-    if (singleDayFilter.checked) {
-      if (this === startDateFilter) {
-        endDateFilter.value = startDateFilter.value
-      } else {
-        startDateFilter.value = endDateFilter.value
+  // 11. Configuração de event listeners
+  function setupEventListeners() {
+    // Filtros
+    DOM.filters.status.addEventListener("change", () => loadStats(1));
+    DOM.filters.clientName.addEventListener("keyup", (e) => e.key === "Enter" && loadStats(1));
+    DOM.filters.barber.addEventListener("change", () => loadStats(1));
+    DOM.filters.service.addEventListener("change", () => loadStats(1));
+    DOM.filters.sortOrder.addEventListener("change", () => loadStats(1));
+    DOM.filters.sortColumn.addEventListener("change", () => loadStats(1));
+    DOM.filters.startDate.addEventListener("change", syncDates);
+    DOM.filters.endDate.addEventListener("change", syncDates);
+    DOM.filters.singleDay.addEventListener("change", function() {
+      if (this.checked && DOM.filters.startDate.value) {
+        DOM.filters.endDate.value = DOM.filters.startDate.value;
+      } else if (this.checked && DOM.filters.endDate.value) {
+        DOM.filters.startDate.value = DOM.filters.endDate.value;
       }
-    }
-    loadStats()
+    });
+
+    // Botões
+    DOM.buttons.today.addEventListener("click", () => {
+      setToday();
+      loadStats(1);
+    });
+    DOM.buttons.refresh.addEventListener("click", () => loadStats(state.currentPage));
+    DOM.buttons.clearFilters.addEventListener("click", clearFilters);
+    DOM.buttons.prevPage.addEventListener("click", () => state.currentPage > 1 && loadStats(state.currentPage - 1));
+    DOM.buttons.nextPage.addEventListener("click", () => state.currentPage < state.totalPages && loadStats(state.currentPage + 1));
+
+    // Paginação
+    DOM.table.itemsPerPage.addEventListener("change", () => loadStats(1));
+
+    // Admin registration
+    setupAdminRegistration();
   }
 
-  // Carregar dados inicialmente
-  loadStats(1)
-
-  // Adicionar eventos aos filtros
-  statusFilter.addEventListener("change", () => loadStats(1))
-  clientNameInput.addEventListener("keyup", (e) => {
-    if (e.key === "Enter") loadStats(1)
-  })
-  barberSelect.addEventListener("change", () => loadStats(1))
-  serviceSelect.addEventListener("change", () => loadStats(1))
-  sortOrderSelect.addEventListener("change", () => loadStats(1))
-  sortColumnSelect.addEventListener("change", () => loadStats(1))
-
-  startDateFilter.addEventListener("change", syncDates)
-  endDateFilter.addEventListener("change", syncDates)
-
-  singleDayFilter.addEventListener("change", function () {
-    if (this.checked && startDateFilter.value) {
-      endDateFilter.value = startDateFilter.value
-    } else if (this.checked && endDateFilter.value) {
-      startDateFilter.value = endDateFilter.value
-    }
-  })
-
-  todayBtn.addEventListener("click", () => {
-    setToday()
-    loadStats(1)
-  })
-
-  // Adicionar evento ao seletor de itens por página
-  itemsPerPageSelect.addEventListener("change", () => {
-    // Ao mudar o número de itens por página, voltar para a primeira página
-    loadStats(1)
-  })
-
-  // Adicionar evento ao botão de recarregar
-  refreshBtn.addEventListener("click", () => loadStats(currentPage))
-
-  // Adicionar evento ao botão de limpar filtros
-  clearFiltersBtn.addEventListener("click", clearFilters)
-
-  // Adicionar eventos aos botões de paginação
-  prevPageBtn.addEventListener("click", () => {
-    if (currentPage > 1) {
-      loadStats(currentPage - 1)
-    }
-  })
-
-  nextPageBtn.addEventListener("click", () => {
-    if (currentPage < totalPages) {
-      loadStats(currentPage + 1)
-    }
-  })
-
-  // Elementos do modal de cadastro de administrador
-  const addAdminBtn = document.getElementById("addAdmin")
-  const adminRegistrationModal = document.getElementById("adminRegistrationModal")
-  const adminRegistrationForm = document.getElementById("adminRegistrationForm")
-  const cancelAdminRegistration = document.getElementById("cancelAdminRegistration")
-  const adminRegisterMessage = document.getElementById("adminRegisterMessage")
-
-  // Abrir modal ao clicar no botão
-  addAdminBtn.addEventListener("click", () => {
-    adminRegistrationModal.style.display = "flex"
-    // Limpar mensagens anteriores
-    adminRegisterMessage.textContent = ""
-  })
-
-  // Fechar modal ao clicar em cancelar
-  cancelAdminRegistration.addEventListener("click", () => {
-    adminRegistrationModal.style.display = "none"
-    adminRegistrationForm.reset()
-    adminRegisterMessage.textContent = ""
-  })
-
-  // Fechar modal ao clicar fora dele
-  adminRegistrationModal.addEventListener("click", (e) => {
-    if (e.target === adminRegistrationModal) {
-      adminRegistrationModal.style.display = "none"
-      adminRegistrationForm.reset()
-      adminRegisterMessage.textContent = ""
-    }
-  })
-
-  // Processar o formulário de cadastro
-  adminRegistrationForm.addEventListener("submit", async (e) => {
-    e.preventDefault()
-
-    const name = document.getElementById("adminRegisterName").value.trim()
-    const email = document.getElementById("adminRegisterEmail").value.trim()
-    const password = document.getElementById("adminRegisterPassword").value
-    const isAdmin = true // Sempre true para este modal
-
-    // Validações básicas
-    if (!name || !email || !password) {
-      adminRegisterMessage.textContent = "Todos os campos são obrigatórios."
-      adminRegisterMessage.style.color = "#dc3545"
-      return
-    }
-    
-    try {
-      adminRegisterMessage.textContent = "Cadastrando administrador..."
-      adminRegisterMessage.style.color = "#007bff"
-
-      const response = await fetchWithErrorHandling(`${apiUrl}api/usuarios`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password, isAdmin }),
-      })
-
-      if (!response.error) {
-        adminRegisterMessage.textContent = "Administrador cadastrado com sucesso!"
-        adminRegisterMessage.style.color = "#28a745" // Verde para sucesso
-
-        // Limpar formulário
-        adminRegistrationForm.reset()
-
-        // Fechar modal após 2 segundos
-        setTimeout(() => {
-          adminRegistrationModal.style.display = "none"
-          adminRegisterMessage.textContent = ""
-        }, 2000)
-      } else {
-        adminRegisterMessage.textContent = response.message || "Erro ao cadastrar administrador."
-        adminRegisterMessage.style.color = "#dc3545" // Vermelho para erro
-      }
-    } catch (error) {
-      console.error("Erro ao cadastrar administrador:", error)
-      adminRegisterMessage.textContent = "Erro de conexão. Tente novamente."
-      adminRegisterMessage.style.color = "#dc3545" // Vermelho para erro
-    }
-  })
+  // 12. Inicialização
+  loadStats(1);
+  setupEventListeners();
 }
 
 // Inicializar o módulo
-if (document.querySelector(".admin-dashboard-container")) initializeAdminDashboard()
+if (document.querySelector(".admin-dashboard-container")) initializeAdminDashboard();
