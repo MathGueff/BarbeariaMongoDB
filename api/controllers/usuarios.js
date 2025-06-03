@@ -22,6 +22,36 @@ export const getUsuariosById = async (req, res) => {
     }
 }
 
+// Get usuarios by ID
+export const login = async (req, res) => {
+    try {
+        const {email, password} = req.body
+        const db = req.app.locals.db
+
+        const existingUser = await db.collection(collectionUsuarios).findOne({
+            email : email
+        })
+        if (!existingUser) 
+            return res.status(404).json({ error: true, message: "Esse Email não foi cadastrado" })
+        
+        if(existingUser.password == password){
+            return res.status(200).json({
+                error: false,
+                message: 'Login realizado com sucesso',
+                data: existingUser
+            })
+        }
+
+        return res.status(400).json({
+            error: true,
+            message: 'Email ou senha errados'
+        })
+    } catch (error) {
+        console.error("Falha ao procurar por usuario:", error)
+        res.status(500).json({ error: true, message: "Falha ao procurar por usuarios" })
+    }
+}
+
 // Create new usuarios
 export const createUsuarios = async (req, res) => {
     try {
