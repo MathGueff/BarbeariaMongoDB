@@ -1,11 +1,10 @@
 // admin-dashboard.js
 import { fetchWithErrorHandling } from "./script.js"
 
-const vercelUrl="https://barbearia-mongo-db-liart.vercel.app/"
-const apiUrl = vercelUrl
+const vercelUrl = "https://barbearia-mongo-db-liart.vercel.app/"
+const apiUrl = "http://localhost:3000/"
 // Módulo do Dashboard de Administrador
 function initializeAdminDashboard() {
-  console.log(apiUrl)
   const currentUser = JSON.parse(localStorage.getItem("user"))
   if (!currentUser || !currentUser.isAdmin) window.location.href = "login.html"
 
@@ -153,14 +152,13 @@ function initializeAdminDashboard() {
           <td>${appointment.total_price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
           <td class='status-${appointment.status}'>${statusLabels[appointment.status] || appointment.status}</td>
           <td class='appointments-table-actions'>
-            ${
-              appointment.status === "scheduled"
-                ? `<button class="btn btn-confirm confirm-btn" data-id="${appointment._id}">Confirmar</button>
+            ${appointment.status === "scheduled"
+            ? `<button class="btn btn-confirm confirm-btn" data-id="${appointment._id}">Confirmar</button>
                    <button class="btn btn-secondary cancel-btn" data-id="${appointment._id}">Cancelar</button>`
-                : appointment.status === "canceled"
-                  ? `<button class="btn btn-secondary delete-btn" data-id="${appointment._id}">Deletar</button>`
-                  : "-"
-            }
+            : appointment.status === "canceled"
+              ? `<button class="btn btn-secondary delete-btn" data-id="${appointment._id}">Deletar</button>`
+              : "-"
+          }
           </td>
         `
         tableBody.appendChild(row)
@@ -182,7 +180,7 @@ function initializeAdminDashboard() {
           const row = button.closest("tr")
           try {
             row.style.opacity = "0.4" // Feedback visual
-            await fetchWithErrorHandling(`http://localhost:3000/api/agendamentos/${appointmentId}`, {
+            await fetchWithErrorHandling(`${apiUrl}api/agendamentos/${appointmentId}`, {
               method: "DELETE",
               headers: { "Content-Type": "application/json" },
             })
@@ -203,47 +201,47 @@ function initializeAdminDashboard() {
   }
 
   // Definindo a função separadamente
-function handleConfirmClick(appointmentId, action, button) {
-  confirmationModal.style.display = "none";
-  if (action === "delete") {
-    deleteAppointment(appointmentId, button);
-  } else {
-    updateAppointmentStatus(appointmentId, action, button);
-  }
-}
-
-function showConfirmationModal(button, action) {
-  const appointmentId = button.getAttribute("data-id");
-  let message = "";
-
-  switch (action) {
-    case "confirmed":
-      message = "Deseja confirmar este agendamento?";
-      break;
-    case "canceled":
-      message = "Deseja cancelar este agendamento?";
-      break;
-    case "delete":
-      message = "Deseja excluir este agendamento permanentemente?";
-      break;
+  function handleConfirmClick(appointmentId, action, button) {
+    confirmationModal.style.display = "none";
+    if (action === "delete") {
+      deleteAppointment(appointmentId, button);
+    } else {
+      updateAppointmentStatus(appointmentId, action, button);
+    }
   }
 
-  confirmationMessage.textContent = message;
-  confirmationModal.style.display = "flex";
+  function showConfirmationModal(button, action) {
+    const appointmentId = button.getAttribute("data-id");
+    let message = "";
 
-  // Remove todos os listeners antigos (criando botão novo)
-  confirmActionBtn.replaceWith(confirmActionBtn.cloneNode(true));
-  cancelActionBtn.replaceWith(cancelActionBtn.cloneNode(true));
+    switch (action) {
+      case "confirmed":
+        message = "Deseja confirmar este agendamento?";
+        break;
+      case "canceled":
+        message = "Deseja cancelar este agendamento?";
+        break;
+      case "delete":
+        message = "Deseja excluir este agendamento permanentemente?";
+        break;
+    }
 
-  // Atualizar as referências depois de clonar
-  const newConfirmBtn = document.getElementById("confirmActionBtn");
-  const newCancelBtn = document.getElementById("cancelActionBtn");
+    confirmationMessage.textContent = message;
+    confirmationModal.style.display = "flex";
 
-  newConfirmBtn.addEventListener("click", () => handleConfirmClick(appointmentId, action, button));
-  newCancelBtn.addEventListener("click", () => confirmationModal.style.display = "none");
-}
+    // Remove todos os listeners antigos (criando botão novo)
+    confirmActionBtn.replaceWith(confirmActionBtn.cloneNode(true));
+    cancelActionBtn.replaceWith(cancelActionBtn.cloneNode(true));
 
-  
+    // Atualizar as referências depois de clonar
+    const newConfirmBtn = document.getElementById("confirmActionBtn");
+    const newCancelBtn = document.getElementById("cancelActionBtn");
+
+    newConfirmBtn.addEventListener("click", () => handleConfirmClick(appointmentId, action, button));
+    newCancelBtn.addEventListener("click", () => confirmationModal.style.display = "none");
+  }
+
+
 
   // Função para atualizar o status do agendamento
   async function updateAppointmentStatus(appointmentId, statusValue, button) {
@@ -424,14 +422,13 @@ function showConfirmationModal(button, action) {
         <td>${appointment.barber_name}</td>
         <td class="status-${appointment.status}">${appointment.status}</td>
         <td>
-          ${
-            appointment.status === "scheduled"
-              ? `<button class="btn btn-confirm confirm-btn" data-id="${appointment._id}">Confirmar</button>
+          ${appointment.status === "scheduled"
+          ? `<button class="btn btn-confirm confirm-btn" data-id="${appointment._id}">Confirmar</button>
                  <button class="btn btn-secondary cancel-btn" data-id="${appointment._id}">Cancelar</button>`
-              : appointment.status === "canceled"
-                ? `<button class="btn btn-secondary delete-btn" data-id="${appointment._id}">Deletar</button>`
-                : "-"
-          }
+          : appointment.status === "canceled"
+            ? `<button class="btn btn-secondary delete-btn" data-id="${appointment._id}">Deletar</button>`
+            : "-"
+        }
         </td>
       `
       tableBody.appendChild(row)
@@ -612,6 +609,91 @@ function showConfirmationModal(button, action) {
   nextPageBtn.addEventListener("click", () => {
     if (currentPage < totalPages) {
       loadStats(currentPage + 1)
+    }
+  })
+
+  // Elementos do modal de cadastro de administrador
+  const addAdminBtn = document.getElementById("addAdmin")
+  const adminRegistrationModal = document.getElementById("adminRegistrationModal")
+  const adminRegistrationForm = document.getElementById("adminRegistrationForm")
+  const cancelAdminRegistration = document.getElementById("cancelAdminRegistration")
+  const adminRegisterMessage = document.getElementById("adminRegisterMessage")
+
+  // Abrir modal ao clicar no botão
+  addAdminBtn.addEventListener("click", () => {
+    adminRegistrationModal.style.display = "flex"
+    // Limpar mensagens anteriores
+    adminRegisterMessage.textContent = ""
+  })
+
+  // Fechar modal ao clicar em cancelar
+  cancelAdminRegistration.addEventListener("click", () => {
+    adminRegistrationModal.style.display = "none"
+    adminRegistrationForm.reset()
+    adminRegisterMessage.textContent = ""
+  })
+
+  // Fechar modal ao clicar fora dele
+  adminRegistrationModal.addEventListener("click", (e) => {
+    if (e.target === adminRegistrationModal) {
+      adminRegistrationModal.style.display = "none"
+      adminRegistrationForm.reset()
+      adminRegisterMessage.textContent = ""
+    }
+  })
+
+  // Processar o formulário de cadastro
+  adminRegistrationForm.addEventListener("submit", async (e) => {
+    e.preventDefault()
+
+    const name = document.getElementById("adminRegisterName").value.trim()
+    const email = document.getElementById("adminRegisterEmail").value.trim()
+    const password = document.getElementById("adminRegisterPassword").value
+    const isAdmin = true // Sempre true para este modal
+
+    // Validações básicas
+    if (!name || !email || !password) {
+      adminRegisterMessage.textContent = "Todos os campos são obrigatórios."
+      adminRegisterMessage.style.color = "#dc3545"
+      return
+    }
+
+    if (password.length < 6) {
+      adminRegisterMessage.textContent = "A senha deve ter pelo menos 6 caracteres."
+      adminRegisterMessage.style.color = "#dc3545"
+      return
+    }
+
+    try {
+      adminRegisterMessage.textContent = "Cadastrando administrador..."
+      adminRegisterMessage.style.color = "#007bff"
+
+      const response = await fetchWithErrorHandling(`${apiUrl}api/usuarios`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password, isAdmin }),
+      })
+
+      if (!response.error) {
+        adminRegisterMessage.textContent = "Administrador cadastrado com sucesso!"
+        adminRegisterMessage.style.color = "#28a745" // Verde para sucesso
+
+        // Limpar formulário
+        adminRegistrationForm.reset()
+
+        // Fechar modal após 2 segundos
+        setTimeout(() => {
+          adminRegistrationModal.style.display = "none"
+          adminRegisterMessage.textContent = ""
+        }, 2000)
+      } else {
+        adminRegisterMessage.textContent = response.message || "Erro ao cadastrar administrador."
+        adminRegisterMessage.style.color = "#dc3545" // Vermelho para erro
+      }
+    } catch (error) {
+      console.error("Erro ao cadastrar administrador:", error)
+      adminRegisterMessage.textContent = "Erro de conexão. Tente novamente."
+      adminRegisterMessage.style.color = "#dc3545" // Vermelho para erro
     }
   })
 }

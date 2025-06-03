@@ -59,9 +59,9 @@ export const createUsuarios = async (req, res) => {
 
         const { name,
             email,
-            password} = req.body
-
+            password, isAdmin} = req.body
             //Checando se já existe um usuario
+        console.log(req.body)
         const existingUsuario = await db.collection(collectionUsuarios).findOne(
             {email}
         )
@@ -69,13 +69,14 @@ export const createUsuarios = async (req, res) => {
             return res.status(409).json({
               error: true,
               message: "Já existe um usuario com esse login",
+              teste : req.body
             })
           }
-
         const result = await db.collection(collectionUsuarios).insertOne({
             name : name,
             email: email,
-            password : password
+            password : password,
+            isAdmin : isAdmin
         })
       
         res.status(201).json({
@@ -85,7 +86,8 @@ export const createUsuarios = async (req, res) => {
                 _id: result.insertedId,
                 name : name,
                 email: email,
-                password : password
+                password : password,
+                isAdmin : isAdmin
             }
         })
         } catch (error) {

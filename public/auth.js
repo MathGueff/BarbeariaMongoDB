@@ -1,6 +1,7 @@
 import { fetchWithErrorHandling } from './script.js';
 
 const vercelApi =  "https://barbearia-mongo-db-liart.vercel.app/"
+
 const apiUrl = vercelApi
 // Módulo de Autenticação
 function initializeAuth() {
@@ -139,24 +140,17 @@ function initializeAuth() {
           const userData = response.data
           currentUser = { ...userData}
           localStorage.setItem("user", JSON.stringify(currentUser))
+          if (userData.isAdmin) {
+            localStorage.setItem("user", JSON.stringify(currentUser))
+            window.location.href = "admin-dashboard.html"
+            return
+          }
           window.location.href = "dashboard.html"
           loginMessage.textContent = "Cadastro realizado com sucesso!"
           loginMessage.style.color = "#28a745" // Verde para sucesso
         }
       } catch (error) {
-        // Se houver erro de conexão, tentar cadastrar localmente
-        const localResult = loadLocalData("register", { name, email, password })
-  
-        if (localResult.error) {
-          loginMessage.textContent = localResult.error
-          loginMessage.style.color = "#dc3545"
-        } else {
-          currentUser = localResult.user
-          localStorage.setItem("user", JSON.stringify(currentUser))
-          loginMessage.textContent = localResult.message
-          loginMessage.style.color = "#28a745"
-          window.location.href = localResult.redirect
-        }
+        console.log(error)
       }
     })
   }
