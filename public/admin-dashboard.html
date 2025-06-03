@@ -14,6 +14,7 @@
         </a>
         <h1 href="index.html" class="logo-text">Barbearia MongoDB</h1>
         <nav class="header-nav">
+            <button id="addAdmin" class="btn btn-primary">Adicionar novo administrador</button>
             <button id="logoutBtn" class="btn btn-primary">Sair</button>
         </nav>
     </header>
@@ -189,6 +190,23 @@
                 <button id="cancelActionBtn" class="btn btn-secondary">Cancelar</button>
                 <button id="confirmActionBtn" class="btn btn-primary">Confirmar</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Modal de Cadastro de Administrador -->
+    <div id="adminRegistrationModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h3>Cadastrar Novo Administrador</h3>
+            <form id="adminRegistrationForm" class="auth-form">
+                <input type="text" id="adminRegisterName" class="input-field" placeholder="Nome completo" required>
+                <input type="email" id="adminRegisterEmail" class="input-field" placeholder="Email" required>
+                <input type="password" id="adminRegisterPassword" class="input-field" placeholder="Senha" required>
+                <div class="modal-actions">
+                    <button type="button" id="cancelAdminRegistration" class="btn btn-secondary">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Cadastrar Administrador</button>
+                </div>
+                <p id="adminRegisterMessage" class="message"></p>
+            </form>
         </div>
     </div>
 

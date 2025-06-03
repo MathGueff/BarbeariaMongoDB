@@ -67,9 +67,9 @@ POST {{baseURL}}
 Content-Type: application/json
 
 {
-    "name" : "Matheus Gueff",
-    "email" : "gueffmatheus@gmail.com",
-    "password" : "12345",
+    "name" : "Matheus Admin",
+    "email" : "gueffadmin@gmail.com",
+    "password" : "math",
     "isAdmin" : true
 }
 
