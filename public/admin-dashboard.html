@@ -15,8 +15,8 @@
         <h1 href="index.html" class="logo-text">Barbearia MongoDB</h1>
         <nav class="header-nav">
             <button id="addAdmin" class="btn btn-primary" style="display: none;">Adicionar novo administrador</button>
-            <button id="editUserBtn" class="btn btn-primary">Visualizar seu perfil</button>
-            <button id="logoutBtn" class="btn btn-primary">Sair</button>
+            <button id="editUserBtn" class="btn btn-edit">Visualizar seu perfil</button>
+            <button id="logoutBtn" class="btn btn-cta">Sair</button>
         </nav>
     </header>
 
@@ -144,8 +144,8 @@
                     </div>
                     
                     <div class="action-buttons">
-                        <button id="clearFiltersBtn" class="btn btn-secondary">Limpar Filtros</button>
-                        <button id="refreshBtn" class="btn btn-primary">Recarregar</button>
+                        <button id="clearFiltersBtn" class="btn btn-edit">Limpar Filtros</button>
+                        <button id="refreshBtn" class="btn btn-edit">Recarregar</button>
                     </div>
                 </div>
             </div>
@@ -173,11 +173,11 @@
             </table>
             
             <div class="pagination-container">
-                <button id="prevPageBtn" class="btn btn-primary btn-pagination">&laquo; Anterior</button>
+                <button id="prevPageBtn" class="btn btn-edit btn-pagination">&laquo; Anterior</button>
                 <div id="paginationNumbers" class="pagination-numbers">
                     <!-- Preenchido dinamicamente via JavaScript -->
                 </div>
-                <button id="nextPageBtn" class="btn btn-primary btn-pagination">Próximo &raquo;</button>
+                <button id="nextPageBtn" class="btn btn-edit btn-pagination">Próximo &raquo;</button>
             </div>
         </div>
     </section>
@@ -189,7 +189,7 @@
             <p id="confirmationMessage">Tem certeza que deseja realizar esta ação?</p>
             <div class="modal-actions">
                 <button id="cancelActionBtn" class="btn btn-secondary">Cancelar</button>
-                <button id="confirmActionBtn" class="btn btn-primary">Confirmar</button>
+                <button id="confirmActionBtn" class="btn btn-confirm">Confirmar</button>
             </div>
         </div>
     </div>
@@ -206,14 +206,14 @@
                 <input type="password" id="userEditConfirmPassword" class="input-field" placeholder="Confirmar nova senha">
                 <div class="modal-actions">
                     <button type="button" id="cancelUserEdit" class="btn btn-secondary">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+                    <button type="submit" class="btn btn-confirm">Salvar Alterações</button>
                 </div>
                 <p id="userEditMessage" class="message"></p>
             </form>
             <hr>
             
             <div style="display: flex; justify-content: center; margin-top: 20px;">
-                <button type="button" id="deleteAccountBtn" class="btn btn-primary">Excluir conta</button>
+                <button type="button" id="deleteAccountBtn" class="btn btn-secondary">Excluir conta</button>
             </div>
         </div>
     </div>
@@ -228,7 +228,7 @@
                 <input type="password" id="adminRegisterPassword" class="input-field" placeholder="Senha" required>
                 <div class="modal-actions">
                     <button type="button" id="cancelAdminRegistration" class="btn btn-secondary">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Cadastrar Administrador</button>
+                    <button type="submit" class="btn btn-confirm">Cadastrar Administrador</button>
                 </div>
                 <p id="adminRegisterMessage" class="message"></p>
             </form>
