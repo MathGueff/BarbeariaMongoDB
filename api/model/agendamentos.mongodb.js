@@ -38,3 +38,6 @@ use('barbearia')
 db.agendamentos.updateMany({client_name :'Isabela Cardoso'},
     {$set : {status : 'scheduled'}}
 )
+
+use('barbearia')
+db.usuarios.find()

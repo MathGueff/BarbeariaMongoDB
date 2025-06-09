@@ -8,14 +8,13 @@ export async function fetchWithErrorHandling(url, options = {}) {
         const response = await fetch(url, options)
         responseData = await response.json()
     } catch (error) {
-        console.error(`Erro na requisição para ${url}:`, error)
+        console.error(error)
         responseData = {
             error: true,
-            message: error.errors.msg || "Ocorreu um erro na requisição",
+            message: 'Ocorreu um erro inesperado, tente novamente',
         }
     } finally {
         // Chama a função de toast com os dados da resposta
-        console.log(responseData)
         if (responseData != null) {
             toastNotification(responseData)
         }

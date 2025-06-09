@@ -59,15 +59,25 @@ export const createUsuarios = async (req, res) => {
 
         const { name,email, password, nivel} = req.body
             //Checando se já existe um usuario
-        const existingUsuario = await db.collection(collectionUsuarios).findOne(
+        const existingUsuarioByEmail = await db.collection(collectionUsuarios).findOne(
             {email}
         )
-        if (existingUsuario) {
+        if (existingUsuarioByEmail) {
             return res.status(409).json({
-              error: true,
-              message: "Um cadastro já foi realizado com esse email"
+                error: true,
+                message: "Um cadastro já foi realizado com esse email"
             })
-          }
+        }
+
+        const existingUsuarioByName = await db.collection(collectionUsuarios).findOne(
+            {name}
+        )
+        if (existingUsuarioByName) {
+            return res.status(409).json({
+                error: true,
+                message: "Um cadastro já foi realizado com esse nome"
+            })
+        }
         const result = await db.collection(collectionUsuarios).insertOne({
             name : name,
             email: email,
@@ -119,58 +129,89 @@ export const createUsuarios = async (req, res) => {
 }
 
 export const editUsuario = async (req, res) => {
-    const { id } = req.params
-    const updatedData = req.body
+    try {
+        const { id } = req.params
+        const {newPassword, ...updatedData} = req.body
 
-    const db = req.app.locals.db
+        const db = req.app.locals.db
 
-    if(updatedData.name){
-        const existingUser = await db.collection(collectionUsuarios).findOne({
-            name : updatedData.name
+        const user = await db.collection(collectionUsuarios).findOne({
+            _id : new ObjectId(id)
         })
 
-        if(existingUser){
-            res.status(409).json({
+        if(!user){
+            res.status(404).json({error : true, message : 'Nenhum usuário encontrado'})
+            return;
+        }
+
+        if(updatedData.password != user.password){
+            res.status(401).json({
                 error : true,
-                message: 'Já existe um usuário com esse nome'
+                message : 'A senha informada está incorreta'
             })
             return;
         }
-    }
 
-    if(updatedData.email){
-        const existingUser = await db.collection(collectionUsuarios).findOne({
-            email : updatedData.email
-        })
-        if(existingUser){
-            res.status(409).json({
+        if(updatedData.name){
+            const existingUser = await db.collection(collectionUsuarios).findOne({
+                _id : {$ne : new ObjectId(id)},
+                name : updatedData.name
+            })
+
+            if(existingUser){
+                res.status(409).json({
+                    error : true,
+                    message: 'Já existe um usuário com esse nome'
+                })
+                return;
+            }
+        }
+
+        if(updatedData.email){
+            const existingUser = await db.collection(collectionUsuarios).findOne({
+                _id : {$ne : new ObjectId(id)},
+                email : updatedData.email
+            })
+            if(existingUser){
+                res.status(409).json({
+                    error : true,
+                    message: 'Já existe um usuário com esse email'
+                })
+                return;
+            }
+        }
+
+        if(newPassword){
+            updatedData.password = newPassword
+        }
+
+        const result = await db.collection(collectionUsuarios).updateOne(
+            {_id : new ObjectId(id)},
+            {$set : updatedData}
+        )
+
+        if(result.matchedCount === 0){
+            res.status(404).json({
                 error : true,
-                message: 'Já existe um usuário com esse email'
+                message : 'Nenhum usuário encontrado'
             })
             return;
         }
-    }
 
-    const result = await db.collection(collectionUsuarios).updateOne(
-        {_id : new ObjectId(id)},
-        {$set : updatedData}
-    )
+        const updated = await db.collection(collectionUsuarios).findOne({
+            _id : new ObjectId(id)
+        })
 
-    if(result.matchedCount === 0){
-        res.status(404).json({
+        res.status(200).json({
+            error : false,
+            message : 'Usuário atualizado com sucesso',
+            data : updated
+        })
+    } catch (error) {
+        res.status(500).json({
             error : true,
-            message : 'Nenhum usuário encontrado'
+            message : 'Ocorreu um erro inesperado ao atualizar o usuário, tente novamente'
         })
-        return;
+        console.error(error)
     }
-
-    const updated = await db.collection(collectionUsuarios).findOne({
-        _id : new ObjectId(id)
-    })
-
-    res.status(200).json({
-        error : false,
-        message : 'Usuário atualizado com sucesso',
-        data : updated
-    })
 }
