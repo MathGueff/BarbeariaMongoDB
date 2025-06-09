@@ -2,7 +2,7 @@
 import { fetchWithErrorHandling } from "./script.js";
 
 const vercelUrl = "https://barbearia-mongo-db-liart.vercel.app/";
-const apiUrl = "http://localhost:3000/"
+const apiUrl = vercelUrl
 
 // Módulo do Dashboard de Administrador
 function initializeAdminDashboard() {
@@ -99,12 +99,12 @@ function initializeAdminDashboard() {
     state.currentPage = page;
 
     try {
-      const totalAppointments = await fetchWithErrorHandling(`${apiUrl}api/agendamentos/total`)
-      document.getElementById("totalAppointments").textContent = totalAppointments.count
-
       state.itemsPerPage = Number.parseInt(DOM.table.itemsPerPage.value);
       const filters = buildFilters(page);
       const appointments = await fetchAppointments(filters);
+      
+      const totalAppointments = appointments.total
+      document.getElementById("totalAppointments").textContent = totalAppointments
       
       updateStatistics(appointments);
       renderAppointments(appointments.data);
