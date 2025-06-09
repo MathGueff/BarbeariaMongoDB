@@ -2,7 +2,7 @@
 import { fetchWithErrorHandling } from "./script.js";
 
 const vercelUrl = "https://barbearia-mongo-db-liart.vercel.app/";
-const apiUrl = vercelUrl
+const apiUrl = "http://localhost:3000/"
 
 // Módulo do Dashboard de Administrador
 function initializeAdminDashboard() {
