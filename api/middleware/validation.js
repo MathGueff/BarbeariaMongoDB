@@ -63,17 +63,25 @@ export const validateAgendamento = [
 
     }),
   check('total_price')
-    .isEmpty()
-    .withMessage("O preço total deve ser calculado automaticamente"),
+    .custom((total_price) => {
+      if(total_price != undefined) throw new Error("O preço total deve ser calculado automaticamente")
+      return true
+    }),
   check('status')
-    .isEmpty()
-    .withMessage("O status deve ser definido automaticamente"),
+    .custom((status) => {
+      if(status != undefined) throw new Error("O status deve ser definido automaticamente")
+      return true
+    }),
   check('created_at')
-    .isEmpty()
-    .withMessage("O created_at deve ser definido automaticamente"),
+    .custom((created_at) => {
+      if(created_at != undefined) throw new Error("O campo created_at deve ser definido automaticamente")
+      return true
+    }),
   check('updated_at')
-    .isEmpty()
-    .withMessage("O updated_at deve ser definido automaticamente"),
+    .custom((updated_at) => {
+      if(updated_at != undefined) throw new Error("O campo updated_at deve ser definido automaticamente")
+      return true
+    }),
   // Aplica as validações
   validateRequest,
 ]
@@ -82,11 +90,16 @@ export const validateAgendamento = [
 export const validateUpdateAgendamento = [
   //Nome do Cliente
   check('client_name')
-    .isEmpty()
-    .withMessage("O nome do cliente não pode ser alterado"),
+  .optional()
+  .custom((client_name) => {
+    if(client_name === undefined) return true
+    throw new Error('O nome do cliente não pode ser alterado')
+  }),
   //Nome do barbeiro
   check('barber_name')
     .optional()
+    .notEmpty()
+    .withMessage('O nome do barbeiro não pode estar vazio')
     .isLength({ max: 50 })
     .withMessage("O nome do barbeiro deve ter no máximo 50 caracteres"),
   //Services
@@ -94,7 +107,6 @@ export const validateUpdateAgendamento = [
     .optional()
     .custom((services) => {
       if (!Array.isArray(services)) throw new Error("O campo services deve ser um array")
-      console.log(services)
       if (services) {
         services.forEach((service, i) => {
           const errors = {
@@ -147,20 +159,26 @@ export const validateUpdateAgendamento = [
       throw new Error("Data inválida, deve estar entre 08:00:00 e 18:00:00")
 
     }),
-
   check('total_price')
-    .isEmpty()
-    .withMessage("O preço total deve ser calculado automaticamente"),
+    .custom((total_price) => {
+      if(total_price != undefined) throw new Error("O preço total deve ser calculado automaticamente")
+      return true
+    }),
   check('status')
-    .isEmpty()
-    .withMessage("O status deve ser definido automaticamente"),
+    .custom((status) => {
+      if(status != undefined) throw new Error("O status deve ser definido automaticamente")
+      return true
+    }),
   check('created_at')
-    .isEmpty()
-    .withMessage("O created_at deve ser definido automaticamente"),
+    .custom((created_at) => {
+      if(created_at != undefined) throw new Error("O campo created_at deve ser definido automaticamente")
+      return true
+    }),
   check('updated_at')
-    .isEmpty()
-    .withMessage("O updated_at deve ser definido automaticamente"),
-
+    .custom((updated_at) => {
+      if(updated_at != undefined) throw new Error("O campo updated_at deve ser definido automaticamente")
+      return true
+    }),
   // Aplica as validações
   validateRequest,
 ]
@@ -181,12 +199,36 @@ export const validateUser = [
   .withMessage('A senha não pode ser vazia')
   .isLength({min:3})
   .withMessage('A senha é muito pequena'),
-  check('isAdmin')
+  check('nivel')
   .notEmpty()
   .withMessage('O campo é obrigatório')
-  .isBoolean()
-  .withMessage('O campo ')
-  .withMessage("O campo deve ser verdadeiro ou falso"),
+  .isInt({min : 0, max: 2})
+  .withMessage('O campo deve ser um valor entre 0 e 2'),
+  validateRequest
+]
+
+export const validateUpdateUser = [
+  //Nome do Cliente
+  check('name')
+  .optional()
+  .notEmpty()
+  .withMessage('O nome não pode ser vazio'),
+  check('email')
+  .optional()
+  .notEmpty()
+  .withMessage('O email não pode ser vazio')
+  .isEmail()
+  .withMessage('Email inválido'),
+  check('password')
+  .optional()
+  .isLength({min:3})
+  .withMessage('A senha é muito pequena'),
+  check('nivel')
+  .optional()
+  .custom((nivel) => {
+    if(nivel === undefined) return true
+    throw new Error('O nível não pode ser alterado')
+  }),
   validateRequest
 ]
 

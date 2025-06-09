@@ -239,7 +239,7 @@ export const updateAgendamento = async (req, res) => {
         res.status(200).json({
             error: false,
             message: "Agendamento atualizado com sucesso",
-            updatedAgendamento
+            data : updatedAgendamento
         })
     } catch (error) {
         console.error("Problema ao atualizar um agendamento:", error)

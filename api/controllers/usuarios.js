@@ -2,7 +2,6 @@ import { ObjectId } from "mongodb"
 
 const collectionUsuarios = 'usuarios'
 
-
 // Get usuarios by ID
 export const getUsuariosById = async (req, res) => {
     try {
@@ -12,13 +11,14 @@ export const getUsuariosById = async (req, res) => {
         const usuarios = await db.collection(collectionUsuarios).findOne({
             _id : new ObjectId(id)
         })
+
         if (!usuarios) 
-            return res.status(404).json({ error: true, message: "Usuario não encontrado" })
+            return res.status(404).json({ error: true, message: "Nenhum usuário encontrado" })
         
         res.status(200).json(usuarios)
     } catch (error) {
-        console.error("Falha ao procurar por usuario:", error)
-        res.status(500).json({ error: true, message: "Falha ao procurar por usuarios" })
+        console.error("Erro inesperado ao procurar usuário:", error)
+        res.status(500).json({ error: true, message: "Erro inesperado ao procurar usuário, tente novamente" })
     }
 }
 
@@ -32,8 +32,8 @@ export const login = async (req, res) => {
             email : email
         })
         if (!existingUser) 
-            return res.status(404).json({ error: true, message: "Esse Email não foi cadastrado" })
-        
+            return res.status(404).json({ error: true, message: "Esse email não foi cadastrado" })
+
         if(existingUser.password == password){
             return res.status(200).json({
                 error: false,
@@ -44,11 +44,11 @@ export const login = async (req, res) => {
 
         return res.status(400).json({
             error: true,
-            message: 'Email ou senha errados'
+            message: 'O email ou a senha digitados estão incorretos'
         })
     } catch (error) {
-        console.error("Falha ao procurar por usuario:", error)
-        res.status(500).json({ error: true, message: "Falha ao procurar por usuarios" })
+        console.error("Erro inesperado ao procurar usuário:", error)
+        res.status(500).json({ error: true, message: "Erro inesperado ao procurar usuário, tente novamente" })
     }
 }
 
@@ -57,26 +57,22 @@ export const createUsuarios = async (req, res) => {
     try {
         const db = req.app.locals.db
 
-        const { name,
-            email,
-            password, isAdmin} = req.body
+        const { name,email, password, nivel} = req.body
             //Checando se já existe um usuario
-        console.log(req.body)
         const existingUsuario = await db.collection(collectionUsuarios).findOne(
             {email}
         )
         if (existingUsuario) {
             return res.status(409).json({
               error: true,
-              message: "Já existe um usuario com esse login",
-              teste : req.body
+              message: "Um cadastro já foi realizado com esse email"
             })
           }
         const result = await db.collection(collectionUsuarios).insertOne({
             name : name,
             email: email,
             password : password,
-            isAdmin : isAdmin
+            nivel : nivel
         })
       
         res.status(201).json({
@@ -87,12 +83,12 @@ export const createUsuarios = async (req, res) => {
                 name : name,
                 email: email,
                 password : password,
-                isAdmin : isAdmin
+                nivel : nivel
             }
         })
         } catch (error) {
-            console.error("Problema ao criar um usuario:", error)
-            res.status(500).json({ error: true, message: "Falhou ao criar Usuario" })
+            console.error("Erro inesperado ao cadastrar um usuário:", error)
+            res.status(500).json({ error: true, message: "Ocorreu um erro ao cadastrar, tente novamente" })
           }
 }
 
@@ -111,56 +107,70 @@ export const createUsuarios = async (req, res) => {
                 message : 'Nenhum usuario encontrado'
             })
 
-        res.status(200).json(result)
+        res.status(200).json({
+            error : false,
+            message : 'Usuário excluído com sucesso'
+        })
         
     } catch (error) {
-        console.error("Problema ao deletar um usuario:", error)
-        res.status(500).json({ error: true, message: "Falha ao remover usuario" })
+        console.error("Erro inesperado ao excluir usuário:", error)
+        res.status(500).json({ error: true, message: "Erro inesperado ao excluir usuário, tente novamente" })
     }
 }
 
-//Verificando login
-export const userLogin = async (req, res) => {
-    try {
-        const db = req.app.locals.db
+export const editUsuario = async (req, res) => {
+    const { id } = req.params
+    const updatedData = req.body
 
-        const {
-            email,
-            password} = req.body
+    const db = req.app.locals.db
 
-             //Checando se já existe uma senha
-             const existingUsuario = await db.collection(collectionUsuarios).findOne(
-                {email : email}
-            )
+    if(updatedData.name){
+        const existingUser = await db.collection(collectionUsuarios).findOne({
+            name : updatedData.name
+        })
 
-            if (!existingUsuario) {
-                return res.status(404).json({
-                  error: true,
-                  message: "Usuario não encontrado",
-                })
-              }
+        if(existingUser){
+            res.status(409).json({
+                error : true,
+                message: 'Já existe um usuário com esse nome'
+            })
+            return;
+        }
+    }
 
-            if(existingUsuario.password !== password) {
-                return res.status(400).json({
-                    error: true,
-                    message:"Senha invalida",
-                  });
-                }
-            
-        
-         return res.status(200).json({
-            error: false,
-            message: "Autenticado",
-            data:{
-                name : existingUsuario.name,
-                email: email,
-                password : password,
-                isAdmin: existingUsuario.isAdmin
-            }
-         });
-       
-        } catch (error) {
-            console.error("Problema ao fazer login", error)
-            res.status(500).json({ error: true, message: "Falhou ao fazer login" })
-          }
+    if(updatedData.email){
+        const existingUser = await db.collection(collectionUsuarios).findOne({
+            email : updatedData.email
+        })
+        if(existingUser){
+            res.status(409).json({
+                error : true,
+                message: 'Já existe um usuário com esse email'
+            })
+            return;
+        }
+    }
+
+    const result = await db.collection(collectionUsuarios).updateOne(
+        {_id : new ObjectId(id)},
+        {$set : updatedData}
+    )
+
+    if(result.matchedCount === 0){
+        res.status(404).json({
+            error : true,
+            message : 'Nenhum usuário encontrado'
+        })
+        return;
+    }
+
+    const updated = await db.collection(collectionUsuarios).findOne({
+        _id : new ObjectId(id)
+    })
+
+    res.status(200).json({
+        error : false,
+        message : 'Usuário atualizado com sucesso',
+        data : updated
+    })
 }
