@@ -170,11 +170,12 @@ function initializeAdminDashboard() {
   async function fetchAppointments(filters) {
     const queryString = new URLSearchParams(filters).toString();
     const appointmentsUrl = `${apiUrl}api/agendamentos${queryString ? "?" + queryString : ""}`;
-    return await fetchWithErrorHandling(appointmentsUrl);
+    const appointments = await fetchWithErrorHandling(appointmentsUrl);
+    return appointments
   }
 
   function updateStatistics(appointments) {
-    state.totalItems = appointments.pagination.total;
+    state.totalItems = appointments.total;
     state.totalPages = appointments.pagination.pages;
     state.currentPage = appointments.pagination.page;
     state.itemsPerPage = appointments.pagination.limit;
@@ -303,8 +304,7 @@ function executePendingAction() {
 
       row.remove();
       updateResultsCount(document.querySelectorAll("#appointmentsTableBody tr").length, state.totalItems - 1);
-      const totalAppointments = await fetchWithErrorHandling(`${apiUrl}api/agendamentos/total`);
-      document.getElementById("totalAppointments").textContent = totalAppointments.count;
+      loadStats(state.currentPage)
     } catch (error) {
       console.error(`Falha ao deletar:`, error);
       row.style.opacity = "1";
