@@ -2,20 +2,29 @@
 import { fetchWithErrorHandling } from "./script.js";
 
 const vercelUrl = "https://barbearia-mongo-db-liart.vercel.app/";
-const apiUrl = vercelUrl;
+const apiUrl = "http://localhost:3000/"
 
 // Módulo do Dashboard de Administrador
 function initializeAdminDashboard() {
   // 1. Verificação de autenticação e configuração inicial
   const currentUser = JSON.parse(localStorage.getItem("user"));
-  if (!currentUser || !currentUser.isAdmin) window.location.href = "login.html";
+  if (!currentUser || (currentUser.nivel != 1 && currentUser.nivel != 2)) window.location.href = "login.html";
+
+  if (currentUser && currentUser.nivel === 2) {
+    document.getElementById("addAdmin").style.display = "inline-block";
+    document.getElementById("adminRegistrationModal").style.display = "none"; // manter oculto até clique
+  }
 
   // Configurar informações do administrador
   document.getElementById("adminName").textContent = currentUser.name;
   document.getElementById("logoutBtn").addEventListener("click", () => {
     localStorage.removeItem("user");
-    window.location.href = "index.html";
+    window.location.href = "login.html";
   });
+
+  document.getElementById("editUserBtn").addEventListener("click", () => {
+    openUserEditModal(currentUser._id);
+  })
 
   // 2. Seleção de elementos DOM
   const DOM = {
@@ -36,6 +45,7 @@ function initializeAdminDashboard() {
       clearFilters: document.getElementById("clearFiltersBtn"),
       prevPage: document.getElementById("prevPageBtn"),
       nextPage: document.getElementById("nextPageBtn"),
+      editUserBtn : document.getElementById("editUserBtn")
     },
     table: {
       body: document.getElementById("appointmentsTableBody"),
@@ -52,7 +62,7 @@ function initializeAdminDashboard() {
       adminRegistration: document.getElementById("adminRegistrationModal"),
       adminForm: document.getElementById("adminRegistrationForm"),
       cancelAdmin: document.getElementById("cancelAdminRegistration"),
-      adminMessage: document.getElementById("adminRegisterMessage"),
+      adminMessage: document.getElementById("adminRegisterMessage")
     },
     adminFormFields: {
       name: document.getElementById("adminRegisterName"),
@@ -78,6 +88,9 @@ function initializeAdminDashboard() {
     confirmed: "Confirmado",
     scheduled: "Agendado",
   };
+
+  // Configurar modal de edição de usuário
+  setupUserEditModal();
 
   // 5. Funções principais
   async function loadStats(page = 1) {
@@ -530,7 +543,7 @@ function executePendingAction() {
         const response = await fetchWithErrorHandling(`${apiUrl}api/usuarios`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name, email, password, isAdmin: true }),
+          body: JSON.stringify({ name, email, password, nivel: 1 }),
         });
 
         if (!response.error) {
@@ -541,7 +554,7 @@ function executePendingAction() {
           setTimeout(() => {
             DOM.modals.adminRegistration.style.display = "none";
             DOM.modals.adminMessage.textContent = "";
-          }, 2000);
+          }, 1000);
         } else {
           DOM.modals.adminMessage.textContent = response.message || "Erro ao cadastrar administrador.";
           DOM.modals.adminMessage.style.color = "#dc3545";
@@ -554,7 +567,182 @@ function executePendingAction() {
     });
   }
 
-  // 11. Configuração de event listeners
+  // 11 .Edição de usuário
+
+  // Função para abrir o modal de edição de usuário
+  async function openUserEditModal(userId) {
+    try {
+        // Buscar os dados do usuário
+        const user = await fetchWithErrorHandling(`${apiUrl}api/usuarios/${userId}`);
+        
+        // Preencher o formulário com os dados do usuário
+        document.getElementById("userEditName").value = user.name;
+        document.getElementById("userEditEmail").value = user.email;
+        
+        // Limpar campos de senha e mensagens
+        document.getElementById("userEditCurrentPassword").value = "";
+        document.getElementById("userEditNewPassword").value = "";
+        document.getElementById("userEditConfirmPassword").value = "";
+        document.getElementById("userEditMessage").textContent = "";
+        
+        // Exibir o modal
+        document.getElementById("userEditModal").style.display = "flex";
+    } catch (error) {
+        console.error("Erro ao carregar dados do usuário:", error);
+        alert("Não foi possível carregar os dados do usuário. Tente novamente.");
+    }
+}
+
+// Função para configurar o modal de edição de usuário
+function setupUserEditModal() {
+    const userEditModal = document.getElementById("userEditModal");
+    const userEditForm = document.getElementById("userEditForm");
+    const cancelUserEdit = document.getElementById("cancelUserEdit");
+    const userEditMessage = document.getElementById("userEditMessage");
+    
+    // Fechar modal ao clicar no botão cancelar
+    cancelUserEdit.addEventListener("click", () => {
+        userEditModal.style.display = "none";
+        userEditMessage.textContent = "";
+    });
+    
+    // Fechar modal ao clicar fora do conteúdo
+    userEditModal.addEventListener("click", (e) => {
+        if (e.target === userEditModal) {
+            userEditModal.style.display = "none";
+            userEditMessage.textContent = "";
+        }
+    });
+    
+    // Lidar com o envio do formulário
+    userEditForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        
+        const currentUser = JSON.parse(localStorage.getItem("user"));
+        const name = document.getElementById("userEditName").value.trim();
+        const email = document.getElementById("userEditEmail").value.trim();
+        const password = document.getElementById("userEditCurrentPassword").value;
+        const newPassword = document.getElementById("userEditNewPassword").value;
+        const confirmPassword = document.getElementById("userEditConfirmPassword").value;
+        
+        // Validações básicas
+        if (!name || !email || !password) {
+            userEditMessage.textContent = "Nome, email e senha atual são obrigatórios.";
+            userEditMessage.style.color = "#dc3545";
+            return;
+        }
+        
+        if (newPassword && newPassword !== confirmPassword) {
+            userEditMessage.textContent = "As novas senhas não coincidem.";
+            userEditMessage.style.color = "#dc3545";
+            return;
+        }
+        
+        try {
+            userEditMessage.textContent = "Atualizando dados...";
+            userEditMessage.style.color = "#007bff";
+            
+            // Preparar dados para atualização
+            const updateData = {
+                name,
+                email,
+                password
+            };
+            
+            if (newPassword) {
+                updateData.newPassword = newPassword;
+            }
+            
+            // Chamar API para atualizar usuário
+            const response = await fetchWithErrorHandling(`${apiUrl}api/usuarios/${currentUser._id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(updateData)
+            });
+            
+            if (response.error) {
+                userEditMessage.textContent = response.message || "Erro ao atualizar dados.";
+                userEditMessage.style.color = "#dc3545";
+            } else {
+                // Atualizar dados no localStorage
+                const updatedUser = { ...currentUser, name, email };
+                localStorage.setItem("user", JSON.stringify(updatedUser));
+                
+                // Atualizar nome exibido no dashboard
+                document.getElementById("adminName").textContent = name;
+                
+                userEditMessage.textContent = "Dados atualizados com sucesso!";
+                userEditMessage.style.color = "#28a745";
+                
+                // Fechar modal após 2 segundos
+                setTimeout(() => {
+                    userEditModal.style.display = "none";
+                    userEditMessage.textContent = "";
+                }, 1000);
+            }
+        } catch (error) {
+            console.error("Erro ao atualizar usuário:", error);
+            userEditMessage.textContent = "Erro ao atualizar dados. Tente novamente.";
+            userEditMessage.style.color = "#dc3545";
+        }
+    });
+
+    // Configurar botão de excluir conta
+    setupUserDeleteButton();
+  }
+
+  // 12. Exclusão de perfil
+
+  function setupUserDeleteButton() {
+    const deleteAccountBtn = document.getElementById('deleteAccountBtn');
+    const confirmationModal = document.getElementById('confirmationModal');
+    const confirmationMessage = document.getElementById('confirmationMessage');
+    const confirmActionBtn = document.getElementById('confirmActionBtn');
+    const cancelActionBtn = document.getElementById('cancelActionBtn');
+
+    deleteAccountBtn.addEventListener('click', () => {
+        // Configurar o modal de confirmação
+        confirmationMessage.textContent = "Tem certeza que deseja excluir sua conta permanentemente? Esta ação não pode ser desfeita.";
+        confirmationModal.style.display = "flex";
+
+        // Remover listeners anteriores para evitar acumulação
+        confirmActionBtn.onclick = null;
+        cancelActionBtn.onclick = null;
+
+        // Adicionar novos listeners
+        confirmActionBtn.addEventListener('click', async () => {
+            try {
+                const currentUser = JSON.parse(localStorage.getItem("user"));
+                confirmationMessage.textContent = "Excluindo conta...";
+                confirmActionBtn.disabled = true;
+
+                // Chamar API para deletar conta
+                const response = await fetchWithErrorHandling(`${apiUrl}api/usuarios/${currentUser._id}`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                if (response.error) {
+                    throw new Error(response.message || "Erro ao excluir conta");
+                }
+
+                // Limpar localStorage e redirecionar
+                localStorage.removeItem('user');
+                window.location.href = 'login.html';
+            } catch (error) {
+                console.error("Erro ao excluir conta:", error);
+                confirmationMessage.textContent = error.message || "Erro ao excluir conta. Tente novamente.";
+                confirmActionBtn.disabled = false;
+            }
+        });
+
+        cancelActionBtn.addEventListener('click', () => {
+            confirmationModal.style.display = 'none';
+        });
+    });
+  }
+
+  // 13. Configuração de event listeners
   function setupEventListeners() {
     // Filtros
     DOM.filters.status.addEventListener("change", () => loadStats(1));

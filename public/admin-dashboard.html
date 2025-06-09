@@ -14,7 +14,8 @@
         </a>
         <h1 href="index.html" class="logo-text">Barbearia MongoDB</h1>
         <nav class="header-nav">
-            <button id="addAdmin" class="btn btn-primary">Adicionar novo administrador</button>
+            <button id="addAdmin" class="btn btn-primary" style="display: none;">Adicionar novo administrador</button>
+            <button id="editUserBtn" class="btn btn-primary">Visualizar seu perfil</button>
             <button id="logoutBtn" class="btn btn-primary">Sair</button>
         </nav>
     </header>
@@ -182,13 +183,37 @@
     </section>
 
     <!-- Modal de Confirmação -->
-    <div id="confirmationModal" class="modal" style="display: none;">
+    <div id="confirmationModal" class="modal" style="display: none; z-index: 9999;">
         <div class="modal-content">
             <h3>Confirmação</h3>
             <p id="confirmationMessage">Tem certeza que deseja realizar esta ação?</p>
             <div class="modal-actions">
                 <button id="cancelActionBtn" class="btn btn-secondary">Cancelar</button>
                 <button id="confirmActionBtn" class="btn btn-primary">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Edição de Usuário -->
+    <div id="userEditModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h3>Editar Meus Dados</h3>
+            <form id="userEditForm" class="auth-form">
+                <input type="text" id="userEditName" class="input-field" placeholder="Nome completo" required>
+                <input type="email" id="userEditEmail" class="input-field" placeholder="Email" required>
+                <input type="password" id="userEditCurrentPassword" class="input-field" placeholder="Senha atual (obrigatória para alterações)" required>
+                <input type="password" id="userEditNewPassword" class="input-field" placeholder="Nova senha (opcional)">
+                <input type="password" id="userEditConfirmPassword" class="input-field" placeholder="Confirmar nova senha">
+                <div class="modal-actions">
+                    <button type="button" id="cancelUserEdit" class="btn btn-secondary">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+                </div>
+                <p id="userEditMessage" class="message"></p>
+            </form>
+            <hr>
+            
+            <div style="display: flex; justify-content: center; margin-top: 20px;">
+                <button type="button" id="deleteAccountBtn" class="btn btn-primary">Excluir conta</button>
             </div>
         </div>
     </div>

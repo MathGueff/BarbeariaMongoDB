@@ -2,14 +2,13 @@ import { fetchWithErrorHandling } from "./script.js"
 
 // dashboard.js
 const vercelUrl="https://barbearia-mongo-db-liart.vercel.app/"
-const apiUrl = vercelUrl
+const apiUrl = "http://localhost:3000/"
 // Módulo do Dashboard de Cliente
 function initializeDashboard() {
   const currentUser = JSON.parse(localStorage.getItem("user"))
   if (!currentUser) window.location.href = "login.html"
 
   // Configurar informações do usuário
-  console.log(currentUser)
   document.getElementById("userName").textContent = currentUser.name
   document.getElementById("logoutBtn").addEventListener("click", () => {
     localStorage.removeItem("user")
@@ -172,70 +171,88 @@ function initializeDashboard() {
     }
   }
 
-  // Função para mostrar o modal de confirmação
-  function showConfirmationModal(appointmentId) {
-    confirmationMessage.textContent = "Tem certeza que deseja cancelar este agendamento?"
-    confirmationModal.style.display = "flex"
+  // Adicionar estado no início da função initializeDashboard()
+let pendingAction = null;
 
-    // Remover eventos anteriores para evitar duplicação
-    confirmActionBtn.replaceWith(confirmActionBtn.cloneNode(true))
-    cancelActionBtn.replaceWith(cancelActionBtn.cloneNode(true))
+// Modificar a função showConfirmationModal
+function showConfirmationModal(appointmentId) {
+  confirmationMessage.textContent = "Tem certeza que deseja cancelar este agendamento?";
+  confirmationModal.style.display = "flex";
+  
+  // Armazenar a ação pendente
+  pendingAction = {
+    id: appointmentId
+  };
 
-    // Referenciar novamente após clonagem
-    const newConfirmBtn = document.getElementById("confirmActionBtn")
-    const newCancelBtn = document.getElementById("cancelActionBtn")
+  // Remover todos os listeners antigos
+  confirmActionBtn.onclick = null;
+  cancelActionBtn.onclick = null;
 
-    // Adicionar novos eventos
-    newConfirmBtn.addEventListener("click", async () => {
-      confirmationModal.style.display = "none"
-      await cancelAppointment(appointmentId)
-    })
+  // Adicionar novos listeners
+  confirmActionBtn.addEventListener("click", executePendingAction);
+  cancelActionBtn.addEventListener("click", () => {
+    confirmationModal.style.display = "none";
+    pendingAction = null;
+  });
+}
 
-    newCancelBtn.addEventListener("click", () => {
-      confirmationModal.style.display = "none"
-    })
-  }
+// Nova função para executar a ação pendente
+async function executePendingAction() {
+  if (!pendingAction) return;
+  
+  const { id } = pendingAction;
+  confirmationModal.style.display = "none";
+  
+  try {
+    await fetchWithErrorHandling(`${apiUrl}api/agendamentos/${id}/cancelar`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+    });
 
-  // Função para cancelar um agendamento
-  async function cancelAppointment(appointmentId) {
-    try {
-      await fetchWithErrorHandling(`${apiUrl}api/agendamentos/${appointmentId}/cancelar`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-      })
-
-      // Se o agendamento cancelado for o último, atualizar o card de visão geral
-      if (lastAppointment && appointmentId === lastAppointment._id) {
-        appointmentStatus.classList.remove(`status-${lastAppointment.status}`)
-        lastAppointment = null
-        displayLastAppointment()
-      }
-
-      scheduleMessage.textContent = "Agendamento cancelado com sucesso!"
-      scheduleMessage.style.color = "#28a745"
-      loadClientAppointments() // Recarregar a tabela
-      populateTimeSlots() // Atualizar os horários disponíveis
-    } catch (error) {
-      // Simulação de cancelamento (se o backend não estiver disponível)
-      simulatedAppointments = simulatedAppointments.map((appointment) => {
-        if (appointment._id === appointmentId) {
-          return { ...appointment, status: "canceled", updated_at: new Date().toISOString() }
-        }
-        return appointment
-      })
-      localStorage.setItem("simulatedAppointments", JSON.stringify(simulatedAppointments))
-
-      if (lastAppointment && appointmentId === lastAppointment._id) {
-        lastAppointment = null
-        displayLastAppointment()
-      }
-
-      scheduleMessage.textContent = "Agendamento cancelado com sucesso (simulação)."
-      scheduleMessage.style.color = "#28a745"
-      loadClientAppointmentsSimulated() // Recarregar a tabela com simulação
-      populateTimeSlots() // Atualizar os horários disponíveis
+    // Se o agendamento cancelado for o último, atualizar o card de visão geral
+    if (lastAppointment && id === lastAppointment._id) {
+      appointmentStatus.classList.remove(`status-${lastAppointment.status}`);
+      lastAppointment = null;
+      displayLastAppointment();
     }
+
+    scheduleMessage.textContent = "Agendamento cancelado com sucesso!";
+    scheduleMessage.style.color = "#28a745";
+    loadClientAppointments(); // Recarregar a tabela
+    populateTimeSlots(); // Atualizar os horários disponíveis
+  } catch (error) {
+    // Simulação de cancelamento (se o backend não estiver disponível)
+    simulatedAppointments = simulatedAppointments.map((appointment) => {
+      if (appointment._id === id) {
+        return { ...appointment, status: "canceled", updated_at: new Date().toISOString() };
+      }
+      return appointment;
+    });
+    localStorage.setItem("simulatedAppointments", JSON.stringify(simulatedAppointments));
+
+    if (lastAppointment && id === lastAppointment._id) {
+      lastAppointment = null;
+      displayLastAppointment();
+    }
+
+    scheduleMessage.textContent = "Agendamento cancelado com sucesso (simulação).";
+    scheduleMessage.style.color = "#28a745";
+    loadClientAppointmentsSimulated(); // Recarregar a tabela com simulação
+    populateTimeSlots(); // Atualizar os horários disponíveis
+  } finally {
+    pendingAction = null;
   }
+}
+
+// Remover a clonagem dos botões no evento do botão de cancelar na visão geral
+cancelAppointmentBtn.addEventListener("click", () => {
+  if (!lastAppointment) {
+    scheduleMessage.textContent = "Nenhum agendamento para cancelar.";
+    scheduleMessage.style.color = "#dc3545";
+    return;
+  }
+  showConfirmationModal(lastAppointment._id);
+});
 
   // Função para carregar e exibir agendamentos simulados
   function loadClientAppointmentsSimulated() {
@@ -298,20 +315,14 @@ function initializeDashboard() {
     // Obter agendamentos existentes para a data e barbeiro selecionados
     let existingAppointments = []
     try {
-      const url = `${apiUrl}api/agendamentos?barber_name=${encodeURIComponent(selectedBarber)}&start_date=${selectedDate}&end_date=${selectedDate}&status=scheduled&status=confirmed`
+      if(selectedBarber && selectedDate){
+        const url = `${apiUrl}api/agendamentos?barber_name=${encodeURIComponent(selectedBarber)}&start_date=${selectedDate}&end_date=${selectedDate}&status=scheduled&status=confirmed`
 
-      existingAppointments = await fetchWithErrorHandling(url)
+        existingAppointments = await fetchWithErrorHandling(url)
+      }
+      
     } catch (error) {
-      console.log(error)
-      // Se o backend não estiver disponível, usar a simulação
-      existingAppointments = simulatedAppointments.filter((appointment) => {
-        const [appointmentDate, appointmentTime] = appointment.date.split(" ")
-        return (
-          appointmentDate === selectedDate &&
-          appointment.barber_name === selectedBarber &&
-          (appointment.status === "scheduled" || appointment.status === "confirmed")
-        )
-      })
+      
     }
 
     // Extrair os horários ocupados
@@ -408,7 +419,6 @@ function initializeDashboard() {
 
       scheduleMessage.textContent = "Agendamento realizado com sucesso!"
       scheduleMessage.style.color = "#28a745"
-      updateProgress()
       displayLastAppointment()
       loadClientAppointments() // Atualizar a tabela de agendamentos
       populateTimeSlots() // Atualizar os horários disponíveis
@@ -450,7 +460,6 @@ function initializeDashboard() {
 
       scheduleMessage.textContent = "Agendamento realizado com sucesso (simulação)."
       scheduleMessage.style.color = "#28a745"
-      updateProgress()
       displayLastAppointment()
       loadClientAppointmentsSimulated() // Atualizar a tabela com simulação
       populateTimeSlots() // Atualizar os horários disponíveis
@@ -472,31 +481,6 @@ function initializeDashboard() {
     }
     showConfirmationModal(lastAppointment._id)
   })
-
-  // Assinatura
-  const subscribeBtn = document.getElementById("subscribeBtn")
-  const subscriptionStatus = document.getElementById("subscriptionStatus")
-
-  subscribeBtn.addEventListener("click", () => {
-    currentUser.subscription = true
-    localStorage.setItem("user", JSON.stringify(currentUser))
-    subscriptionStatus.textContent = "Você é assinante! 1 corte por semana liberado."
-    updateProgress()
-  })
-
-  // Benefícios
-  const progress = document.getElementById("progress")
-  function updateProgress() {
-    const text = currentUser.subscription ? "Assinante" : `${currentUser.appointments}/5`
-    progress.textContent = text
-    if (!currentUser.subscription && currentUser.appointments >= 5) {
-      currentUser.appointments = 0
-      localStorage.setItem("user", JSON.stringify(currentUser))
-      alert("Parabéns! Você ganhou um agendamento grátis!")
-    }
-  }
-
-  updateProgress()
 
   // ===== INÍCIO DO CÓDIGO ADICIONAL PARA O MODAL DE EDIÇÃO =====
 
@@ -747,6 +731,182 @@ function initializeDashboard() {
       }
     }
   })
+
+    // ===== EDIÇÃO DE PERFIL DO USUÁRIO =====
+  
+  // Elementos do modal de edição de usuário
+  const editUserBtn = document.getElementById("editUserBtn");
+  const userEditModal = document.getElementById("userEditModal");
+  const userEditForm = document.getElementById("userEditForm");
+  const cancelUserEdit = document.getElementById("cancelUserEdit");
+  const userEditMessage = document.getElementById("userEditMessage");
+  const deleteAccountBtn = document.getElementById("deleteAccountBtn");
+
+  // Configurar botão de edição de perfil
+  if (editUserBtn) {
+    editUserBtn.addEventListener("click", () => {
+      openUserEditModal(currentUser._id);
+    });
+  }
+
+  // Função para abrir o modal de edição de usuário
+  async function openUserEditModal(userId) {
+    try {
+      // Preencher o formulário com os dados do usuário
+      document.getElementById("userEditName").value = currentUser.name;
+      document.getElementById("userEditEmail").value = currentUser.email;
+      
+      // Limpar campos de senha e mensagens
+      document.getElementById("userEditCurrentPassword").value = "";
+      document.getElementById("userEditNewPassword").value = "";
+      document.getElementById("userEditConfirmPassword").value = "";
+      document.getElementById("userEditMessage").textContent = "";
+      
+      // Exibir o modal
+      userEditModal.style.display = "flex";
+    } catch (error) {
+      console.error("Erro ao carregar dados do usuário:", error);
+      alert("Não foi possível carregar os dados do usuário. Tente novamente.");
+    }
+  }
+
+  // Configurar o modal de edição de usuário
+  function setupUserEditModal() {
+    // Fechar modal ao clicar no botão cancelar
+    cancelUserEdit.addEventListener("click", () => {
+      userEditModal.style.display = "none";
+      userEditMessage.textContent = "";
+    });
+    
+    // Fechar modal ao clicar fora do conteúdo
+    userEditModal.addEventListener("click", (e) => {
+      if (e.target === userEditModal) {
+        userEditModal.style.display = "none";
+        userEditMessage.textContent = "";
+      }
+    });
+    
+    // Lidar com o envio do formulário
+    userEditForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      
+      const name = document.getElementById("userEditName").value.trim();
+      const email = document.getElementById("userEditEmail").value.trim();
+      const currentPassword = document.getElementById("userEditCurrentPassword").value;
+      const newPassword = document.getElementById("userEditNewPassword").value;
+      const confirmPassword = document.getElementById("userEditConfirmPassword").value;
+      
+      // Validações básicas
+      if (!name || !email || !currentPassword) {
+        userEditMessage.textContent = "Nome, email e senha atual são obrigatórios.";
+        userEditMessage.style.color = "#dc3545";
+        return;
+      }
+      
+      if (newPassword && newPassword !== confirmPassword) {
+        userEditMessage.textContent = "As novas senhas não coincidem.";
+        userEditMessage.style.color = "#dc3545";
+        return;
+      }
+      
+      try {
+        userEditMessage.textContent = "Atualizando dados...";
+        userEditMessage.style.color = "#007bff";
+        
+        // Preparar dados para atualização
+        const updateData = {
+          name,
+          email,
+          password: currentPassword
+        };
+        
+        if (newPassword) {
+          updateData.newPassword = newPassword;
+        }
+        
+        // Chamar API para atualizar usuário
+        const response = await fetchWithErrorHandling(`${apiUrl}api/usuarios/${currentUser._id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(updateData)
+        });
+        
+        if (response.error) {
+          userEditMessage.textContent = response.message || "Erro ao atualizar dados.";
+          userEditMessage.style.color = "#dc3545";
+        } else {
+          // Atualizar dados no localStorage
+          const updatedUser = { ...currentUser, name, email };
+          localStorage.setItem("user", JSON.stringify(updatedUser));
+          
+          // Atualizar nome exibido no dashboard
+          document.getElementById("userName").textContent = name;
+          
+          userEditMessage.textContent = "Dados atualizados com sucesso!";
+          userEditMessage.style.color = "#28a745";
+          
+          // Fechar modal após 1 segundo
+          setTimeout(() => {
+            userEditModal.style.display = "none";
+            userEditMessage.textContent = "";
+          }, 1000);
+        }
+      } catch (error) {
+        console.error("Erro ao atualizar usuário:", error);
+        userEditMessage.textContent = "Erro ao atualizar dados. Tente novamente.";
+        userEditMessage.style.color = "#dc3545";
+      }
+    });
+
+    // Configurar botão de excluir conta
+    setupUserDeleteButton();
+  }
+
+  // Função para configurar o botão de exclusão de conta
+  function setupUserDeleteButton() {
+    deleteAccountBtn.addEventListener('click', () => {
+      // Configurar o modal de confirmação
+      confirmationMessage.textContent = "Tem certeza que deseja excluir sua conta permanentemente? Esta ação não pode ser desfeita.";
+      confirmationModal.style.display = "flex";
+
+      // Remover listeners anteriores para evitar acumulação
+      confirmActionBtn.onclick = null;
+      cancelActionBtn.onclick = null;
+
+      // Referenciar novamente após clonagem
+      const newConfirmBtn = document.getElementById("confirmActionBtn");
+      const newCancelBtn = document.getElementById("cancelActionBtn");
+
+      // Adicionar novos eventos
+      newConfirmBtn.addEventListener('click', async () => {
+        try {
+          confirmationMessage.textContent = "Excluindo conta...";
+          newConfirmBtn.disabled = true;
+
+          // Chamar API para deletar conta
+          await fetchWithErrorHandling(`${apiUrl}api/usuarios/${currentUser._id}`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' }
+          });
+
+          // Limpar localStorage e redirecionar
+          localStorage.removeItem('user');
+          window.location.href = 'index.html';
+        } catch (error) {
+          console.error("Erro ao excluir conta:", error);
+          confirmationMessage.textContent = error.message || "Erro ao excluir conta. Tente novamente.";
+          newConfirmBtn.disabled = false;
+        }
+      });
+
+      newCancelBtn.addEventListener('click', () => {
+        confirmationModal.style.display = 'none';
+      });
+    });
+  }
+
+  // Inicializar o modal de edição de usuário
+  setupUserEditModal();
 }
 
 // Inicializar o módulo

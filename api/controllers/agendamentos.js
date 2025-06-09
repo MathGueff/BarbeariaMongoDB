@@ -170,7 +170,7 @@ export const createAgendamento = async (req, res) => {
         res.status(201).json({
             error: false,
             message: "Agendamento cadastrado com sucesso",
-            createdAgendamento
+            data : createdAgendamento
         })
       } catch (error) {
         console.error("Problema ao criar um agendamento:", error)

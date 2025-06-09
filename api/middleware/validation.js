@@ -221,6 +221,14 @@ export const validateUpdateUser = [
   .withMessage('Email inválido'),
   check('password')
   .optional()
+  .notEmpty()
+  .withMessage('A senha não pode ser vazia')
+  .isLength({min:3})
+  .withMessage('A senha é muito pequena'),
+  check('newPassword')
+  .optional()
+  .notEmpty()
+  .withMessage('A nova senha não pode ser vazia')
   .isLength({min:3})
   .withMessage('A senha é muito pequena'),
   check('nivel')

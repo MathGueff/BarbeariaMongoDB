@@ -1,6 +1,6 @@
 // Teste da API REST de agendamentos
 @baseURL = http://localhost:3000/api/usuarios
-@id = 6846eca9e7ba12451b85bbfc
+@id = 6847209ba4cddb1f34452d24
 
 // ------------- GET ------------- //
 
@@ -61,7 +61,7 @@ POST {{baseURL}}
 Content-Type: application/json
 
 {
-    "name" : "Matheus Gueff",
+    "name" : "Matheus A S Gueff",
     "email" : "gueff@gmail.com",
     "password" : "math",
     "nivel" : 2
@@ -101,7 +101,20 @@ Content-Type: application/json
 {
     "name" : "Matheus Gueff",
     "email" : "gueff@gmail.com",
-    "password" : "math"
+    "password" : "math",
+    "newPassword" : "math"
+}
+
+###
+// PUT - Edição de um usuário (Com erro de email existente e senha incorreta)
+PUT {{baseURL}}/{{id}}
+Content-Type: application/json
+
+{
+    "name" : "Matheus Gueff",
+    "email" : "alice@gmail.com",
+    "password" : "maths",
+    "newPassword" : "math"
 }
 
 // ------------- DELETE ------------- //
