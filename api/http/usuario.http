@@ -1,6 +1,6 @@
 // Teste da API REST de agendamentos
 @baseURL = http://localhost:3000/api/usuarios
-@id = 680f8826bc4968bb5d687782
+@id = 6846eca9e7ba12451b85bbfc
 
 // ------------- GET ------------- //
 
@@ -14,12 +14,6 @@ Content-Type: application/json
 GET {{baseURL}}/2
 Content-Type: application/json
 
-###
-// GET - Lista o usuário pelo login (email e senha)
-GET {{baseURL}}/login?email=gueffmatheus@gmail.com&senha=12345
-Content-Type: application/json
-
-
 // ------------- POST ------------- //
 ###
 // POST - Faz login do usuário
@@ -27,8 +21,8 @@ POST {{baseURL}}/login
 Content-Type: application/json
 
 {
-    "email" : "admin@gmail.com",
-    "password" : "admin"
+    "email" : "gueff@gmail.com",
+    "password" : "math"
 }
 
 ###
@@ -37,7 +31,7 @@ POST {{baseURL}}/login
 Content-Type: application/json
 
 {
-    "email" : "admin@gmail.com",
+    "email" : "gueff@gmail.com",
     "password" : "nada"
 }
 
@@ -52,7 +46,7 @@ Content-Type: application/json
 }
 
 ###
-// POST - Faz login do usuário (com erro)
+// POST - Faz login do usuário (com erro de validação)
 POST {{baseURL}}/login
 Content-Type: application/json
 
@@ -62,19 +56,31 @@ Content-Type: application/json
 }
 
 ###
-// POST - Insere um novo usuario (Sem erros)
+// POST - Insere um novo usuario Admin nivel 2 (Sem erros)
 POST {{baseURL}}
 Content-Type: application/json
 
 {
-    "name" : "Matheus Admin",
-    "email" : "gueffadmin@gmail.com",
+    "name" : "Matheus Gueff",
+    "email" : "gueff@gmail.com",
     "password" : "math",
-    "isAdmin" : true
+    "nivel" : 2
 }
 
 ###
-// POST - Insere um novo usuario (Com erros)
+// POST - Insere um novo usuario Admin nivel 1 (Sem erros)
+POST {{baseURL}}
+Content-Type: application/json
+
+{
+    "name" : "Davy Oliveira",
+    "email" : "davy@gmail.com",
+    "password" : "davy",
+    "nivel" : 1
+}
+
+###
+// POST - Insere um novo usuario Admin (Com erros)
 POST {{baseURL}}
 Content-Type: application/json
 
@@ -82,7 +88,20 @@ Content-Type: application/json
     "name" : "",
     "email" : "gueffmatheus@",
     "password" : "1",
-    "isAdmin" : "sou admin"
+    "nivel" : "sou admin"
+}
+
+// ------------- PUT ------------- //
+
+###
+// PUT - Edição de um usuário
+PUT {{baseURL}}/{{id}}
+Content-Type: application/json
+
+{
+    "name" : "Matheus Gueff",
+    "email" : "gueff@gmail.com",
+    "password" : "math"
 }
 
 // ------------- DELETE ------------- //
