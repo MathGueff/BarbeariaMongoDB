@@ -2,18 +2,6 @@ import { ObjectId } from "mongodb"
 
 const collectionAgendamentos = 'agendamentos'
 
-export const getCountAgendamentos = async (req,res) => {
-    try {
-        const db = req.app.locals.db;
-        const count = await db.collection(collectionAgendamentos).find().count()
-
-        res.status(200).json({count})
-    } catch (error) {
-        console.error("Erro ao contar agendamentos:", error)
-        res.status(500).json({ error: true, message: "Falha ao contar agendamentos" })
-    }
-}
-
 // Get all Agendamentos
 export const getAgendamentos = async (req, res) => {
     try {
@@ -81,15 +69,17 @@ export const getAgendamentos = async (req, res) => {
             .limit(Number.parseInt(limit))
             .toArray()
 
-        const total = await db.collection(collectionAgendamentos).find(query).count()
+        const total = await db.collection(collectionAgendamentos).find().count()
+
         res.status(200).json({
             data : agendamentos,
             pagination : {
-                total,
+                total : agendamentos.length,
                 page: Number.parseInt(page),
-                limit: Number.parseInt(limit),
-                pages: limit != 0 ? Math.ceil(total / limit) : 1
-            }
+                pages: limit != 0 ? Math.ceil(total / limit) : 1,
+                limit: Number.parseInt(limit)
+            },
+            total
         })
     } catch (error) {
         console.error("Erro ao buscar agendamentos:", error)
