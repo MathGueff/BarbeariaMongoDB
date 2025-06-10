@@ -1,6 +1,6 @@
 // Teste da API REST de agendamentos
 @baseURL = http://localhost:3000/api/usuarios
-@id = 6847209ba4cddb1f34452d24
+@id = 684830b5e0c85c41fc5175f3
 
 // ------------- GET ------------- //
 
@@ -113,7 +113,7 @@ Content-Type: application/json
 {
     "name" : "Matheus Gueff",
     "email" : "alice@gmail.com",
-    "password" : "maths",
+    "password" : "senhaErrada",
     "newPassword" : "math"
 }
 
