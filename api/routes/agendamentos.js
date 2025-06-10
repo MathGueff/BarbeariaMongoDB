@@ -13,7 +13,7 @@ import auth from "../middleware/auth.js"
 
 const router = express.Router()
 
-router.use(auth)
+//router.use(auth)
 
 // Get all agendamentos
 router.get("/", getAgendamentos)
