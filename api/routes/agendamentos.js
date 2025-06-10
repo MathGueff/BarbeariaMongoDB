@@ -9,8 +9,11 @@ import {
     confirmarAgendamento
 } from "../controllers/agendamentos.js"
 import { validateAgendamento, validateObjectId, validateUpdateAgendamento } from "../middleware/validation.js"
+import auth from "../middleware/auth.js"
 
 const router = express.Router()
+
+//router.use(auth)
 
 // Get all agendamentos
 router.get("/", getAgendamentos)
