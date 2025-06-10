@@ -14,8 +14,8 @@
         </a>
         <h1 href="index.html" class="logo-text">Barbearia MongoDB</h1>
         <nav class="header-nav">
-            <button id="editUserBtn" class="btn btn-primary">Editar Perfil</button>
-            <button id="logoutBtn" class="btn btn-primary">Sair</button>
+            <button id="editUserBtn" class="btn btn-edit">Editar Perfil</button>
+            <button id="logoutBtn" class="btn btn-cta">Sair</button>
         </nav>
     </header>
 
@@ -73,7 +73,7 @@
                     </div>
                 </div>
 
-                <button type="submit" class="btn btn-primary">Agendar</button>
+                <button type="submit" class="btn btn-edit">Agendar</button>
             </form>
             <p id="scheduleMessage" class="message"></p>
         </div>
@@ -122,7 +122,7 @@
             <p id="confirmationMessage">Tem certeza que deseja cancelar este agendamento?</p>
             <div class="modal-actions">
                 <button id="cancelActionBtn" class="btn btn-secondary">Não</button>
-                <button id="confirmActionBtn" class="btn btn-primary">Sim</button>
+                <button id="confirmActionBtn" class="btn btn-confirm">Sim</button>
             </div>
         </div>
     </div>
@@ -180,7 +180,7 @@
                 </div>
 
                 <div class="modal-actions">
-                    <button type="submit" class="btn btn-primary">Salvar</button>
+                    <button type="submit" class="btn btn-confirm">Salvar</button>
                     <button type="button" id="closeEditModalBtn" class="btn btn-secondary">Fechar</button>
                 </div>
             </form>
@@ -199,14 +199,14 @@
                 <input type="password" id="userEditConfirmPassword" class="input-field" placeholder="Confirmar nova senha">
                 <div class="modal-actions">
                     <button type="button" id="cancelUserEdit" class="btn btn-secondary">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+                    <button type="submit" class="btn btn-confirm">Salvar Alterações</button>
                 </div>
                 <p id="userEditMessage" class="message"></p>
             </form>
             <hr>
             
             <div style="display: flex; justify-content: center; margin-top: 20px;">
-                <button type="button" id="deleteAccountBtn" class="btn btn-primary">Excluir conta</button>
+                <button type="button" id="deleteAccountBtn" class="btn btn-secondary">Excluir conta</button>
             </div>
         </div>
     </div>
