@@ -21,6 +21,7 @@ async function importaAgendamentos(){
 
         const db = client.db(dbName);
         const collection = db.collection(collectionName)
+        console.log(`Alterando banco de dados em : ${uri}\n`)
         //Verificando se a collection já existe
         const collections = await db.listCollections({name : collectionName}).toArray()
         if(collections.length > 0){

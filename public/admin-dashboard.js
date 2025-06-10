@@ -301,14 +301,14 @@ function initializeAdminDashboard() {
 
   async function updateAppointmentStatus(appointmentId, statusValue, button) {
     const row = button.closest("tr");
-    const action = statusValue == "canceled" ? "cancelar" : "confirmar";
     const statusTextContent = statusValue == "canceled" ? "Cancelado" : "Confirmado";
 
     try {
       row.style.opacity = "0.7";
-      await fetchWithErrorHandling(`${apiUrl}api/agendamentos/${appointmentId}/${action}`, {
+      await fetchWithErrorHandling(`${apiUrl}api/agendamentos/${appointmentId}/status`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
+        body : JSON.stringify({status : statusValue})
       });
 
       // Update DOM directly
