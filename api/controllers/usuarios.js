@@ -131,7 +131,7 @@ export const createUsuarios = async (req, res) => {
 export const editUsuario = async (req, res) => {
     try {
         const { id } = req.params
-        const {newPassword, ...updatedData} = req.body
+        const {newPassword, newName, ...updatedData} = req.body
 
         const db = req.app.locals.db
 

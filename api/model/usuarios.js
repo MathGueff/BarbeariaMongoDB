@@ -20,6 +20,8 @@ async function importausuarios(){
 
         const db = client.db(dbName);
         const collection = db.collection(collectionName)
+        
+        console.log(`Alterando banco de dados em : ${uri}\n`)
         //Verificando se a collection já existe
         const collections = await db.listCollections({name : collectionName}).toArray()
         if(collections.length > 0){
@@ -27,7 +29,7 @@ async function importausuarios(){
             console.log(`⚠ Coleção ${collectionName} foi dropada`)
         }
         const resultado = await collection.insertMany(usuarios)
-        console.log(`${resultado.insertedCount} documentos inseridos em ${uri}`)
+        console.log(`${resultado.insertedCount} documentos inseridos`)
     } catch(error){
         console.log('❌ Erro ao importar ', error.message)
     } finally {

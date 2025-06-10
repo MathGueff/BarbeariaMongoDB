@@ -1,7 +1,7 @@
 // script.js
 
 // Função auxiliar para fazer requisições fetch com tratamento de erros
-export async function fetchWithErrorHandling(url, options = {}) {
+export async function fetchWithErrorHandling(url, options = {}, notificate = true) {
     let responseData = null
 
     try {
@@ -15,7 +15,7 @@ export async function fetchWithErrorHandling(url, options = {}) {
         }
     } finally {
         // Chama a função de toast com os dados da resposta
-        if (responseData != null) {
+        if (responseData != null && notificate == true) {
             toastNotification(responseData)
         }
     }

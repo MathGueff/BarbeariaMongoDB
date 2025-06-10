@@ -1,6 +1,6 @@
 // Teste da API REST de agendamentos
 @baseURL = http://localhost:3000/api/agendamentos
-@id = 6846fa18152337f7e0f44336
+@id = 68487f3367b2d1a54c5272c8
 @token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30
 @page = 2
 @limit = 10
@@ -158,12 +158,22 @@ Content-Type: application/json
 access-token: {{token}}
 
 {
-    "barber_name" : "Pedro Oliveira",
+    "barber_name" : "Pedro Ribeiro",
     "services" : [
         {"name" : "outro serviço", "price" : 10.00},
         {"name" : "mais um serviço", "price" : 20.00}
     ],
     "date" : "2025-04-30 14:30:00"
+}
+
+###
+// PUT - Altera o nome do cliente (usado quando ocorre alteração de nome de usuário)
+PUT {{baseURL}}/{{id}}
+Content-Type: application/json
+access-token: {{token}}
+
+{
+    "updated_client_name" : "Roberto Carlos"
 }
 
 ###
@@ -248,30 +258,62 @@ access-token: autenticado
 // ------------- PATCH ------------- //
 
 ###
-//PATCH - ATUALIZA O STATUS DO AGENDAMENTO para cancelado
-PATCH {{baseURL}}/{{id}}/cancelar
-access-token: {{token}}
+//PATCH - Atualiza status do agendamento para confirmado
+PATCH {{baseURL}}/{{id}}/status
+Content-Type: application/json
+access-token : {{token}}
+
+{
+    "status" : "confirmed"
+}
 
 ###
-//PATCH - ATUALIZA O STATUS DO AGENDAMENTO para confirmado
-PATCH {{baseURL}}/{{id}}/confirmar
-access-token: {{token}}
+//PATCH - Atualiza status do agendamento para cancelado
+PATCH {{baseURL}}/{{id}}/status
+Content-Type: application/json
+access-token : {{token}}
+
+{
+    "status" : "canceled"
+}
 
 ###
-//PATCH - ATUALIZA O STATUS DO AGENDAMENTO para cancelado(com erro de ID)
-PATCH {{baseURL}}/1/cancelar
-access-token: {{token}}
+//PATCH - Atualiza status do agendamento para confirmado (erro de validação)
+PATCH {{baseURL}}/{{id}}/status
+Content-Type: application/json
+access-token : {{token}}
+
+{
+    
+}
 
 ###
-//PATCH - ATUALIZA O STATUS DO AGENDAMENTO para confirmado(com erro de ID)
-PATCH {{baseURL}}/1/confirmar
-access-token: {{token}}
+//PATCH - Atualiza status do agendamento para confirmado (status inválido)
+PATCH {{baseURL}}/{{id}}/status
+Content-Type: application/json
+access-token : {{token}}
+
+{
+    "status" : "invalidStatus"
+}
 
 ###
-//PATCH - Erro de auth
-PATCH {{baseURL}}/1/cancelar
-access-token: tokenInvalido
+//PATCH - Atualiza o nome do cliente (feito quando o nome de usuário é alterado, desencadeando na renomeação do client_name de agendamentos ligados a ele
+PATCH {{baseURL}}/{{id}}/rename
+Content-Type: application/json
+access-token : {{token}}
+
+{
+    "name" : "Albert Einstein"
+}
+
 
 ###
-//PATCH - Erro de auth
-PATCH {{baseURL}}/1/confirmar
+//PATCH - Atualiza o nome do cliente (erro de validação)
+PATCH {{baseURL}}/{{id}}/rename
+Content-Type: application/json
+access-token : {{token}}
+
+{
+    "name" : ""
+}

@@ -16,6 +16,17 @@ export const validateRequest = (req, res, next) => {
 // Validar ObjectId
 export const validateObjectId = [param("id").isMongoId().withMessage("Formato de ID inválido"), validateRequest]
 
+export const validateStatusChange = [
+  check("status")
+  .notEmpty()
+  .withMessage('O status é obrigatório')
+  .custom((status) => {
+    if(status == "confirmed" || status == "canceled") return true
+    throw new Error("O status deve ser confirmed ou canceled")
+  }),
+  validateRequest
+]
+
 // Validações para a criação de agendamento
 export const validateAgendamento = [
   //Nome do Cliente
@@ -24,6 +35,7 @@ export const validateAgendamento = [
     .withMessage('O nome do cliente não pode estar vazio')
     .isLength({ max: 50 })
     .withMessage("O nome do cliente deve ter no máximo 50 caracteres"),
+
   //Nome do barbeiro
   check('barber_name')
     .notEmpty()
@@ -32,19 +44,23 @@ export const validateAgendamento = [
     .withMessage("O nome do barbeiro deve ter no máximo 50 caracteres")
     .matches(/^[A-Za-zÀ-ú\s()\-.,'"!?]+$/, "i")
     .withMessage("O nome do barbeiro deve conter apenas letras, espaços e caracteres especiais válidos"),
+
   //Services
   check('services')
     .notEmpty()
     .withMessage("O campo services é obrigatório")
     .isArray(),
+
   check('services.*.name')
     .notEmpty()
     .withMessage("O campo services deve ter um nome"),
+
   check('services.*.price')
     .notEmpty()
     .withMessage("O campo services deve ter um preço")
     .isFloat({ gt: 0 })
     .withMessage("O preço deve ser maior do que zero"),
+
   check('date')
     .notEmpty().withMessage("A data é obrigatória")
     .matches(/^(\d{4})\-(\d{2})\-(\d{2}) (\d{2}):(\d{2}):(\d{2})$/)
@@ -62,21 +78,25 @@ export const validateAgendamento = [
       throw new Error("Data inválida, deve estar entre 08:00:00 e 18:00:00")
 
     }),
+
   check('total_price')
     .custom((total_price) => {
       if(total_price != undefined) throw new Error("O preço total deve ser calculado automaticamente")
       return true
     }),
+
   check('status')
     .custom((status) => {
       if(status != undefined) throw new Error("O status deve ser definido automaticamente")
       return true
     }),
+
   check('created_at')
     .custom((created_at) => {
       if(created_at != undefined) throw new Error("O campo created_at deve ser definido automaticamente")
       return true
     }),
+
   check('updated_at')
     .custom((updated_at) => {
       if(updated_at != undefined) throw new Error("O campo updated_at deve ser definido automaticamente")
@@ -95,6 +115,14 @@ export const validateUpdateAgendamento = [
     if(client_name === undefined) return true
     throw new Error('O nome do cliente não pode ser alterado')
   }),
+
+  check('updated_client_name')
+  .optional()
+  .notEmpty()
+  .withMessage('O nome do cliente não pode estar vazio')
+  .isLength({ max: 50 })
+  .withMessage("O nome do cliente deve ter no máximo 50 caracteres"),
+
   //Nome do barbeiro
   check('barber_name')
     .optional()
@@ -102,6 +130,7 @@ export const validateUpdateAgendamento = [
     .withMessage('O nome do barbeiro não pode estar vazio')
     .isLength({ max: 50 })
     .withMessage("O nome do barbeiro deve ter no máximo 50 caracteres"),
+
   //Services
   check('services')
     .optional()
@@ -134,6 +163,7 @@ export const validateUpdateAgendamento = [
       }
       return true;
     }),
+
   check('date')
     .optional()
     .matches(/^(\d{4})\-(\d{2})\-(\d{2}) (\d{2}):(\d{2}):(\d{2})$/)
@@ -159,21 +189,25 @@ export const validateUpdateAgendamento = [
       throw new Error("Data inválida, deve estar entre 08:00:00 e 18:00:00")
 
     }),
+
   check('total_price')
     .custom((total_price) => {
       if(total_price != undefined) throw new Error("O preço total deve ser calculado automaticamente")
       return true
     }),
+
   check('status')
     .custom((status) => {
       if(status != undefined) throw new Error("O status deve ser definido automaticamente")
       return true
     }),
+
   check('created_at')
     .custom((created_at) => {
       if(created_at != undefined) throw new Error("O campo created_at deve ser definido automaticamente")
       return true
     }),
+
   check('updated_at')
     .custom((updated_at) => {
       if(updated_at != undefined) throw new Error("O campo updated_at deve ser definido automaticamente")
@@ -183,22 +217,33 @@ export const validateUpdateAgendamento = [
   validateRequest,
 ]
 
+export const validateClientNameUpdate = [
+  check('name')
+  .notEmpty()
+  .withMessage('O nome do cliente é obrigatório')
+  .isLength({max : 50})
+  .withMessage('O nome do cliente deve ter no máximo 50 caracteres'),
+  validateRequest
+]
 
 export const validateUser = [
   //Nome do Cliente
   check('name')
   .notEmpty()
   .withMessage("O nome do usuário não pode ser vazio"),
+
   check('email')
   .notEmpty()
   .withMessage('O email não pode ser vazio')
   .isEmail()
   .withMessage('Email inválido'),
+
   check('password')
   .notEmpty()
   .withMessage('A senha não pode ser vazia')
   .isLength({min:3})
   .withMessage('A senha é muito pequena'),
+
   check('nivel')
   .notEmpty()
   .withMessage('O campo é obrigatório')
@@ -213,24 +258,28 @@ export const validateUpdateUser = [
   .optional()
   .notEmpty()
   .withMessage('O nome não pode ser vazio'),
+
   check('email')
   .optional()
   .notEmpty()
   .withMessage('O email não pode ser vazio')
   .isEmail()
   .withMessage('Email inválido'),
+
   check('password')
   .optional()
   .notEmpty()
   .withMessage('A senha não pode ser vazia')
   .isLength({min:3})
   .withMessage('A senha é muito pequena'),
+
   check('newPassword')
   .optional()
   .notEmpty()
   .withMessage('A nova senha não pode ser vazia')
   .isLength({min:3})
   .withMessage('A senha é muito pequena'),
+
   check('nivel')
   .optional()
   .custom((nivel) => {
@@ -247,10 +296,12 @@ export const validateUserLogin = [
   .withMessage('O email não pode ser vazio')
   .isEmail()
   .withMessage('Email inválido'),
+
   check('password')
   .notEmpty()
   .withMessage('A senha não pode ser vazia')
   .isLength({min:3})
   .withMessage('A senha é muito pequena'),
+
   validateRequest
 ]
