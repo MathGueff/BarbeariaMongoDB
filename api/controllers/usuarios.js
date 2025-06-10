@@ -1,4 +1,5 @@
 import { ObjectId } from "mongodb"
+import bcrypt from 'bcryptjs'
 
 const collectionUsuarios = 'usuarios'
 
@@ -33,7 +34,8 @@ export const login = async (req, res) => {
         })
         if (!existingUser) 
             return res.status(404).json({ error: true, message: "Esse email não foi cadastrado" })
-
+//TODO: Descriptografar a seha do usuario encontrado, 
+//exemp  Decrypt(existingUser.password)
         if(existingUser.password == password){
             return res.status(200).json({
                 error: false,
@@ -78,10 +80,14 @@ export const createUsuarios = async (req, res) => {
                 message: "Um cadastro já foi realizado com esse nome"
             })
         }
+        //Criptografia da senha
+         const salt = await bcrypt.genSalt(10)
+        const passwordEncrypted = await bcrypt.hash(password, salt)
+
         const result = await db.collection(collectionUsuarios).insertOne({
             name : name,
             email: email,
-            password : password,
+            password : passwordEncrypted,
             nivel : nivel
         })
       
@@ -182,7 +188,11 @@ export const editUsuario = async (req, res) => {
         }
 
         if(newPassword){
-            updatedData.password = newPassword
+           //Criptografia da senha
+         const salt = await bcrypt.genSalt(10)
+        const passwordEncrypted = await bcrypt.hash(newPassword, salt)
+        
+            updatedData.password = passwordEncrypted
         }
 
         const result = await db.collection(collectionUsuarios).updateOne(
@@ -214,4 +224,6 @@ export const editUsuario = async (req, res) => {
         })
         console.error(error)
     }
+
+    
 }

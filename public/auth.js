@@ -1,6 +1,7 @@
 import { fetchWithErrorHandling, toastNotification } from './script.js';
 
-const vercelApi =  "https://barbearia-mongo-db-liart.vercel.app/"
+
+ const vercelApi =  "https://barbearia-mongo-db-liart.vercel.app/"
 
 const apiUrl = vercelApi
 // Módulo de Autenticação
