@@ -152,27 +152,28 @@ export const editUsuario = async (req, res) => {
             return;
         }
 
-        if(updatedData.name){
-            const existingUser = await db.collection(collectionUsuarios).findOne({
-                _id : {$ne : new ObjectId(id)},
-                name : updatedData.name
-            })
+        let existingUser;
 
-            if(existingUser){
+        if(updatedData.name || updatedData.email){
+            existingUser = await db.collection(collectionUsuarios).findOne({
+                _id : {$ne : new ObjectId(id)},
+                $or : [
+                    {name : updatedData.name},
+                    {email : updatedData.email}
+                ]
+            })
+        }
+        
+        if(existingUser){
+            if(updatedData.name && updatedData.name == existingUser.name){
                 res.status(409).json({
                     error : true,
                     message: 'Já existe um usuário com esse nome'
                 })
                 return;
             }
-        }
 
-        if(updatedData.email){
-            const existingUser = await db.collection(collectionUsuarios).findOne({
-                _id : {$ne : new ObjectId(id)},
-                email : updatedData.email
-            })
-            if(existingUser){
+            if(updatedData.email && updatedData.email == existingUser.email){
                 res.status(409).json({
                     error : true,
                     message: 'Já existe um usuário com esse email'

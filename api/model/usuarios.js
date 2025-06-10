@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 //PARA RODAR: npm run importUsuarios
-const uri =  process.env.MONGODB_URI || "mongodb://localhost:27017/barbearia"
+const uri = process.env.MONGODB_URI || "mongodb://localhost:27017/barbearia"
 const dbName = 'barbearia'
 const collectionName = 'usuarios'
 
@@ -27,7 +27,7 @@ async function importausuarios(){
             console.log(`⚠ Coleção ${collectionName} foi dropada`)
         }
         const resultado = await collection.insertMany(usuarios)
-        console.log(`${resultado.insertedCount} documentos inseridos`)
+        console.log(`${resultado.insertedCount} documentos inseridos em ${uri}`)
     } catch(error){
         console.log('❌ Erro ao importar ', error.message)
     } finally {

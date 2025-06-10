@@ -1,8 +1,8 @@
-import { fetchWithErrorHandling } from "./script.js"
+import { fetchWithErrorHandling, toastNotification } from "./script.js"
 
 // dashboard.js
-const vercelUrl="https://barbearia-mongo-db-liart.vercel.app/"
-const apiUrl = vercelUrl
+const vercelUrl= "https://barbearia-mongo-db-liart.vercel.app/"
+const apiUrl = vercelUrl || "http://localhost:3000/"
 // Módulo do Dashboard de Cliente
 function initializeDashboard() {
   const currentUser = JSON.parse(localStorage.getItem("user"))
@@ -187,6 +187,7 @@ function showConfirmationModal(appointmentId) {
   // Remover todos os listeners antigos
   confirmActionBtn.onclick = null;
   cancelActionBtn.onclick = null;
+  deleteAccountBtn.onclick = null
 
   // Adicionar novos listeners
   confirmActionBtn.addEventListener("click", executePendingAction);
@@ -707,7 +708,7 @@ cancelAppointmentBtn.addEventListener("click", () => {
       populateTimeSlots()
     } catch (error) {
       console.error("Erro ao atualizar agendamento:", error)
-      alert(`Erro ao atualizar agendamento: ${error.message || "Tente novamente mais tarde."}`)
+      alert(`Erro ao atualizar agendamento: ${response.errors ? response.errors[0].msg : response.message || "Tente novamente mais tarde."}`)
     }
   })
 
@@ -805,6 +806,7 @@ cancelAppointmentBtn.addEventListener("click", () => {
       
       if (newPassword && newPassword !== confirmPassword) {
         userEditMessage.textContent = "As novas senhas não coincidem.";
+        toastNotification({error : true, message : "As novas senhas não coincidem."})
         userEditMessage.style.color = "#dc3545";
         return;
       }
@@ -832,7 +834,7 @@ cancelAppointmentBtn.addEventListener("click", () => {
         });
         
         if (response.error) {
-          userEditMessage.textContent = response.message || "Erro ao atualizar dados.";
+          userEditMessage.textContent = response.errors ? response.errors[0].msg : response.message || "Erro ao atualizar dados.";
           userEditMessage.style.color = "#dc3545";
         } else {
           // Atualizar dados no localStorage
@@ -894,7 +896,7 @@ cancelAppointmentBtn.addEventListener("click", () => {
           window.location.href = 'index.html';
         } catch (error) {
           console.error("Erro ao excluir conta:", error);
-          confirmationMessage.textContent = error.message || "Erro ao excluir conta. Tente novamente.";
+          confirmationMessage.textContent = response.errors ? response.errors[0].msg : response.message || "Erro ao excluir conta. Tente novamente.";
           newConfirmBtn.disabled = false;
         }
       });
