@@ -62,13 +62,13 @@ export const createUsuarios = async (req, res) => {
 
         const existingUser = await db.collection(collectionUsuarios).findOne({
             $or : [
-                {name : name},
+                {name : {$regex : name, $options : "i"}},
                 {email : email}
             ]
         })
         
         if(existingUser){
-            if(name == existingUser.name){
+            if(name.toLowerCase() == existingUser.name.toLowerCase()){
                 res.status(409).json({
                     error : true,
                     message: 'Um cadastro já foi realizado com esse nome'
@@ -166,14 +166,14 @@ export const editUsuario = async (req, res) => {
             existingUser = await db.collection(collectionUsuarios).findOne({
                 _id : {$ne : new ObjectId(id)},
                 $or : [
-                    {name : updatedData.name},
+                    {name : {$regex : updatedData.name, $options : "i"}},
                     {email : updatedData.email}
                 ]
             })
         }
         
         if(existingUser){
-            if(updatedData.name && updatedData.name == existingUser.name){
+            if(updatedData.name && updatedData.name.toLowerCase() == existingUser.name.toLowerCase()){
                 res.status(409).json({
                     error : true,
                     message: 'Já existe um usuário com esse nome'

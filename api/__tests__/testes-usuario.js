@@ -32,6 +32,7 @@ describe('REGISTRO DE USUÁRIO', () => {
         const response = await request(baseURL)
             .delete(`/usuarios/${idUsuarioCriado}`)
             .set('Content-type', 'application/json')
+            .set('access-token', token)
             .expect(200) //Excluído com sucesso
         
         //Verificando se a exclusão está retornando o feedback correto

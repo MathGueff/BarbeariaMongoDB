@@ -1,0 +1,27 @@
+Registro de Usuário:
+[X] Verificar se um novo usuário pode ser registrado com sucesso, fornecendo os dados obrigatórios (nome, email, senha).
+[X] Validar se o email do usuário já está registrado antes de permitir o registro.
+[X] Verificar se a senha do usuário atende aos requisitos mínimos de segurança (tamanho, caracteres especiais, etc.).
+[ ] Garantir que o usuário registrado seja armazenado de forma segura no banco de dados.
+
+Autenticação de Usuário:
+[X] Verificar se um usuário registrado pode se autenticar com sucesso, fornecendo email e senha válidos.
+[X] Validar se os dados de autenticação (email e senha) estão corretos.
+[ ] Garantir que um token JWT válido seja gerado para o usuário autenticado.
+[ ] Verificar se o token JWT contém as informações do usuário e a data de expiração.
+
+Validação de Token JWT:
+[X] Validar se um token JWT válido permite o acesso a rotas protegidas.
+[X] Verificar se um token JWT inválido ou expirado é recusado.
+[ ] Garantir que o token JWT seja decodificado corretamente para extrair as informações do usuário.
+[ ] Validar se a data de expiração do token JWT ainda é válida no momento da solicitação.
+
+Rotas Protegidas:
+[ ] Verificar se o acesso a rotas protegidas é restrito a usuários autenticados.
+[ ] Garantir que um usuário não autenticado seja redirecionado para a página de login.
+[ ] Validar se um usuário autenticado com token JWT válido tem acesso às rotas protegidas.
+
+Tratamento de Erros:
+[ ] Verificar se erros de autenticação (email ou senha incorretos, token inválido ou expirado) são tratados de forma adequada.
+[ ] Garantir que mensagens de erro claras e informativas sejam exibidas ao usuário em caso de falha na autenticação.
+[ ] Validar se o sistema registra os erros de autenticação para fins de diagnóstico e auditoria.
