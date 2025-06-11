@@ -1,8 +1,9 @@
 // admin-dashboard.js
-import { fetchWithErrorHandling, toastNotification } from "./script.js";
+import { fetchWithErrorHandling, toastNotification, tokenValidator } from "./script.js";
 
 const vercelUrl = "https://barbearia-mongo-db-liart.vercel.app/";
-const apiUrl = vercelUrl || "http://localhost:3000/"
+const apiUrl = "http://localhost:3000/"
+const tokenExample = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30"
 
 // Módulo do Dashboard de Administrador
 function initializeAdminDashboard() {
@@ -102,7 +103,9 @@ function initializeAdminDashboard() {
       state.itemsPerPage = Number.parseInt(DOM.table.itemsPerPage.value);
       const filters = buildFilters(page);
       const appointments = await fetchAppointments(filters);
-
+      if(appointments.error){
+        tokenValidator(appointments)
+      }
       const totalAppointments = appointments.total
       document.getElementById("totalAppointments").textContent = totalAppointments
 
@@ -111,21 +114,9 @@ function initializeAdminDashboard() {
       setupActionButtons();
     } catch (error) {
       console.log("Não foi possível exibir dados da API " + error);
-      loadStatsSimulated(page);
     } finally {
       DOM.table.loading.style.display = "none";
     }
-  }
-
-  function loadStatsSimulated(page = 1) {
-    DOM.table.loading.style.display = "block";
-    DOM.table.body.innerHTML = "";
-    state.itemsPerPage = Number.parseInt(DOM.table.itemsPerPage.value);
-
-    const filteredAppointments = filterSimulatedAppointments();
-    updatePaginationState(filteredAppointments.length, page);
-    renderSimulatedAppointments(filteredAppointments, page);
-    DOM.table.loading.style.display = "none";
   }
 
   // 6. Funções auxiliares
@@ -170,7 +161,9 @@ function initializeAdminDashboard() {
   async function fetchAppointments(filters) {
     const queryString = new URLSearchParams(filters).toString();
     const appointmentsUrl = `${apiUrl}api/agendamentos${queryString ? "?" + queryString : ""}`;
-    const appointments = await fetchWithErrorHandling(appointmentsUrl);
+    const appointments = await fetchWithErrorHandling(appointmentsUrl, {
+      headers : {'access-token' : tokenExample}
+    });
     return appointments
   }
 
@@ -282,10 +275,10 @@ function initializeAdminDashboard() {
       // Chamar API para deletar conta
       const response = await fetchWithErrorHandling(`${apiUrl}api/usuarios/${currentUser._id}`, {
         method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json', 'access-token' : tokenExample}
       });
 
-      if (response.error) {
+      if (!response || response.error) {
         throw new Error(response.errors ? response.errors[0].msg : response.message || "Erro ao excluir conta");
       }
 
@@ -304,18 +297,19 @@ function initializeAdminDashboard() {
     const statusTextContent = statusValue == "canceled" ? "Cancelado" : "Confirmado";
 
     try {
-      row.style.opacity = "0.7";
-      await fetchWithErrorHandling(`${apiUrl}api/agendamentos/${appointmentId}/status`, {
+      const response = await fetchWithErrorHandling(`${apiUrl}api/agendamentos/${appointmentId}/status`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "access-token" : tokenExample},
         body : JSON.stringify({status : statusValue})
       });
 
-      // Update DOM directly
-      row.cells[5].textContent = statusTextContent;
-      row.cells[5].classList.remove(`status-scheduled`);
-      row.cells[5].classList.add(`status-${statusValue}`);
-      row.cells[6].innerHTML = "-";
+      if(!response.error){
+        row.style.opacity = "0.7";
+        row.cells[5].textContent = statusTextContent;
+        row.cells[5].classList.remove(`status-scheduled`);
+        row.cells[5].classList.add(`status-${statusValue}`);
+        row.cells[6].innerHTML = "-";
+      }
     } catch (error) {
       console.error(`Falha ao ${action}:`, error);
       row.style.opacity = "1";
@@ -325,15 +319,16 @@ function initializeAdminDashboard() {
   async function deleteAppointment(appointmentId, button) {
     const row = button.closest("tr");
     try {
-      row.style.opacity = "0.4";
-      await fetchWithErrorHandling(`${apiUrl}api/agendamentos/${appointmentId}`, {
+      const response = await fetchWithErrorHandling(`${apiUrl}api/agendamentos/${appointmentId}`, {
         method: "DELETE",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "access-token" : tokenExample},
       });
 
-      row.remove();
-      updateResultsCount(document.querySelectorAll("#appointmentsTableBody tr").length, state.totalItems - 1);
-      loadStats(state.currentPage)
+      if(!response.error){
+        row.remove();
+        updateResultsCount(document.querySelectorAll("#appointmentsTableBody tr").length, state.totalItems - 1);
+        loadStats(state.currentPage)
+      }
     } catch (error) {
       console.error(`Falha ao deletar:`, error);
       row.style.opacity = "1";
@@ -602,7 +597,9 @@ function initializeAdminDashboard() {
   async function openUserEditModal(userId) {
     try {
       // Buscar os dados do usuário
-      const user = await fetchWithErrorHandling(`${apiUrl}api/usuarios/${userId}`);
+      const user = await fetchWithErrorHandling(`${apiUrl}api/usuarios/${userId}`,{
+        headers : {"access-token" : tokenExample}
+      });
 
       // Preencher o formulário com os dados do usuário
       document.getElementById("userEditName").value = user.name;
@@ -686,7 +683,7 @@ function initializeAdminDashboard() {
         // Chamar API para atualizar usuário
         const response = await fetchWithErrorHandling(`${apiUrl}api/usuarios/${currentUser._id}`, {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", "access-token" : tokenExample},
           body: JSON.stringify(updateData)
         });
 

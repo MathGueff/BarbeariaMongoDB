@@ -1,8 +1,9 @@
 // dashboard.js
-import { fetchWithErrorHandling, toastNotification } from "./script.js"
+import { fetchWithErrorHandling, toastNotification, tokenValidator } from "./script.js"
 
 const vercelUrl = "https://barbearia-mongo-db-liart.vercel.app/"
-const apiUrl = vercelUrl || "http://localhost:3000/"
+const apiUrl = "http://localhost:3000/"
+const tokenExample = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30"
 
 // Módulo do Dashboard de Cliente
 function initializeDashboard() {
@@ -195,7 +196,7 @@ function initializeDashboard() {
     if (!barber || !date) return { data: [] }
 
     const url = `${apiUrl}api/agendamentos?barber_name=${encodeURIComponent(barber)}&start_date=${date}&end_date=${date}&status=scheduled&status=confirmed`
-    return await fetchWithErrorHandling(url)
+    return await fetchWithErrorHandling(url, { headers: { 'access-token': tokenExample } })
   }
 
   function extractOccupiedTimes(appointments) {
@@ -297,7 +298,7 @@ function initializeDashboard() {
 
     return await fetchWithErrorHandling(`${apiUrl}api/agendamentos`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", 'access-token': tokenExample },
       body: JSON.stringify(agendamento),
     })
   }
@@ -401,7 +402,11 @@ function initializeDashboard() {
   async function displayLastAppointment() {
     try {
       const response = await fetchWithErrorHandling(
-        `${apiUrl}api/agendamentos?client_name=${encodeURIComponent(currentUser.name)}&status=scheduled&status=confirmed&sort=date&order=desc`,
+        `${apiUrl}api/agendamentos?client_name=${encodeURIComponent(currentUser.name)}
+            &status=scheduled&status=confirmed&sort=date&order=desc`,
+        {
+          headers: { 'access-token': tokenExample }
+        }
       )
 
       state.lastAppointment = response.data[0]
@@ -451,16 +456,22 @@ function initializeDashboard() {
       openEditModal(appointmentId)
     }
   }
-  
-  async function getClientAppointments(name){
+
+  async function getClientAppointments(name) {
     return await fetchWithErrorHandling(
-        `${apiUrl}api/agendamentos?client_name=${encodeURIComponent(name)}&status=scheduled&status=confirmed`,
+      `${apiUrl}api/agendamentos?client_name=${encodeURIComponent(name)}&status=scheduled&status=confirmed`, {
+      headers: { 'access-token': tokenExample }
+    }
     )
   }
 
   async function loadClientAppointments() {
     try {
       const appointments = await getClientAppointments(currentUser.name)
+      if(appointments.error){
+        tokenValidator(appointments)
+        return;
+      }
       renderClientAppointments(appointments.data)
     } catch (error) {
       console.error("Erro ao carregar agendamentos:", error)
@@ -490,12 +501,11 @@ function initializeDashboard() {
       <td>${appointment.total_price.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</td>
       <td class='status-${appointment.status}'>${statusLabels[appointment.status] || appointment.status}</td>
       <td class='appointments-table-actions'>
-        ${
-          appointment.status === "scheduled"
-            ? `<button class="btn btn-secondary cancel-client-btn" data-id="${appointment._id}">Cancelar</button> 
+        ${appointment.status === "scheduled"
+        ? `<button class="btn btn-secondary cancel-client-btn" data-id="${appointment._id}">Cancelar</button> 
              <button class="btn btn-edit edit-client-btn" data-id="${appointment._id}">Editar</button>`
-            : "-"
-        }
+        : "-"
+      }
       </td>
     `
 
@@ -529,11 +539,10 @@ function initializeDashboard() {
       <td>${appointment.service ? appointment.service.join(", ") : "N/A"}</td>
       <td>${appointment.status}</td>
       <td>
-        ${
-          appointment.status === "scheduled"
-            ? `<button class="btn btn-secondary cancel-client-btn" data-id="${appointment._id}">Cancelar</button>`
-            : "-"
-        }
+        ${appointment.status === "scheduled"
+        ? `<button class="btn btn-secondary cancel-client-btn" data-id="${appointment._id}">Cancelar</button>`
+        : "-"
+      }
       </td>
     `
 
@@ -605,8 +614,8 @@ function initializeDashboard() {
     try {
       await fetchWithErrorHandling(`${apiUrl}api/agendamentos/${appointmentId}/status`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body : JSON.stringify({status : 'canceled'})
+        headers: { "Content-Type": "application/json", 'access-token': tokenExample },
+        body: JSON.stringify({ status: 'canceled' })
       })
 
       handleCancelSuccess(appointmentId)
@@ -700,7 +709,9 @@ function initializeDashboard() {
     state.currentEditingAppointmentId = appointmentId
 
     try {
-      const appointment = await fetchWithErrorHandling(`${apiUrl}api/agendamentos/${appointmentId}`)
+      const appointment = await fetchWithErrorHandling(`${apiUrl}api/agendamentos/${appointmentId}`, {
+        headers: { 'access-token': tokenExample }
+      })
       populateEditForm(appointment)
       DOM.modals.editAppointment.style.display = "block"
     } catch (error) {
@@ -742,16 +753,22 @@ function initializeDashboard() {
 
     try {
       const url = `${apiUrl}api/agendamentos?barber_name=${encodeURIComponent(selectedBarber)}&start_date=${selectedDate}&end_date=${selectedDate}&status=scheduled&status=confirmed`
-      const existingAppointments = await fetchWithErrorHandling(url)
+      const existingAppointments = await fetchWithErrorHandling(url, {
+        headers: { 'access-token': tokenExample }
+      })
 
-      const occupiedTimes = existingAppointments.data
-        .filter((appointment) => appointment._id !== state.currentEditingAppointmentId)
-        .map((appointment) => {
-          const [, time] = appointment.date.split(" ")
-          return time.slice(0, 5)
-        })
-
-      populateEditTimeOptions(occupiedTimes, currentTime)
+      if (existingAppointments.data) {
+        const occupiedTimes = existingAppointments.data
+          .filter((appointment) => appointment._id !== state.currentEditingAppointmentId)
+          .map((appointment) => {
+            const [, time] = appointment.date.split(" ")
+            return time.slice(0, 5)
+          })
+        populateEditTimeOptions(occupiedTimes, currentTime)
+      }
+      else {
+        throw new Error(existingAppointments.message)
+      }
     } catch (error) {
       console.error("Erro ao buscar horários disponíveis:", error)
       DOM.modals.editTimeSelect.innerHTML = '<option value="">Erro ao carregar horários</option>'
@@ -840,7 +857,7 @@ function initializeDashboard() {
   async function updateAppointment(formData) {
     return await fetchWithErrorHandling(`${apiUrl}api/agendamentos/${state.currentEditingAppointmentId}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", 'access-token': tokenExample },
       body: JSON.stringify(formData),
     })
   }
@@ -932,41 +949,48 @@ function initializeDashboard() {
   }
 
   async function updateUserProfile(formData) {
-    const updateData = {
-      name: formData.name,
-      email: formData.email,
-      password: formData.password,
+    try {
+      const updateData = {
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+      }
+
+      if (formData.newPassword) {
+        updateData.newPassword = formData.newPassword
+      }
+
+      const oldClientName = currentUser.name
+
+      const response = await fetchWithErrorHandling(`${apiUrl}api/usuarios/${currentUser._id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", 'access-token': tokenExample },
+        body: JSON.stringify(updateData),
+      })
+
+      if (!response || response.error) {
+        throw new Error(response.errors ? response.errors[0].msg : response.message || "Erro ao atualizar dados.")
+      }
+
+      if (!response.error) {
+        const appointments = await fetchWithErrorHandling(
+          `${apiUrl}api/agendamentos?client_name=${encodeURIComponent(oldClientName)}`, {
+            headers : {'access-token' : tokenExample}
+          })
+        appointments.data.forEach(async ap => {
+          await fetchWithErrorHandling(`${apiUrl}api/agendamentos/${ap._id}/rename`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json", 'access-token': tokenExample },
+            body: JSON.stringify({ name: response.data.name }),
+          }, false)
+        },);
+      }
+
+      return response
+    } catch (error) {
+      console.log('Erro ao atualizar usuário: ' + error)
+      throw error; // <- Isso é ESSENCIAL
     }
-
-    if (formData.newPassword) {
-      updateData.newPassword = formData.newPassword
-    }
-
-    const oldClientName = currentUser.name
-
-    const response = await fetchWithErrorHandling(`${apiUrl}api/usuarios/${currentUser._id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(updateData),
-    })
-
-    if (response.error) {
-      throw new Error(response.errors ? response.errors[0].msg : response.message || "Erro ao atualizar dados.")
-    }
-
-    if(!response.error){
-      const appointments = await fetchWithErrorHandling(
-        `${apiUrl}api/agendamentos?client_name=${encodeURIComponent(oldClientName)}`)
-      appointments.data.forEach(async ap => {
-        await fetchWithErrorHandling(`${apiUrl}api/agendamentos/${ap._id}/rename`,{
-          method : "PATCH",
-          headers : { "Content-Type": "application/json" },
-          body: JSON.stringify({ name : response.data.name }),
-        }, false)
-      },);
-    }
-
-    return response
   }
 
   function handleUserEditSuccess(formData) {
@@ -1001,16 +1025,16 @@ function initializeDashboard() {
       const oldName = currentUser.name
       const deletedUser = await fetchWithErrorHandling(`${apiUrl}api/usuarios/${currentUser._id}`, {
         method: "DELETE",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", 'access-token': tokenExample },
       })
-      
-      if(!deletedUser.error){
+
+      if (!deletedUser.error) {
         const appointments = await getClientAppointments(oldName);
         appointments.data.forEach(async appointment => {
-          if(appointment.status == 'scheduled'){
+          if (appointment.status == 'scheduled') {
             await fetchWithErrorHandling(`${apiUrl}api/agendamentos/${appointment._id}`, {
-              method : "DELETE",
-              headers: { "Content-Type": "application/json" }
+              method: "DELETE",
+              headers: { "Content-Type": "application/json", 'access-token': tokenExample }
             }, false)
           }
         });
