@@ -42,7 +42,7 @@ export const login = async (req, res) => {
             })
         }
 
-        return res.status(400).json({
+        return res.status(401).json({
             error: true,
             message: 'O email ou a senha digitados estão incorretos'
         })
@@ -59,30 +59,37 @@ export const createUsuarios = async (req, res) => {
 
         const { name,email, password, nivel} = req.body
             //Checando se já existe um usuario
-        const existingUsuarioByEmail = await db.collection(collectionUsuarios).findOne(
-            {email}
-        )
-        if (existingUsuarioByEmail) {
-            return res.status(409).json({
-                error: true,
-                message: "Um cadastro já foi realizado com esse email"
-            })
+
+        const existingUser = await db.collection(collectionUsuarios).findOne({
+            $or : [
+                {name : name},
+                {email : email}
+            ]
+        })
+        
+        if(existingUser){
+            if(name == existingUser.name){
+                res.status(409).json({
+                    error : true,
+                    message: 'Um cadastro já foi realizado com esse nome'
+                })
+                return;
+            }
+
+            if(email == existingUser.email){
+                res.status(409).json({
+                    error : true,
+                    message: 'Um cadastro já foi realizado com esse email'
+                })
+                return;
+            }
         }
 
-        const existingUsuarioByName = await db.collection(collectionUsuarios).findOne(
-            {name}
-        )
-        if (existingUsuarioByName) {
-            return res.status(409).json({
-                error: true,
-                message: "Um cadastro já foi realizado com esse nome"
-            })
-        }
         const result = await db.collection(collectionUsuarios).insertOne({
             name : name,
             email: email,
             password : password,
-            nivel : nivel
+            nivel : nivel ? nivel : 0
         })
       
         res.status(201).json({
@@ -96,10 +103,11 @@ export const createUsuarios = async (req, res) => {
                 nivel : nivel
             }
         })
-        } catch (error) {
-            console.error("Erro inesperado ao cadastrar um usuário:", error)
-            res.status(500).json({ error: true, message: "Ocorreu um erro ao cadastrar, tente novamente" })
-          }
+
+    } catch (error) {
+        console.error("Erro inesperado ao cadastrar um usuário:", error)
+        res.status(500).json({ error: true, message: "Ocorreu um erro ao cadastrar, tente novamente" })
+    }
 }
 
  // Delete usuario

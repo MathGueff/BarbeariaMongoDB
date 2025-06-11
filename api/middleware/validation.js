@@ -245,6 +245,7 @@ export const validateUser = [
   .withMessage('A senha é muito pequena'),
 
   check('nivel')
+  .optional()
   .notEmpty()
   .withMessage('O campo é obrigatório')
   .isInt({min : 0, max: 2})

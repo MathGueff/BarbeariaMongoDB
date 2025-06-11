@@ -5,7 +5,7 @@
   "main": "api/index.js",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
     "start": "node ./api/index.js",
     "dev": "nodemon ./api/index.js",
     "importAgendamentos": "node ./api/model/agendamentos.js",
@@ -27,6 +27,7 @@
   },
   "homepage": "https://github.com/MathGueff/BarbeariaMongoDB#readme",
   "dependencies": {
+    "@types/jest": "^29.5.14",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
@@ -35,6 +36,8 @@
     "mongodb": "^6.15.0"
   },
   "devDependencies": {
-    "nodemon": "^3.1.10"
+    "jest": "^30.0.0",
+    "nodemon": "^3.1.10",
+    "supertest": "^7.1.1"
   }
 }

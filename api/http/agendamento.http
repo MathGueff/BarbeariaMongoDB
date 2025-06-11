@@ -9,7 +9,7 @@
 
 ###
 // GET - Lista todos os agendamentos 
-GET {{baseURL}}
+GET {{baseURL}}?limit=2
 Content-Type: application/json
 access-token: {{token}}
 
