@@ -1,8 +1,6 @@
 // admin-dashboard.js
 import { fetchWithErrorHandling, toastNotification, tokenValidator } from "./script.js";
 
-const vercelUrl = "https://barbearia-mongo-db-liart.vercel.app/";
-const apiUrl = "http://localhost:3000/"
 const tokenExample = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30"
 
 // Módulo do Dashboard de Administrador
@@ -104,7 +102,7 @@ function initializeAdminDashboard() {
       const filters = buildFilters(page);
       const appointments = await fetchAppointments(filters);
       if(appointments.error){
-        tokenValidator(appointments)
+        //tokenValidator(appointments)
       }
       const totalAppointments = appointments.total
       document.getElementById("totalAppointments").textContent = totalAppointments
@@ -160,7 +158,7 @@ function initializeAdminDashboard() {
 
   async function fetchAppointments(filters) {
     const queryString = new URLSearchParams(filters).toString();
-    const appointmentsUrl = `${apiUrl}api/agendamentos${queryString ? "?" + queryString : ""}`;
+    const appointmentsUrl = `${window.env.API_URL}api/agendamentos${queryString ? "?" + queryString : ""}`;
     const appointments = await fetchWithErrorHandling(appointmentsUrl, {
       headers : {'access-token' : tokenExample}
     });
@@ -273,7 +271,7 @@ function initializeAdminDashboard() {
       const currentUser = JSON.parse(localStorage.getItem("user"));
 
       // Chamar API para deletar conta
-      const response = await fetchWithErrorHandling(`${apiUrl}api/usuarios/${currentUser._id}`, {
+      const response = await fetchWithErrorHandling(`${window.env.API_URL}api/usuarios/${currentUser._id}`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json', 'access-token' : tokenExample}
       });
@@ -297,7 +295,7 @@ function initializeAdminDashboard() {
     const statusTextContent = statusValue == "canceled" ? "Cancelado" : "Confirmado";
 
     try {
-      const response = await fetchWithErrorHandling(`${apiUrl}api/agendamentos/${appointmentId}/status`, {
+      const response = await fetchWithErrorHandling(`${window.env.API_URL}api/agendamentos/${appointmentId}/status`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json", "access-token" : tokenExample},
         body : JSON.stringify({status : statusValue})
@@ -319,7 +317,7 @@ function initializeAdminDashboard() {
   async function deleteAppointment(appointmentId, button) {
     const row = button.closest("tr");
     try {
-      const response = await fetchWithErrorHandling(`${apiUrl}api/agendamentos/${appointmentId}`, {
+      const response = await fetchWithErrorHandling(`${window.env.API_URL}api/agendamentos/${appointmentId}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json", "access-token" : tokenExample},
       });
@@ -564,7 +562,7 @@ function initializeAdminDashboard() {
         DOM.modals.adminMessage.textContent = "Cadastrando administrador...";
         DOM.modals.adminMessage.style.color = "#007bff";
 
-        const response = await fetchWithErrorHandling(`${apiUrl}api/usuarios`, {
+        const response = await fetchWithErrorHandling(`${window.env.API_URL}api/usuarios`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ name, email, password, nivel: 1 }),
@@ -597,7 +595,7 @@ function initializeAdminDashboard() {
   async function openUserEditModal(userId) {
     try {
       // Buscar os dados do usuário
-      const user = await fetchWithErrorHandling(`${apiUrl}api/usuarios/${userId}`,{
+      const user = await fetchWithErrorHandling(`${window.env.API_URL}api/usuarios/${userId}`,{
         headers : {"access-token" : tokenExample}
       });
 
@@ -681,7 +679,7 @@ function initializeAdminDashboard() {
         }
 
         // Chamar API para atualizar usuário
-        const response = await fetchWithErrorHandling(`${apiUrl}api/usuarios/${currentUser._id}`, {
+        const response = await fetchWithErrorHandling(`${window.env.API_URL}api/usuarios/${currentUser._id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json", "access-token" : tokenExample},
           body: JSON.stringify(updateData)
