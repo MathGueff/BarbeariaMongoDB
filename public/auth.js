@@ -1,8 +1,5 @@
 import { fetchWithErrorHandling, toastNotification } from './script.js';
 
-const vercelApi = "https://barbearia-mongo-db-liart.vercel.app/"
-
-const apiUrl = "http://localhost:3000/"
 // Módulo de Autenticação
 function initializeAuth() {
   const loginForm = document.getElementById("loginForm")
@@ -37,7 +34,7 @@ function initializeAuth() {
     const email = document.getElementById("loginEmail").value
     const password = document.getElementById("loginPassword").value
     try {
-      const response = await fetchWithErrorHandling(`${apiUrl}api/usuarios/login`, {
+      const response = await fetchWithErrorHandling(`${window.env.API_URL}api/usuarios/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -68,7 +65,7 @@ function initializeAuth() {
     const nivel = 0
 
     try {
-      const response = await fetchWithErrorHandling(`${apiUrl}api/usuarios`, {
+      const response = await fetchWithErrorHandling(`${window.env.API_URL}api/usuarios`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, password, nivel }),

@@ -1,8 +1,6 @@
 // dashboard.js
 import { fetchWithErrorHandling, toastNotification, tokenValidator } from "./script.js"
 
-const vercelUrl = "https://barbearia-mongo-db-liart.vercel.app/"
-const apiUrl = "http://localhost:3000/"
 const tokenExample = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30"
 
 // Módulo do Dashboard de Cliente
@@ -195,7 +193,7 @@ function initializeDashboard() {
   async function fetchExistingAppointments(barber, date) {
     if (!barber || !date) return { data: [] }
 
-    const url = `${apiUrl}api/agendamentos?barber_name=${encodeURIComponent(barber)}&start_date=${date}&end_date=${date}&status=scheduled&status=confirmed`
+    const url = `${window.env.API_URL}api/agendamentos?barber_name=${encodeURIComponent(barber)}&start_date=${date}&end_date=${date}&status=scheduled&status=confirmed`
     return await fetchWithErrorHandling(url, { headers: { 'access-token': tokenExample } })
   }
 
@@ -296,7 +294,7 @@ function initializeDashboard() {
       date: `${formData.date} ${formData.time}:00`,
     }
 
-    return await fetchWithErrorHandling(`${apiUrl}api/agendamentos`, {
+    return await fetchWithErrorHandling(`${window.env.API_URL}api/agendamentos`, {
       method: "POST",
       headers: { "Content-Type": "application/json", 'access-token': tokenExample },
       body: JSON.stringify(agendamento),
@@ -402,7 +400,7 @@ function initializeDashboard() {
   async function displayLastAppointment() {
     try {
       const response = await fetchWithErrorHandling(
-        `${apiUrl}api/agendamentos?client_name=${encodeURIComponent(currentUser.name)}
+        `${window.env.API_URL}api/agendamentos?client_name=${encodeURIComponent(currentUser.name)}
             &status=scheduled&status=confirmed&sort=date&order=desc`,
         {
           headers: { 'access-token': tokenExample }
@@ -459,7 +457,7 @@ function initializeDashboard() {
 
   async function getClientAppointments(name) {
     return await fetchWithErrorHandling(
-      `${apiUrl}api/agendamentos?client_name=${encodeURIComponent(name)}&status=scheduled&status=confirmed`, {
+      `${window.env.API_URL}api/agendamentos?client_name=${encodeURIComponent(name)}&status=scheduled&status=confirmed`, {
       headers: { 'access-token': tokenExample }
     }
     )
@@ -612,7 +610,7 @@ function initializeDashboard() {
 
   async function cancelAppointment(appointmentId) {
     try {
-      await fetchWithErrorHandling(`${apiUrl}api/agendamentos/${appointmentId}/status`, {
+      await fetchWithErrorHandling(`${window.env.API_URL}api/agendamentos/${appointmentId}/status`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json", 'access-token': tokenExample },
         body: JSON.stringify({ status: 'canceled' })
@@ -709,7 +707,7 @@ function initializeDashboard() {
     state.currentEditingAppointmentId = appointmentId
 
     try {
-      const appointment = await fetchWithErrorHandling(`${apiUrl}api/agendamentos/${appointmentId}`, {
+      const appointment = await fetchWithErrorHandling(`${window.env.API_URL}api/agendamentos/${appointmentId}`, {
         headers: { 'access-token': tokenExample }
       })
       populateEditForm(appointment)
@@ -752,7 +750,7 @@ function initializeDashboard() {
     }
 
     try {
-      const url = `${apiUrl}api/agendamentos?barber_name=${encodeURIComponent(selectedBarber)}&start_date=${selectedDate}&end_date=${selectedDate}&status=scheduled&status=confirmed`
+      const url = `${window.env.API_URL}api/agendamentos?barber_name=${encodeURIComponent(selectedBarber)}&start_date=${selectedDate}&end_date=${selectedDate}&status=scheduled&status=confirmed`
       const existingAppointments = await fetchWithErrorHandling(url, {
         headers: { 'access-token': tokenExample }
       })
@@ -855,7 +853,7 @@ function initializeDashboard() {
   }
 
   async function updateAppointment(formData) {
-    return await fetchWithErrorHandling(`${apiUrl}api/agendamentos/${state.currentEditingAppointmentId}`, {
+    return await fetchWithErrorHandling(`${window.env.API_URL}api/agendamentos/${state.currentEditingAppointmentId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json", 'access-token': tokenExample },
       body: JSON.stringify(formData),
@@ -962,7 +960,7 @@ function initializeDashboard() {
 
       const oldClientName = currentUser.name
 
-      const response = await fetchWithErrorHandling(`${apiUrl}api/usuarios/${currentUser._id}`, {
+      const response = await fetchWithErrorHandling(`${window.env.API_URL}api/usuarios/${currentUser._id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", 'access-token': tokenExample },
         body: JSON.stringify(updateData),
@@ -974,11 +972,11 @@ function initializeDashboard() {
 
       if (!response.error) {
         const appointments = await fetchWithErrorHandling(
-          `${apiUrl}api/agendamentos?client_name=${encodeURIComponent(oldClientName)}`, {
+          `${window.env.API_URL}api/agendamentos?client_name=${encodeURIComponent(oldClientName)}`, {
             headers : {'access-token' : tokenExample}
           })
         appointments.data.forEach(async ap => {
-          await fetchWithErrorHandling(`${apiUrl}api/agendamentos/${ap._id}/rename`, {
+          await fetchWithErrorHandling(`${window.env.API_URL}api/agendamentos/${ap._id}/rename`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json", 'access-token': tokenExample },
             body: JSON.stringify({ name: response.data.name }),
@@ -1023,7 +1021,7 @@ function initializeDashboard() {
   async function deleteUserAccount() {
     try {
       const oldName = currentUser.name
-      const deletedUser = await fetchWithErrorHandling(`${apiUrl}api/usuarios/${currentUser._id}`, {
+      const deletedUser = await fetchWithErrorHandling(`${window.env.API_URL}api/usuarios/${currentUser._id}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json", 'access-token': tokenExample },
       })
@@ -1032,7 +1030,7 @@ function initializeDashboard() {
         const appointments = await getClientAppointments(oldName);
         appointments.data.forEach(async appointment => {
           if (appointment.status == 'scheduled') {
-            await fetchWithErrorHandling(`${apiUrl}api/agendamentos/${appointment._id}`, {
+            await fetchWithErrorHandling(`${window.env.API_URL}api/agendamentos/${appointment._id}`, {
               method: "DELETE",
               headers: { "Content-Type": "application/json", 'access-token': tokenExample }
             }, false)
@@ -1040,7 +1038,7 @@ function initializeDashboard() {
         });
         localStorage.removeItem("user")
         setTimeout(() => {
-          window.location.href = "index.html"
+          window.location.href = "login.html"
         }, 500);
       }
     } catch (error) {

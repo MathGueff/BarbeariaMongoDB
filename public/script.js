@@ -1,5 +1,12 @@
 // script.js
 
+// https://barbearia-mongo-db-liart.vercel.app/
+// http://localhost:3000/
+
+window.env = {
+    API_URL : 'https://barbearia-mongo-db-liart.vercel.app/'
+}
+
 // Função auxiliar para fazer requisições fetch com tratamento de erros
 export async function fetchWithErrorHandling(url, options = {}, notificate = true) {
     let responseData = null;
