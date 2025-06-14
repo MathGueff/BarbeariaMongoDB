@@ -1053,3 +1053,41 @@ function initializeDashboard() {
 
 // Inicializar o módulo
 if (document.querySelector(".dashboard-container")) initializeDashboard()
+
+
+
+const horariosFixos = [
+  "08:00", "09:00", "10:00", "11:00",
+  "13:00", "14:00", "15:00", "16:00", "17:00", "18:00"
+];
+
+function atualizarHorariosDisponiveis() {
+  const dataSelecionada = dateInput.value;
+  const agora = new Date();
+  const horariosDisponiveis = [];
+
+  horariosFixos.forEach(horario => {
+    const [hora, minuto] = horario.split(":");
+    const dataHora = new Date(`${dataSelecionada}T${hora}:${minuto}:00`);
+
+    if (dataHora > agora) {
+      horariosDisponiveis.push(horario);
+    }
+  });
+
+  timeSelect.innerHTML = "";
+  horariosDisponiveis.forEach(horario => {
+    const option = document.createElement("option");
+    option.value = horario;
+    option.textContent = horario;
+    timeSelect.appendChild(option);
+  });
+}
+
+dateInput.addEventListener("change", atualizarHorariosDisponiveis);
+
+window.addEventListener("DOMContentLoaded", () => {
+  const hoje = new Date().toISOString().split("T")[0];
+  dateInput.value = hoje;
+  atualizarHorariosDisponiveis();
+});
