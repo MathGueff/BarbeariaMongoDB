@@ -14,7 +14,7 @@
         </a>
         <h1 href="index.html" class="logo-text">Barbearia MongoDB</h1>
         <nav class="header-nav">
-            <button id="addAdmin" class="btn btn-primary" style="display: none;">Adicionar novo administrador</button>
+            <button id="addAdmin" class="btn btn-edit" style="display: none;">Adicionar novo administrador</button>
             <button id="editUserBtn" class="btn btn-edit">Visualizar seu perfil</button>
             <button id="logoutBtn" class="btn btn-cta">Sair</button>
         </nav>
@@ -52,7 +52,7 @@
                             <input type="date" id="startDateFilter" class="input-field-filter date-input">
                             <label for="endDateFilter">Até:</label>
                             <input type="date" id="endDateFilter" class="input-field-filter date-input">
-                            <button id="todayBtn" class="btn btn-primary btn-small">Hoje</button>
+                            <button id="todayBtn" class="btn btn-edit btn-small">Hoje</button>
                         </div>
                         <div class="checkbox-container">
                             <input type="checkbox" id="singleDayFilter">
@@ -205,7 +205,7 @@
                 <input type="password" id="userEditNewPassword" class="input-field" placeholder="Nova senha (opcional)">
                 <input type="password" id="userEditConfirmPassword" class="input-field" placeholder="Confirmar nova senha">
                 <div class="modal-actions">
-                    <button type="button" id="cancelUserEdit" class="btn btn-secondary">Cancelar</button>
+                    <button type="button" id="cancelUserEdit" class="btn btn-cta">Cancelar</button>
                     <button type="submit" class="btn btn-confirm">Salvar Alterações</button>
                 </div>
                 <p id="userEditMessage" class="message"></p>
