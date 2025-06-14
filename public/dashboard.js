@@ -1,10 +1,11 @@
-import { fetchWithErrorHandling } from "./script.js"
-
 // dashboard.js
-const vercelUrl="https://barbearia-mongo-db-liart.vercel.app/"
-const apiUrl = vercelUrl
+import { fetchWithErrorHandling, toastNotification, tokenValidator } from "./script.js"
+
+const tokenExample = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30"
+
 // Módulo do Dashboard de Cliente
 function initializeDashboard() {
+  // 1. Verificação de autenticação e configuração inicial
   const currentUser = JSON.parse(localStorage.getItem("user"))
   if (!currentUser) window.location.href = "login.html"
 
@@ -12,50 +13,130 @@ function initializeDashboard() {
   document.getElementById("userName").textContent = currentUser.name
   document.getElementById("logoutBtn").addEventListener("click", () => {
     localStorage.removeItem("user")
-    window.location.href = "index.html"
+    window.location.href = "login.html"
   })
 
-  // Sistema de Agendamento
-  const timeSelect = document.getElementById("timeSelect")
-  const barberSelect = document.getElementById("barberSelect")
-  const scheduleForm = document.getElementById("scheduleForm")
-  const dateInput = document.getElementById("dateInput")
-  const scheduleMessage = document.getElementById("scheduleMessage")
-  const serviceCheckboxes = document.querySelectorAll(".service-checkbox")
-  const totalPriceDisplay = document.getElementById("totalPriceDisplay")
+  // 2. Seleção de elementos DOM
+  const DOM = {
+    user: {
+      name: document.getElementById("userName"),
+      logoutBtn: document.getElementById("logoutBtn"),
+      editBtn: document.getElementById("editUserBtn"),
+    },
+    scheduling: {
+      form: document.getElementById("scheduleForm"),
+      timeSelect: document.getElementById("timeSelect"),
+      barberSelect: document.getElementById("barberSelect"),
+      dateInput: document.getElementById("dateInput"),
+      message: document.getElementById("scheduleMessage"),
+      serviceCheckboxes: document.querySelectorAll(".service-checkbox"),
+      totalPriceDisplay: document.getElementById("totalPriceDisplay"),
+    },
+    overview: {
+      container: document.getElementById("appointmentOverview"),
+      date: document.getElementById("appointmentDate"),
+      time: document.getElementById("appointmentTime"),
+      barber: document.getElementById("appointmentBarber"),
+      service: document.getElementById("appointmentService"),
+      price: document.getElementById("appointmentPrice"),
+      status: document.getElementById("appointmentStatus"),
+      cancelBtn: document.getElementById("cancelAppointmentBtn"),
+      editBtn: document.getElementById("editAppointmentOverviewBtn"),
+    },
+    appointments: {
+      tableBody: document.getElementById("clientAppointmentsTableBody"),
+    },
+    modals: {
+      confirmation: document.getElementById("confirmationModal"),
+      confirmationMessage: document.getElementById("confirmationMessage"),
+      confirmAction: document.getElementById("confirmActionBtn"),
+      cancelAction: document.getElementById("cancelActionBtn"),
+      editAppointment: document.getElementById("editAppointmentModal"),
+      editForm: document.getElementById("editAppointmentForm"),
+      editBarberSelect: document.getElementById("editBarberSelect"),
+      editDateInput: document.getElementById("editDateInput"),
+      editTimeSelect: document.getElementById("editTimeSelect"),
+      editTotalPrice: document.getElementById("editTotalPrice"),
+      closeEditBtn: document.getElementById("closeEditModalBtn"),
+      editServiceCheckboxes: document.querySelectorAll(".edit-service-checkbox"),
+      userEdit: document.getElementById("userEditModal"),
+      userEditForm: document.getElementById("userEditForm"),
+      cancelUserEdit: document.getElementById("cancelUserEdit"),
+      userEditMessage: document.getElementById("userEditMessage"),
+      deleteAccountBtn: document.getElementById("deleteAccountBtn"),
+    },
+  }
 
-  // Elementos do card de visão geral do último agendamento
-  const appointmentOverview = document.getElementById("appointmentOverview")
-  const appointmentDate = document.getElementById("appointmentDate")
-  const appointmentTime = document.getElementById("appointmentTime")
-  const appointmentBarber = document.getElementById("appointmentBarber")
-  const appointmentService = document.getElementById("appointmentService")
-  const appointmentPrice = document.getElementById("appointmentPrice")
-  const appointmentStatus = document.getElementById("appointmentStatus")
-  const cancelAppointmentBtn = document.getElementById("cancelAppointmentBtn")
+  // 3. Estado da aplicação
+  const state = {
+    pendingAction: null,
+    lastAppointment: null,
+    currentEditingAppointmentId: null,
+    simulatedAppointments: JSON.parse(localStorage.getItem("simulatedAppointments")) || [],
+  }
 
-  // Elementos da lista de agendamentos do cliente
-  const clientAppointmentsTableBody = document.getElementById("clientAppointmentsTableBody")
-
-  // Elementos do modal de confirmação
-  const confirmationModal = document.getElementById("confirmationModal")
-  const confirmationMessage = document.getElementById("confirmationMessage")
-  const confirmActionBtn = document.getElementById("confirmActionBtn")
-  const cancelActionBtn = document.getElementById("cancelActionBtn")
-
-  // Simulação de agendamentos (armazenados no localStorage para persistência temporária)
-  let simulatedAppointments = JSON.parse(localStorage.getItem("simulatedAppointments")) || []
-
-  let lastAppointment
-  let lastAppointmentId
-
+  // 4. Constantes auxiliares
   const statusLabels = {
     canceled: "Cancelado",
     confirmed: "Confirmado",
     scheduled: "Agendado",
   }
 
-  // Função para calcular o preço total com base nos serviços selecionados
+  // 5. Funções principais de inicialização
+  function initializeComponents() {
+    setupUserProfile()
+    setupScheduling()
+    setupAppointmentOverview()
+    setupAppointmentsList()
+    setupModals()
+
+    // Carregar dados iniciais
+    loadInitialData()
+  }
+
+  function loadInitialData() {
+    displayLastAppointment()
+    loadClientAppointments()
+    populateTimeSlots()
+    updateTotalPrice()
+  }
+
+  // 6. Configuração do perfil do usuário
+  function setupUserProfile() {
+    if (DOM.user.editBtn) {
+      DOM.user.editBtn.addEventListener("click", () => {
+        openUserEditModal(currentUser._id)
+      })
+    }
+  }
+
+  // 7. Sistema de agendamento
+  function setupScheduling() {
+    // Configurar eventos dos checkboxes de serviços
+    DOM.scheduling.serviceCheckboxes.forEach((checkbox) => {
+      checkbox.addEventListener("change", handleServiceSelection)
+    })
+
+    // Configurar eventos de mudança de data/barbeiro
+    DOM.scheduling.dateInput.addEventListener("change", populateTimeSlots)
+    DOM.scheduling.barberSelect.addEventListener("change", populateTimeSlots)
+
+    // Configurar envio do formulário
+    DOM.scheduling.form.addEventListener("submit", handleScheduleSubmit)
+  }
+
+  function handleServiceSelection() {
+    const selectedServices = document.querySelectorAll(".service-checkbox:checked")
+
+    if (selectedServices.length > 3 && this.checked) {
+      this.checked = false
+      alert("Você pode selecionar no máximo 3 serviços.")
+      return
+    }
+
+    updateTotalPrice()
+  }
+
   function calculateTotalPrice(checkboxes) {
     let total = 0
     let selectedCount = 0
@@ -67,7 +148,6 @@ function initializeDashboard() {
       }
     })
 
-    // Limitar a 3 serviços
     if (selectedCount > 3) {
       alert("Você pode selecionar no máximo 3 serviços.")
       return false
@@ -76,262 +156,55 @@ function initializeDashboard() {
     return total
   }
 
-  // Função para atualizar o preço total exibido
   function updateTotalPrice() {
-    const total = calculateTotalPrice(serviceCheckboxes)
+    const total = calculateTotalPrice(DOM.scheduling.serviceCheckboxes)
     if (total !== false) {
-      totalPriceDisplay.textContent = total.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
+      DOM.scheduling.totalPriceDisplay.textContent = total.toLocaleString("pt-BR", {
+        style: "currency",
+        currency: "BRL",
+      })
       return true
     }
     return false
   }
 
-  // Adicionar evento para atualizar o preço quando os checkboxes são alterados
-  serviceCheckboxes.forEach((checkbox) => {
-    checkbox.addEventListener("change", () => {
-      // Verificar se já tem 3 serviços selecionados
-      const selectedServices = document.querySelectorAll(".service-checkbox:checked")
-      if (selectedServices.length > 3 && checkbox.checked) {
-        checkbox.checked = false
-        alert("Você pode selecionar no máximo 3 serviços.")
-        return
-      }
-      updateTotalPrice()
-    })
-  })
-
-  // Função para exibir o último agendamento no card
-  async function displayLastAppointment() {
-    const response = await fetchWithErrorHandling(
-      `${apiUrl}api/agendamentos?client_name=${encodeURIComponent(currentUser.name)}&status=scheduled&status=confirmed&sort=date&order=desc`,
-    )
-    lastAppointment = response.data[0]
-    if (lastAppointment) {
-      if (lastAppointment.status == "scheduled") {
-        cancelAppointmentBtn.style.display = "block"
-        editAppointmentOverviewBtn.style.display = "block"
-      } else {
-        cancelAppointmentBtn.style.display = "none"
-        editAppointmentOverviewBtn.style.display = "none"
-      }
-      appointmentOverview.style.display = "block"
-      const [date, time] = lastAppointment.date.split(" ")
-      appointmentDate.textContent = date.split("-").reverse().join("/")
-      appointmentTime.textContent = time
-      appointmentBarber.textContent = lastAppointment.barber_name
-      appointmentService.textContent = lastAppointment.services.map((service) => service.name).join(", ")
-      appointmentPrice.textContent = lastAppointment.total_price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
-      appointmentStatus.textContent = statusLabels[lastAppointment.status]
-      appointmentStatus.classList.add("status-" + lastAppointment.status)
-    } else {
-      appointmentOverview.style.display = "none"
-    }
-  }
-
-  // Função para carregar e exibir todos os agendamentos do cliente
-  async function loadClientAppointments() {
-    try {
-      const appointments = await fetchWithErrorHandling(
-        `${apiUrl}api/agendamentos?client_name=${encodeURIComponent(currentUser.name)}&status=scheduled&status=confirmed`,
-      )
-      // Atualizar a tabela de agendamentos
-      clientAppointmentsTableBody.innerHTML = ""
-      appointments.data.forEach((appointment) => {
-        const [date, time] = appointment.date.split(" ")
-        const row = document.createElement("tr")
-        row.innerHTML = `
-                    <td>${date.split("-").reverse().join("/")}</td>
-                    <td>${time}</td>
-                    <td>${appointment.barber_name}</td>
-                    <td>${appointment.services.map((service) => service.name).join(", ")}</td>
-                    <td>${appointment.total_price.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</td>
-                    <td class='status-${appointment.status}'>${statusLabels[appointment.status] || appointment.status}</td>
-                    <td class='appointments-table-actions'>
-                        ${
-                          appointment.status === "scheduled"
-                            ? `<button class="btn btn-secondary cancel-client-btn" data-id="${appointment._id}">Cancelar</button> 
-                                <button class="btn btn-edit edit-client-btn" data-id="${appointment._id}">Editar</button>`
-                            : "-"
-                        }
-                    </td>
-                `
-        clientAppointmentsTableBody.appendChild(row)
-      })
-
-      // Adicionar eventos aos botões de cancelar
-      document.querySelectorAll(".cancel-client-btn").forEach((button) => {
-        button.addEventListener("click", () => {
-          showConfirmationModal(button.getAttribute("data-id"))
-        })
-      })
-    } catch (error) {
-      console.log("Erro: " + error)
-      // Se o backend não estiver disponível, usar a simulação
-      loadClientAppointmentsSimulated()
-    }
-  }
-
-  // Adicionar estado no início da função initializeDashboard()
-let pendingAction = null;
-
-// Modificar a função showConfirmationModal
-function showConfirmationModal(appointmentId) {
-  confirmationMessage.textContent = "Tem certeza que deseja cancelar este agendamento?";
-  confirmationModal.style.display = "flex";
-  
-  // Armazenar a ação pendente
-  pendingAction = {
-    id: appointmentId
-  };
-
-  // Remover todos os listeners antigos
-  confirmActionBtn.onclick = null;
-  cancelActionBtn.onclick = null;
-
-  // Adicionar novos listeners
-  confirmActionBtn.addEventListener("click", executePendingAction);
-  cancelActionBtn.addEventListener("click", () => {
-    confirmationModal.style.display = "none";
-    pendingAction = null;
-  });
-}
-
-// Nova função para executar a ação pendente
-async function executePendingAction() {
-  if (!pendingAction) return;
-  
-  const { id } = pendingAction;
-  confirmationModal.style.display = "none";
-  
-  try {
-    await fetchWithErrorHandling(`${apiUrl}api/agendamentos/${id}/cancelar`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-    });
-
-    // Se o agendamento cancelado for o último, atualizar o card de visão geral
-    if (lastAppointment && id === lastAppointment._id) {
-      appointmentStatus.classList.remove(`status-${lastAppointment.status}`);
-      lastAppointment = null;
-      displayLastAppointment();
-    }
-
-    scheduleMessage.textContent = "Agendamento cancelado com sucesso!";
-    scheduleMessage.style.color = "#28a745";
-    loadClientAppointments(); // Recarregar a tabela
-    populateTimeSlots(); // Atualizar os horários disponíveis
-  } catch (error) {
-    // Simulação de cancelamento (se o backend não estiver disponível)
-    simulatedAppointments = simulatedAppointments.map((appointment) => {
-      if (appointment._id === id) {
-        return { ...appointment, status: "canceled", updated_at: new Date().toISOString() };
-      }
-      return appointment;
-    });
-    localStorage.setItem("simulatedAppointments", JSON.stringify(simulatedAppointments));
-
-    if (lastAppointment && id === lastAppointment._id) {
-      lastAppointment = null;
-      displayLastAppointment();
-    }
-
-    scheduleMessage.textContent = "Agendamento cancelado com sucesso (simulação).";
-    scheduleMessage.style.color = "#28a745";
-    loadClientAppointmentsSimulated(); // Recarregar a tabela com simulação
-    populateTimeSlots(); // Atualizar os horários disponíveis
-  } finally {
-    pendingAction = null;
-  }
-}
-
-// Remover a clonagem dos botões no evento do botão de cancelar na visão geral
-cancelAppointmentBtn.addEventListener("click", () => {
-  if (!lastAppointment) {
-    scheduleMessage.textContent = "Nenhum agendamento para cancelar.";
-    scheduleMessage.style.color = "#dc3545";
-    return;
-  }
-  showConfirmationModal(lastAppointment._id);
-});
-
-  // Função para carregar e exibir agendamentos simulados
-  function loadClientAppointmentsSimulated() {
-    const clientAppointments = simulatedAppointments.filter(
-      (appointment) => appointment.client_name === currentUser.name,
-    )
-
-    clientAppointmentsTableBody.innerHTML = ""
-    clientAppointments.forEach((appointment) => {
-      const [date, time] = appointment.date.split(" ")
-      const row = document.createElement("tr")
-      row.innerHTML = `
-                <td>${new Date(date).toLocaleDateString("pt-BR")}</td>
-                <td>${time}</td>
-                <td>${appointment.barber_name}</td>
-                <td>${appointment.service.join(", ")}</td>
-                <td>${appointment.status}</td>
-                <td>
-                    ${
-                      appointment.status === "scheduled"
-                        ? `<button class="btn btn-secondary cancel-client-btn" data-id="${appointment._id}">Cancelar</button>`
-                        : "-"
-                    }
-                </td>
-            `
-      clientAppointmentsTableBody.appendChild(row)
-    })
-
-    // Adicionar eventos aos botões de cancelar
-    document.querySelectorAll(".cancel-client-btn").forEach((button) => {
-      button.addEventListener("click", () => {
-        showConfirmationModal(button.getAttribute("data-id"))
-      })
-    })
-  }
-
-  // Carregar os agendamentos do cliente ao iniciar
-  loadClientAppointments()
-
-  // Exibir o último agendamento ao carregar a página
-  displayLastAppointment()
-
-  // Função para preencher os horários disponíveis
   async function populateTimeSlots() {
-    timeSelect.innerHTML = ""
-    const selectedDate = dateInput.value
-    const selectedBarber = barberSelect.value
+    DOM.scheduling.timeSelect.innerHTML = ""
+    const selectedDate = DOM.scheduling.dateInput.value
+    const selectedBarber = DOM.scheduling.barberSelect.value
 
-    // Verificar se a data e o barbeiro foram selecionados
     if (!selectedDate || !selectedBarber) {
-      timeSelect.innerHTML = '<option value="">Selecione uma data e um barbeiro</option>'
-      scheduleMessage.textContent = "Por favor, selecione uma data e um barbeiro para ver os horários disponíveis."
-      scheduleMessage.style.color = "#dc3545"
+      DOM.scheduling.timeSelect.innerHTML = '<option value="">Selecione uma data e um barbeiro</option>'
+      showScheduleMessage("Por favor, selecione uma data e um barbeiro para ver os horários disponíveis.", "error")
       return
     }
 
-    // Limpar mensagem de erro, se houver
-    scheduleMessage.textContent = ""
+    clearScheduleMessage()
 
-    // Obter agendamentos existentes para a data e barbeiro selecionados
-    let existingAppointments = []
     try {
-      if(selectedBarber && selectedDate){
-        const url = `${apiUrl}api/agendamentos?barber_name=${encodeURIComponent(selectedBarber)}&start_date=${selectedDate}&end_date=${selectedDate}&status=scheduled&status=confirmed`
-
-        existingAppointments = await fetchWithErrorHandling(url)
-      }
-      
+      const existingAppointments = await fetchExistingAppointments(selectedBarber, selectedDate)
+      const occupiedTimes = extractOccupiedTimes(existingAppointments.data)
+      populateAvailableTimeSlots(occupiedTimes)
     } catch (error) {
-      
+      console.error("Erro ao buscar horários:", error)
     }
+  }
 
-    // Extrair os horários ocupados
-    const occupiedTimes = existingAppointments.data.map((appointment) => {
+  async function fetchExistingAppointments(barber, date) {
+    if (!barber || !date) return { data: [] }
+
+    const url = `${window.env.API_URL}api/agendamentos?barber_name=${encodeURIComponent(barber)}&start_date=${date}&end_date=${date}&status=scheduled&status=confirmed`
+    return await fetchWithErrorHandling(url, { headers: { 'access-token': tokenExample } })
+  }
+
+  function extractOccupiedTimes(appointments) {
+    return appointments.map((appointment) => {
       const [, time] = appointment.date.split(" ")
-      return time.slice(0, 5) // Pegar apenas "HH:MM"
+      return time.slice(0, 5)
     })
+  }
 
-    // Preencher os horários disponíveis
+  function populateAvailableTimeSlots(occupiedTimes) {
     const start = 8 * 60 // 8:00
     const end = 18 * 60 // 18:00
     let hasAvailableSlots = false
@@ -341,573 +214,880 @@ cancelAppointmentBtn.addEventListener("click", () => {
       const minute = i % 60
       const time = `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`
       const isOccupied = occupiedTimes.includes(time)
+
       const option = document.createElement("option")
       option.value = time
       option.textContent = time
+
       if (isOccupied) {
         option.disabled = true
         option.textContent += " (Ocupado)"
       } else {
         hasAvailableSlots = true
       }
-      timeSelect.appendChild(option)
+
+      DOM.scheduling.timeSelect.appendChild(option)
     }
 
-    // Se não houver horários disponíveis, exibir uma mensagem
     if (!hasAvailableSlots) {
-      timeSelect.innerHTML = '<option value="">Nenhum horário disponível</option>'
-      scheduleMessage.textContent = `Nenhum horário disponível para ${selectedBarber} nesta data. Tente outro barbeiro ou outra data.`
-      scheduleMessage.style.color = "#dc3545"
+      DOM.scheduling.timeSelect.innerHTML = '<option value="">Nenhum horário disponível</option>'
+      showScheduleMessage(
+        `Nenhum horário disponível para ${DOM.scheduling.barberSelect.value} nesta data. Tente outro barbeiro ou outra data.`,
+        "error",
+      )
     }
   }
 
-  // Atualizar os horários disponíveis quando a data ou o barbeiro mudar
-  dateInput.addEventListener("change", populateTimeSlots)
-  barberSelect.addEventListener("change", populateTimeSlots)
-  populateTimeSlots()
-
-  scheduleForm.addEventListener("submit", async (e) => {
+  async function handleScheduleSubmit(e) {
     e.preventDefault()
-    const barber = barberSelect.value
-    const date = dateInput.value
-    const time = timeSelect.value
 
-    // Verificar se pelo menos um serviço foi selecionado
-    const selectedServices = Array.from(serviceCheckboxes).filter((checkbox) => checkbox.checked)
-    if (selectedServices.length === 0) {
-      scheduleMessage.textContent = "Por favor, selecione pelo menos um serviço."
-      scheduleMessage.style.color = "#dc3545"
-      return
+    const formData = extractScheduleFormData()
+    if (!validateScheduleForm(formData)) return
+
+    try {
+      const response = await submitAppointment(formData)
+      handleScheduleSuccess()
+    } catch (error) {
+      console.error("Erro ao agendar:", error)
+      handleScheduleError(formData)
+    }
+  }
+
+  function extractScheduleFormData() {
+    const selectedServices = Array.from(DOM.scheduling.serviceCheckboxes).filter((cb) => cb.checked)
+
+    return {
+      barber: DOM.scheduling.barberSelect.value,
+      date: DOM.scheduling.dateInput.value,
+      time: DOM.scheduling.timeSelect.value,
+      services: selectedServices.map((cb) => ({
+        name: cb.dataset.name,
+        price: Number.parseFloat(cb.dataset.price),
+      })),
+    }
+  }
+
+  function validateScheduleForm(formData) {
+    if (formData.services.length === 0) {
+      showScheduleMessage("Por favor, selecione pelo menos um serviço.", "error")
+      return false
     }
 
-    // Verificar se não excede o limite de 3 serviços
-    if (selectedServices.length > 3) {
-      scheduleMessage.textContent = "Você pode selecionar no máximo 3 serviços."
-      scheduleMessage.style.color = "#dc3545"
-      return
+    if (formData.services.length > 3) {
+      showScheduleMessage("Você pode selecionar no máximo 3 serviços.", "error")
+      return false
     }
 
-    if (!time) {
-      scheduleMessage.textContent = "Por favor, selecione um horário disponível."
-      scheduleMessage.style.color = "#dc3545"
-      return
+    if (!formData.time) {
+      showScheduleMessage("Por favor, selecione um horário disponível.", "error")
+      return false
     }
 
-    // Preparar os serviços selecionados
-    const services = selectedServices.map((checkbox) => ({
-      name: checkbox.dataset.name,
-      price: Number.parseFloat(checkbox.dataset.price),
-    }))
+    return true
+  }
 
+  async function submitAppointment(formData) {
     const agendamento = {
       client_name: currentUser.name,
-      barber_name: barber,
-      services: services,
-      date: `${date} ${time}:00`,
+      barber_name: formData.barber,
+      services: formData.services,
+      date: `${formData.date} ${formData.time}:00`,
     }
 
-    console.log(agendamento)
-    try {
-      // Se não houver conflito, prosseguir com o agendamento
-      const response = await fetchWithErrorHandling(`${apiUrl}api/agendamentos`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(agendamento),
-      })
+    return await fetchWithErrorHandling(`${window.env.API_URL}api/agendamentos`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", 'access-token': tokenExample },
+      body: JSON.stringify(agendamento),
+    })
+  }
 
-      console.log(response)
+  function handleScheduleSuccess() {
+    showScheduleMessage("Agendamento realizado com sucesso!", "success")
+    resetScheduleForm()
+    refreshAppointmentData()
+  }
 
-      scheduleMessage.textContent = "Agendamento realizado com sucesso!"
-      scheduleMessage.style.color = "#28a745"
-      displayLastAppointment()
-      loadClientAppointments() // Atualizar a tabela de agendamentos
-      populateTimeSlots() // Atualizar os horários disponíveis
+  function handleScheduleError(formData) {
+    // Simulação temporária para agendamento (se o backend não estiver disponível)
+    const hasConflict = checkSimulatedConflict(formData)
 
-      // Limpar os checkboxes
-      serviceCheckboxes.forEach((checkbox) => {
-        checkbox.checked = false
-      })
-      updateTotalPrice()
-    } catch (error) {
-      console.log(error)
-      // Simulação temporária para agendamento (se o backend não estiver disponível)
-      const hasConflict = simulatedAppointments.some(
-        (appointment) =>
-          appointment.barber_name === barber &&
-          appointment.date === agendamento.date &&
-          (appointment.status === "scheduled" || appointment.status === "confirmed"),
+    if (hasConflict) {
+      showScheduleMessage(
+        `O barbeiro ${formData.barber} já está ocupado neste horário. Por favor, escolha outro horário ou barbeiro.`,
+        "error",
       )
-
-      if (hasConflict) {
-        scheduleMessage.textContent = `O barbeiro ${barber} já está ocupado neste horário. Por favor, escolha outro horário ou barbeiro.`
-        scheduleMessage.style.color = "#dc3545"
-        populateTimeSlots() // Atualizar os horários disponíveis para garantir consistência
-        return
-      }
-
-      const simulatedId = `simulated_${Date.now()}` // Gerar um ID único para o agendamento simulado
-      const simulatedAppointment = { ...agendamento, _id: simulatedId }
-      simulatedAppointments.push(simulatedAppointment)
-      localStorage.setItem("simulatedAppointments", JSON.stringify(simulatedAppointments))
-
-      currentUser.appointments += 1
-      localStorage.setItem("user", JSON.stringify(currentUser))
-
-      lastAppointment = agendamento
-      lastAppointmentId = simulatedId
-      localStorage.setItem("lastAppointment", JSON.stringify(lastAppointment))
-      localStorage.setItem("lastAppointmentId", lastAppointmentId)
-
-      scheduleMessage.textContent = "Agendamento realizado com sucesso (simulação)."
-      scheduleMessage.style.color = "#28a745"
-      displayLastAppointment()
-      loadClientAppointmentsSimulated() // Atualizar a tabela com simulação
-      populateTimeSlots() // Atualizar os horários disponíveis
-
-      // Limpar os checkboxes
-      serviceCheckboxes.forEach((checkbox) => {
-        checkbox.checked = false
-      })
-      updateTotalPrice()
-    }
-  })
-
-  // Função para cancelar o último agendamento (via card de visão geral)
-  cancelAppointmentBtn.addEventListener("click", () => {
-    if (!lastAppointment) {
-      scheduleMessage.textContent = "Nenhum agendamento para cancelar."
-      scheduleMessage.style.color = "#dc3545"
+      populateTimeSlots()
       return
     }
-    showConfirmationModal(lastAppointment._id)
-  })
 
-  // ===== INÍCIO DO CÓDIGO ADICIONAL PARA O MODAL DE EDIÇÃO =====
+    handleSimulatedSchedule(formData)
+  }
 
-  // Variáveis para o modal de edição
-  const editAppointmentModal = document.getElementById("editAppointmentModal")
-  const editAppointmentForm = document.getElementById("editAppointmentForm")
-  const editBarberSelect = document.getElementById("editBarberSelect")
-  const editDateInput = document.getElementById("editDateInput")
-  const editTimeSelect = document.getElementById("editTimeSelect")
-  const editTotalPrice = document.getElementById("editTotalPrice")
-  const closeEditModalBtn = document.getElementById("closeEditModalBtn")
-  const editAppointmentOverviewBtn = document.getElementById("editAppointmentOverviewBtn")
-  const editServiceCheckboxes = document.querySelectorAll(".edit-service-checkbox")
+  function checkSimulatedConflict(formData) {
+    const appointmentDateTime = `${formData.date} ${formData.time}:00`
+    return state.simulatedAppointments.some(
+      (appointment) =>
+        appointment.barber_name === formData.barber &&
+        appointment.date === appointmentDateTime &&
+        (appointment.status === "scheduled" || appointment.status === "confirmed"),
+    )
+  }
 
-  // Variável para armazenar o ID do agendamento sendo editado
-  let currentEditingAppointmentId = null
+  function handleSimulatedSchedule(formData) {
+    const simulatedId = `simulated_${Date.now()}`
+    const simulatedAppointment = {
+      _id: simulatedId,
+      client_name: currentUser.name,
+      barber_name: formData.barber,
+      services: formData.services,
+      date: `${formData.date} ${formData.time}:00`,
+      status: "scheduled",
+    }
 
-  // Função para calcular o preço total no formulário de edição
+    state.simulatedAppointments.push(simulatedAppointment)
+    localStorage.setItem("simulatedAppointments", JSON.stringify(state.simulatedAppointments))
+
+    showScheduleMessage("Agendamento realizado com sucesso (simulação).", "success")
+    resetScheduleForm()
+    refreshAppointmentData()
+  }
+
+  function resetScheduleForm() {
+    DOM.scheduling.serviceCheckboxes.forEach((checkbox) => {
+      checkbox.checked = false
+    })
+    updateTotalPrice()
+  }
+
+  function refreshAppointmentData() {
+    displayLastAppointment()
+    loadClientAppointments()
+    populateTimeSlots()
+  }
+
+  function showScheduleMessage(message, type) {
+    DOM.scheduling.message.textContent = message
+    DOM.scheduling.message.style.color = type === "error" ? "#dc3545" : "#28a745"
+  }
+
+  function clearScheduleMessage() {
+    DOM.scheduling.message.textContent = ""
+  }
+
+  // 8. Visão geral do último agendamento
+  function setupAppointmentOverview() {
+    if (DOM.overview.cancelBtn) {
+      DOM.overview.cancelBtn.addEventListener("click", () => {
+        if (!state.lastAppointment) {
+          showScheduleMessage("Nenhum agendamento para cancelar.", "error")
+          return
+        }
+        showConfirmationModal(state.lastAppointment._id, "cancel")
+      })
+    }
+
+    if (DOM.overview.editBtn) {
+      DOM.overview.editBtn.addEventListener("click", () => {
+        if (state.lastAppointment && state.lastAppointment._id) {
+          openEditModal(state.lastAppointment._id)
+        } else {
+          alert("Nenhum agendamento disponível para edição.")
+        }
+      })
+    }
+  }
+
+  async function displayLastAppointment() {
+    try {
+      const response = await fetchWithErrorHandling(
+        `${window.env.API_URL}api/agendamentos?client_name=${encodeURIComponent(currentUser.name)}
+            &status=scheduled&status=confirmed&sort=date&order=desc`,
+        {
+          headers: { 'access-token': tokenExample }
+        }
+      )
+
+      state.lastAppointment = response.data[0]
+      renderLastAppointment()
+    } catch (error) {
+      console.error("Erro ao buscar último agendamento:", error)
+      DOM.overview.container.style.display = "none"
+    }
+  }
+
+  function renderLastAppointment() {
+    if (!state.lastAppointment) {
+      DOM.overview.container.style.display = "none"
+      return
+    }
+
+    const isScheduled = state.lastAppointment.status === "scheduled"
+    DOM.overview.cancelBtn.style.display = isScheduled ? "block" : "none"
+    DOM.overview.editBtn.style.display = isScheduled ? "block" : "none"
+    DOM.overview.container.style.display = "block"
+
+    const [date, time] = state.lastAppointment.date.split(" ")
+    DOM.overview.date.textContent = date.split("-").reverse().join("/")
+    DOM.overview.time.textContent = time
+    DOM.overview.barber.textContent = state.lastAppointment.barber_name
+    DOM.overview.service.textContent = state.lastAppointment.services.map((service) => service.name).join(", ")
+    DOM.overview.price.textContent = state.lastAppointment.total_price.toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    })
+    DOM.overview.status.textContent = statusLabels[state.lastAppointment.status]
+    DOM.overview.status.classList.add("status-" + state.lastAppointment.status)
+  }
+
+  // 9. Lista de agendamentos do cliente
+  function setupAppointmentsList() {
+    // Event delegation para botões dinâmicos
+    document.addEventListener("click", handleAppointmentActions)
+  }
+
+  function handleAppointmentActions(e) {
+    if (e.target.classList.contains("cancel-client-btn")) {
+      const appointmentId = e.target.getAttribute("data-id")
+      showConfirmationModal(appointmentId, "cancel")
+    } else if (e.target.classList.contains("edit-client-btn")) {
+      const appointmentId = e.target.getAttribute("data-id")
+      openEditModal(appointmentId)
+    }
+  }
+
+  async function getClientAppointments(name) {
+    return await fetchWithErrorHandling(
+      `${window.env.API_URL}api/agendamentos?client_name=${encodeURIComponent(name)}&status=scheduled&status=confirmed`, {
+      headers: { 'access-token': tokenExample }
+    }
+    )
+  }
+
+  async function loadClientAppointments() {
+    try {
+      const appointments = await getClientAppointments(currentUser.name)
+      if(appointments.error){
+        tokenValidator(appointments)
+        return;
+      }
+      renderClientAppointments(appointments.data)
+    } catch (error) {
+      console.error("Erro ao carregar agendamentos:", error)
+      loadClientAppointmentsSimulated()
+    }
+  }
+
+
+  function renderClientAppointments(appointments) {
+    DOM.appointments.tableBody.innerHTML = ""
+
+    appointments.forEach((appointment) => {
+      const row = createAppointmentRow(appointment)
+      DOM.appointments.tableBody.appendChild(row)
+    })
+  }
+
+  function createAppointmentRow(appointment) {
+    const [date, time] = appointment.date.split(" ")
+    const row = document.createElement("tr")
+
+    row.innerHTML = `
+      <td>${date.split("-").reverse().join("/")}</td>
+      <td>${time}</td>
+      <td>${appointment.barber_name}</td>
+      <td>${appointment.services.map((service) => service.name).join(", ")}</td>
+      <td>${appointment.total_price.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</td>
+      <td class='status-${appointment.status}'>${statusLabels[appointment.status] || appointment.status}</td>
+      <td class='appointments-table-actions'>
+        ${appointment.status === "scheduled"
+        ? `<button class="btn btn-secondary cancel-client-btn" data-id="${appointment._id}">Cancelar</button> 
+             <button class="btn btn-edit edit-client-btn" data-id="${appointment._id}">Editar</button>`
+        : "-"
+      }
+      </td>
+    `
+
+    return row
+  }
+
+  function loadClientAppointmentsSimulated() {
+    const clientAppointments = state.simulatedAppointments.filter(
+      (appointment) => appointment.client_name === currentUser.name,
+    )
+    renderSimulatedAppointments(clientAppointments)
+  }
+
+  function renderSimulatedAppointments(appointments) {
+    DOM.appointments.tableBody.innerHTML = ""
+
+    appointments.forEach((appointment) => {
+      const row = createSimulatedAppointmentRow(appointment)
+      DOM.appointments.tableBody.appendChild(row)
+    })
+  }
+
+  function createSimulatedAppointmentRow(appointment) {
+    const [date, time] = appointment.date.split(" ")
+    const row = document.createElement("tr")
+
+    row.innerHTML = `
+      <td>${new Date(date).toLocaleDateString("pt-BR")}</td>
+      <td>${time}</td>
+      <td>${appointment.barber_name}</td>
+      <td>${appointment.service ? appointment.service.join(", ") : "N/A"}</td>
+      <td>${appointment.status}</td>
+      <td>
+        ${appointment.status === "scheduled"
+        ? `<button class="btn btn-secondary cancel-client-btn" data-id="${appointment._id}">Cancelar</button>`
+        : "-"
+      }
+      </td>
+    `
+
+    return row
+  }
+
+  // 10. Sistema de modais
+  function setupModals() {
+    setupConfirmationModal()
+    setupEditAppointmentModal()
+    setupUserEditModal()
+  }
+
+  function setupConfirmationModal() {
+    DOM.modals.cancelAction.addEventListener("click", () => {
+      DOM.modals.confirmation.style.display = "none"
+      state.pendingAction = null
+    })
+  }
+
+  function showConfirmationModal(appointmentId, action) {
+    let message = ""
+
+    switch (action) {
+      case "cancel":
+        message = "Tem certeza que deseja cancelar este agendamento?"
+        break
+      case "deleteAccount":
+        message = "Tem certeza que deseja excluir sua conta permanentemente? Esta ação não pode ser desfeita."
+        break
+    }
+
+    state.pendingAction = { id: appointmentId, action }
+    DOM.modals.confirmationMessage.textContent = message
+    DOM.modals.confirmation.style.display = "flex"
+
+    // Remover listeners antigos
+    DOM.modals.confirmAction.onclick = null
+    DOM.modals.cancelAction.onclick = null
+
+    // Adicionar novos listeners
+    DOM.modals.confirmAction.addEventListener("click", executePendingAction)
+    DOM.modals.cancelAction.addEventListener("click", () => {
+      DOM.modals.confirmation.style.display = "none"
+      state.pendingAction = null
+    })
+  }
+
+  async function executePendingAction() {
+    if (!state.pendingAction) return
+
+    const { id, action } = state.pendingAction
+    DOM.modals.confirmation.style.display = "none"
+
+    try {
+      if (action === "cancel") {
+        await cancelAppointment(id)
+      } else if (action === "deleteAccount") {
+        await deleteUserAccount()
+      }
+    } catch (error) {
+      console.error("Erro ao executar ação:", error)
+    } finally {
+      state.pendingAction = null
+    }
+  }
+
+  async function cancelAppointment(appointmentId) {
+    try {
+      await fetchWithErrorHandling(`${window.env.API_URL}api/agendamentos/${appointmentId}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", 'access-token': tokenExample },
+        body: JSON.stringify({ status: 'canceled' })
+      })
+
+      handleCancelSuccess(appointmentId)
+    } catch (error) {
+      handleCancelSimulated(appointmentId)
+    }
+  }
+
+  function handleCancelSuccess(appointmentId) {
+    if (state.lastAppointment && appointmentId === state.lastAppointment._id) {
+      DOM.overview.status.classList.remove(`status-${state.lastAppointment.status}`)
+      state.lastAppointment = null
+      displayLastAppointment()
+    }
+
+    showScheduleMessage("Agendamento cancelado com sucesso!", "success")
+    refreshAppointmentData()
+  }
+
+  function handleCancelSimulated(appointmentId) {
+    state.simulatedAppointments = state.simulatedAppointments.map((appointment) => {
+      if (appointment._id === appointmentId) {
+        return { ...appointment, status: "canceled", updated_at: new Date().toISOString() }
+      }
+      return appointment
+    })
+
+    localStorage.setItem("simulatedAppointments", JSON.stringify(state.simulatedAppointments))
+
+    if (state.lastAppointment && appointmentId === state.lastAppointment._id) {
+      state.lastAppointment = null
+      displayLastAppointment()
+    }
+
+    showScheduleMessage("Agendamento cancelado com sucesso (simulação).", "success")
+    loadClientAppointmentsSimulated()
+    populateTimeSlots()
+  }
+
+  // 11. Modal de edição de agendamento
+  function setupEditAppointmentModal() {
+    DOM.modals.editServiceCheckboxes.forEach((checkbox) => {
+      checkbox.addEventListener("change", handleEditServiceSelection)
+    })
+
+    DOM.modals.editDateInput.addEventListener("change", () => {
+      populateEditTimeSlots(DOM.modals.editDateInput.value, DOM.modals.editBarberSelect.value)
+    })
+
+    DOM.modals.editBarberSelect.addEventListener("change", () => {
+      populateEditTimeSlots(DOM.modals.editDateInput.value, DOM.modals.editBarberSelect.value)
+    })
+
+    DOM.modals.closeEditBtn.addEventListener("click", closeEditModal)
+    DOM.modals.editForm.addEventListener("submit", handleEditSubmit)
+  }
+
+  function handleEditServiceSelection() {
+    const selectedServices = document.querySelectorAll(".edit-service-checkbox:checked")
+
+    if (selectedServices.length > 3 && this.checked) {
+      this.checked = false
+      alert("Você pode selecionar no máximo 3 serviços.")
+      return
+    }
+
+    updateEditTotalPrice()
+  }
+
   function updateEditTotalPrice() {
     let total = 0
     let selectedCount = 0
 
-    editServiceCheckboxes.forEach((checkbox) => {
+    DOM.modals.editServiceCheckboxes.forEach((checkbox) => {
       if (checkbox.checked) {
         selectedCount++
         total += Number.parseFloat(checkbox.dataset.price)
       }
     })
 
-    // Limitar a 3 serviços
-    if (selectedCount > 3) {
-      return false
-    }
+    if (selectedCount > 3) return false
 
-    editTotalPrice.textContent = total.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
+    DOM.modals.editTotalPrice.textContent = total.toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    })
     return true
   }
 
-  // Adicionar evento para atualizar o preço quando os checkboxes são alterados no modal de edição
-  editServiceCheckboxes.forEach((checkbox) => {
-    checkbox.addEventListener("change", () => {
-      // Verificar se já tem 3 serviços selecionados
-      const selectedServices = document.querySelectorAll(".edit-service-checkbox:checked")
-      if (selectedServices.length > 3 && checkbox.checked) {
-        checkbox.checked = false
-        alert("Você pode selecionar no máximo 3 serviços.")
-        return
-      }
-      updateEditTotalPrice()
+  async function openEditModal(appointmentId) {
+    state.currentEditingAppointmentId = appointmentId
+
+    try {
+      const appointment = await fetchWithErrorHandling(`${window.env.API_URL}api/agendamentos/${appointmentId}`, {
+        headers: { 'access-token': tokenExample }
+      })
+      populateEditForm(appointment)
+      DOM.modals.editAppointment.style.display = "block"
+    } catch (error) {
+      console.error("Erro ao buscar dados do agendamento:", error)
+      alert("Não foi possível carregar os dados do agendamento. Tente novamente mais tarde.")
+    }
+  }
+
+  function populateEditForm(appointment) {
+    const [date, time] = appointment.date.split(" ")
+
+    // Limpar checkboxes
+    DOM.modals.editServiceCheckboxes.forEach((checkbox) => {
+      checkbox.checked = false
     })
-  })
 
-  // Função para abrir o modal de edição
-  function openEditModal(appointmentId) {
-    currentEditingAppointmentId = appointmentId
+    // Marcar serviços do agendamento
+    appointment.services.forEach((service) => {
+      const checkbox = Array.from(DOM.modals.editServiceCheckboxes).find(
+        (cb) => cb.dataset.name.toLowerCase() === service.name.toLowerCase(),
+      )
+      if (checkbox) checkbox.checked = true
+    })
 
-    // Buscar os dados do agendamento
-    fetchWithErrorHandling(`${apiUrl}api/agendamentos/${appointmentId}`)
-      .then((appointment) => {
-        // Preencher o formulário com os dados do agendamento
-        const [date, time] = appointment.date.split(" ")
+    DOM.modals.editBarberSelect.value = appointment.barber_name
+    DOM.modals.editDateInput.value = date
 
-        // Limpar todos os checkboxes primeiro
-        editServiceCheckboxes.forEach((checkbox) => {
-          checkbox.checked = false
-        })
-
-        // Marcar os serviços do agendamento
-        appointment.services.forEach((service) => {
-          const checkbox = Array.from(editServiceCheckboxes).find(
-            (cb) => cb.dataset.name.toLowerCase() === service.name.toLowerCase(),
-          )
-          if (checkbox) {
-            checkbox.checked = true
-          }
-        })
-
-        // Definir o barbeiro
-        editBarberSelect.value = appointment.barber_name
-
-        // Definir a data
-        editDateInput.value = date
-
-        // Preencher os horários disponíveis
-        populateEditTimeSlots(date, appointment.barber_name, time.slice(0, 5))
-
-        // Atualizar o preço total
-        updateEditTotalPrice()
-
-        // Exibir o modal
-        editAppointmentModal.style.display = "block"
-      })
-      .catch((error) => {
-        console.error("Erro ao buscar dados do agendamento:", error)
-        alert("Não foi possível carregar os dados do agendamento. Tente novamente mais tarde.")
-      })
+    populateEditTimeSlots(date, appointment.barber_name, time.slice(0, 5))
+    updateEditTotalPrice()
   }
 
-  // Função para fechar o modal de edição
-  function closeEditModal() {
-    editAppointmentModal.style.display = "none"
-    currentEditingAppointmentId = null
-  }
-
-  // Função para preencher os horários disponíveis no formulário de edição
   async function populateEditTimeSlots(selectedDate, selectedBarber, currentTime) {
-    editTimeSelect.innerHTML = ""
+    DOM.modals.editTimeSelect.innerHTML = ""
 
-    // Verificar se a data e o barbeiro foram selecionados
     if (!selectedDate || !selectedBarber) {
-      editTimeSelect.innerHTML = '<option value="">Selecione uma data e um barbeiro</option>'
+      DOM.modals.editTimeSelect.innerHTML = '<option value="">Selecione uma data e um barbeiro</option>'
       return
     }
 
-    // Obter agendamentos existentes para a data e barbeiro selecionados
     try {
-      const url = `${apiUrl}api/agendamentos?barber_name=${encodeURIComponent(selectedBarber)}&start_date=${selectedDate}&end_date=${selectedDate}&status=scheduled&status=confirmed`
-      const existingAppointments = await fetchWithErrorHandling(url)
+      const url = `${window.env.API_URL}api/agendamentos?barber_name=${encodeURIComponent(selectedBarber)}&start_date=${selectedDate}&end_date=${selectedDate}&status=scheduled&status=confirmed`
+      const existingAppointments = await fetchWithErrorHandling(url, {
+        headers: { 'access-token': tokenExample }
+      })
 
-      // Extrair os horários ocupados (exceto o horário atual sendo editado)
-      const occupiedTimes = existingAppointments.data
-        .filter((appointment) => appointment._id !== currentEditingAppointmentId)
-        .map((appointment) => {
-          const [, time] = appointment.date.split(" ")
-          return time.slice(0, 5) // Pegar apenas "HH:MM"
-        })
-
-      // Preencher os horários disponíveis
-      const start = 8 * 60 // 8:00
-      const end = 18 * 60 // 18:00
-
-      for (let i = start; i <= end; i += 30) {
-        const hour = Math.floor(i / 60)
-        const minute = i % 60
-        const time = `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`
-        const isOccupied = occupiedTimes.includes(time)
-        const option = document.createElement("option")
-        option.value = time
-        option.textContent = time
-
-        if (isOccupied) {
-          option.disabled = true
-          option.textContent += " (Ocupado)"
-        }
-
-        // Selecionar o horário atual do agendamento
-        if (time === currentTime) {
-          option.selected = true
-        }
-
-        editTimeSelect.appendChild(option)
+      if (existingAppointments.data) {
+        const occupiedTimes = existingAppointments.data
+          .filter((appointment) => appointment._id !== state.currentEditingAppointmentId)
+          .map((appointment) => {
+            const [, time] = appointment.date.split(" ")
+            return time.slice(0, 5)
+          })
+        populateEditTimeOptions(occupiedTimes, currentTime)
+      }
+      else {
+        throw new Error(existingAppointments.message)
       }
     } catch (error) {
       console.error("Erro ao buscar horários disponíveis:", error)
-      editTimeSelect.innerHTML = '<option value="">Erro ao carregar horários</option>'
+      DOM.modals.editTimeSelect.innerHTML = '<option value="">Erro ao carregar horários</option>'
     }
   }
 
-  // Evento para atualizar os horários disponíveis quando a data ou o barbeiro mudar
-  editDateInput.addEventListener("change", () => {
-    populateEditTimeSlots(editDateInput.value, editBarberSelect.value)
-  })
+  function populateEditTimeOptions(occupiedTimes, currentTime) {
+    const start = 8 * 60 // 8:00
+    const end = 18 * 60 // 18:00
 
-  editBarberSelect.addEventListener("change", () => {
-    populateEditTimeSlots(editDateInput.value, editBarberSelect.value)
-  })
+    for (let i = start; i <= end; i += 30) {
+      const hour = Math.floor(i / 60)
+      const minute = i % 60
+      const time = `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`
+      const isOccupied = occupiedTimes.includes(time)
 
-  // Evento para fechar o modal
-  closeEditModalBtn.addEventListener("click", closeEditModal)
+      const option = document.createElement("option")
+      option.value = time
+      option.textContent = time
 
-  // Evento para enviar o formulário de edição
-  editAppointmentForm.addEventListener("submit", async (e) => {
+      if (isOccupied) {
+        option.disabled = true
+        option.textContent += " (Ocupado)"
+      }
+
+      if (time === currentTime) {
+        option.selected = true
+      }
+
+      DOM.modals.editTimeSelect.appendChild(option)
+    }
+  }
+
+  function closeEditModal() {
+    DOM.modals.editAppointment.style.display = "none"
+    state.currentEditingAppointmentId = null
+  }
+
+  async function handleEditSubmit(e) {
     e.preventDefault()
 
-    if (!currentEditingAppointmentId) {
+    if (!state.currentEditingAppointmentId) {
       alert("ID do agendamento não encontrado.")
       return
     }
 
-    // Verificar se pelo menos um serviço foi selecionado
-    const selectedServices = Array.from(editServiceCheckboxes).filter((checkbox) => checkbox.checked)
-    if (selectedServices.length === 0) {
-      alert("Por favor, selecione pelo menos um serviço.")
-      return
-    }
-
-    // Verificar se não excede o limite de 3 serviços
-    if (selectedServices.length > 3) {
-      alert("Você pode selecionar no máximo 3 serviços.")
-      return
-    }
-
-    // Preparar os serviços selecionados
-    const services = selectedServices.map((checkbox) => ({
-      name: checkbox.dataset.name,
-      price: Number.parseFloat(checkbox.dataset.price),
-    }))
-
-    const updatedAppointment = {
-      barber_name: editBarberSelect.value,
-      services: services,
-      date: `${editDateInput.value} ${editTimeSelect.value}:00`,
-    }
-
-    console.log(updatedAppointment)
+    const formData = extractEditFormData()
+    if (!validateEditForm(formData)) return
 
     try {
-      await fetchWithErrorHandling(`${apiUrl}api/agendamentos/${currentEditingAppointmentId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updatedAppointment),
-      })
-
-      // Fechar o modal
-      closeEditModal()
-
-      // Atualizar a interface
-      scheduleMessage.textContent = "Agendamento atualizado com sucesso!"
-      scheduleMessage.style.color = "#28a745"
-
-      // Recarregar os dados
-      displayLastAppointment()
-      loadClientAppointments()
-      populateTimeSlots()
+      await updateAppointment(formData)
+      handleEditSuccess()
     } catch (error) {
       console.error("Erro ao atualizar agendamento:", error)
-      alert(`Erro ao atualizar agendamento: ${error.message || "Tente novamente mais tarde."}`)
+      alert("Erro ao atualizar agendamento. Tente novamente mais tarde.")
     }
-  })
+  }
 
-  // Adicionar evento ao botão de editar na visão geral do último agendamento
-  if (editAppointmentOverviewBtn) {
-    editAppointmentOverviewBtn.addEventListener("click", () => {
-      if (lastAppointment && lastAppointment._id) {
-        openEditModal(lastAppointment._id)
-      } else {
-        alert("Nenhum agendamento disponível para edição.")
-      }
+  function extractEditFormData() {
+    const selectedServices = Array.from(DOM.modals.editServiceCheckboxes).filter((cb) => cb.checked)
+
+    return {
+      services: selectedServices.map((cb) => ({
+        name: cb.dataset.name,
+        price: Number.parseFloat(cb.dataset.price),
+      })),
+      barber_name: DOM.modals.editBarberSelect.value,
+      date: `${DOM.modals.editDateInput.value} ${DOM.modals.editTimeSelect.value}:00`,
+    }
+  }
+
+  function validateEditForm(formData) {
+    if (formData.services.length === 0) {
+      alert("Por favor, selecione pelo menos um serviço.")
+      return false
+    }
+
+    if (formData.services.length > 3) {
+      alert("Você pode selecionar no máximo 3 serviços.")
+      return false
+    }
+
+    return true
+  }
+
+  async function updateAppointment(formData) {
+    return await fetchWithErrorHandling(`${window.env.API_URL}api/agendamentos/${state.currentEditingAppointmentId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", 'access-token': tokenExample },
+      body: JSON.stringify(formData),
     })
   }
 
-  // Adicionar eventos aos botões de editar na tabela de agendamentos
-  document.addEventListener("click", (e) => {
-    if (e.target && e.target.classList.contains("edit-client-btn")) {
-      const appointmentId = e.target.getAttribute("data-id")
-      if (appointmentId) {
-        openEditModal(appointmentId)
-      }
-    }
-  })
-
-    // ===== EDIÇÃO DE PERFIL DO USUÁRIO =====
-  
-  // Elementos do modal de edição de usuário
-  const editUserBtn = document.getElementById("editUserBtn");
-  const userEditModal = document.getElementById("userEditModal");
-  const userEditForm = document.getElementById("userEditForm");
-  const cancelUserEdit = document.getElementById("cancelUserEdit");
-  const userEditMessage = document.getElementById("userEditMessage");
-  const deleteAccountBtn = document.getElementById("deleteAccountBtn");
-
-  // Configurar botão de edição de perfil
-  if (editUserBtn) {
-    editUserBtn.addEventListener("click", () => {
-      openUserEditModal(currentUser._id);
-    });
+  function handleEditSuccess() {
+    closeEditModal()
+    showScheduleMessage("Agendamento atualizado com sucesso!", "success")
+    refreshAppointmentData()
   }
 
-  // Função para abrir o modal de edição de usuário
+  // 12. Modal de edição de usuário
+  function setupUserEditModal() {
+    const cancelBtn = DOM.modals.cancelUserEdit
+    const modal = DOM.modals.userEdit
+    const form = DOM.modals.userEditForm
+
+    cancelBtn.addEventListener("click", () => {
+      modal.style.display = "none"
+      DOM.modals.userEditMessage.textContent = ""
+    })
+
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) {
+        modal.style.display = "none"
+        DOM.modals.userEditMessage.textContent = ""
+      }
+    })
+
+    form.addEventListener("submit", handleUserEditSubmit)
+    setupUserDeleteButton()
+  }
+
   async function openUserEditModal(userId) {
     try {
-      // Preencher o formulário com os dados do usuário
-      document.getElementById("userEditName").value = currentUser.name;
-      document.getElementById("userEditEmail").value = currentUser.email;
-      
-      // Limpar campos de senha e mensagens
-      document.getElementById("userEditCurrentPassword").value = "";
-      document.getElementById("userEditNewPassword").value = "";
-      document.getElementById("userEditConfirmPassword").value = "";
-      document.getElementById("userEditMessage").textContent = "";
-      
-      // Exibir o modal
-      userEditModal.style.display = "flex";
+      document.getElementById("userEditName").value = currentUser.name
+      document.getElementById("userEditEmail").value = currentUser.email
+
+      // Limpar campos
+      document.getElementById("userEditCurrentPassword").value = ""
+      document.getElementById("userEditNewPassword").value = ""
+      document.getElementById("userEditConfirmPassword").value = ""
+      DOM.modals.userEditMessage.textContent = ""
+
+      DOM.modals.userEdit.style.display = "flex"
     } catch (error) {
-      console.error("Erro ao carregar dados do usuário:", error);
-      alert("Não foi possível carregar os dados do usuário. Tente novamente.");
+      console.error("Erro ao carregar dados do usuário:", error)
+      alert("Não foi possível carregar os dados do usuário. Tente novamente.")
     }
   }
 
-  // Configurar o modal de edição de usuário
-  function setupUserEditModal() {
-    // Fechar modal ao clicar no botão cancelar
-    cancelUserEdit.addEventListener("click", () => {
-      userEditModal.style.display = "none";
-      userEditMessage.textContent = "";
-    });
-    
-    // Fechar modal ao clicar fora do conteúdo
-    userEditModal.addEventListener("click", (e) => {
-      if (e.target === userEditModal) {
-        userEditModal.style.display = "none";
-        userEditMessage.textContent = "";
-      }
-    });
-    
-    // Lidar com o envio do formulário
-    userEditForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      
-      const name = document.getElementById("userEditName").value.trim();
-      const email = document.getElementById("userEditEmail").value.trim();
-      const currentPassword = document.getElementById("userEditCurrentPassword").value;
-      const newPassword = document.getElementById("userEditNewPassword").value;
-      const confirmPassword = document.getElementById("userEditConfirmPassword").value;
-      
-      // Validações básicas
-      if (!name || !email || !currentPassword) {
-        userEditMessage.textContent = "Nome, email e senha atual são obrigatórios.";
-        userEditMessage.style.color = "#dc3545";
-        return;
-      }
-      
-      if (newPassword && newPassword !== confirmPassword) {
-        userEditMessage.textContent = "As novas senhas não coincidem.";
-        userEditMessage.style.color = "#dc3545";
-        return;
-      }
-      
-      try {
-        userEditMessage.textContent = "Atualizando dados...";
-        userEditMessage.style.color = "#007bff";
-        
-        // Preparar dados para atualização
-        const updateData = {
-          name,
-          email,
-          password: currentPassword
-        };
-        
-        if (newPassword) {
-          updateData.newPassword = newPassword;
-        }
-        
-        // Chamar API para atualizar usuário
-        const response = await fetchWithErrorHandling(`${apiUrl}api/usuarios/${currentUser._id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(updateData)
-        });
-        
-        if (response.error) {
-          userEditMessage.textContent = response.message || "Erro ao atualizar dados.";
-          userEditMessage.style.color = "#dc3545";
-        } else {
-          // Atualizar dados no localStorage
-          const updatedUser = { ...currentUser, name, email };
-          localStorage.setItem("user", JSON.stringify(updatedUser));
-          
-          // Atualizar nome exibido no dashboard
-          document.getElementById("userName").textContent = name;
-          
-          userEditMessage.textContent = "Dados atualizados com sucesso!";
-          userEditMessage.style.color = "#28a745";
-          
-          // Fechar modal após 1 segundo
-          setTimeout(() => {
-            userEditModal.style.display = "none";
-            userEditMessage.textContent = "";
-          }, 1000);
-        }
-      } catch (error) {
-        console.error("Erro ao atualizar usuário:", error);
-        userEditMessage.textContent = "Erro ao atualizar dados. Tente novamente.";
-        userEditMessage.style.color = "#dc3545";
-      }
-    });
+  async function handleUserEditSubmit(e) {
+    e.preventDefault()
 
-    // Configurar botão de excluir conta
-    setupUserDeleteButton();
+    const formData = extractUserEditFormData()
+    if (!validateUserEditForm(formData)) return
+
+    try {
+      await updateUserProfile(formData)
+      handleUserEditSuccess(formData)
+    } catch (error) {
+      console.error("Erro ao atualizar usuário:", error)
+      showUserEditMessage(error.errors ? error.errors[0].msg : error.message || "Erro ao atualizar dados. Tente novamente.", "error")
+    }
   }
 
-  // Função para configurar o botão de exclusão de conta
+  function extractUserEditFormData() {
+    return {
+      name: document.getElementById("userEditName").value.trim(),
+      email: document.getElementById("userEditEmail").value.trim(),
+      password: document.getElementById("userEditCurrentPassword").value,
+      newPassword: document.getElementById("userEditNewPassword").value,
+      confirmPassword: document.getElementById("userEditConfirmPassword").value,
+    }
+  }
+
+  function validateUserEditForm(formData) {
+    if (!formData.name || !formData.email || !formData.password) {
+      showUserEditMessage("Nome, email e senha atual são obrigatórios.", "error")
+      return false
+    }
+
+    if (formData.newPassword && formData.newPassword !== formData.confirmPassword) {
+      showUserEditMessage("As novas senhas não coincidem.", "error")
+      toastNotification({ error: true, message: "As novas senhas não coincidem." })
+      return false
+    }
+
+    return true
+  }
+
+  async function updateUserProfile(formData) {
+    try {
+      const updateData = {
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+      }
+
+      if (formData.newPassword) {
+        updateData.newPassword = formData.newPassword
+      }
+
+      const oldClientName = currentUser.name
+
+      const response = await fetchWithErrorHandling(`${window.env.API_URL}api/usuarios/${currentUser._id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", 'access-token': tokenExample },
+        body: JSON.stringify(updateData),
+      })
+
+      if (!response || response.error) {
+        throw new Error(response.errors ? response.errors[0].msg : response.message || "Erro ao atualizar dados.")
+      }
+
+      if (!response.error) {
+        const appointments = await fetchWithErrorHandling(
+          `${window.env.API_URL}api/agendamentos?client_name=${encodeURIComponent(oldClientName)}`, {
+            headers : {'access-token' : tokenExample}
+          })
+        appointments.data.forEach(async ap => {
+          await fetchWithErrorHandling(`${window.env.API_URL}api/agendamentos/${ap._id}/rename`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json", 'access-token': tokenExample },
+            body: JSON.stringify({ name: response.data.name }),
+          }, false)
+        },);
+      }
+
+      return response
+    } catch (error) {
+      console.log('Erro ao atualizar usuário: ' + error)
+      throw error; // <- Isso é ESSENCIAL
+    }
+  }
+
+  function handleUserEditSuccess(formData) {
+    // Atualizar dados no localStorage
+    const updatedUser = { ...currentUser, name: formData.name, email: formData.email }
+    localStorage.setItem("user", JSON.stringify(updatedUser))
+
+    // Atualizar nome exibido
+    DOM.user.name.textContent = formData.name
+
+    showUserEditMessage("Dados atualizados com sucesso!", "success")
+
+    setTimeout(() => {
+      DOM.modals.userEdit.style.display = "none"
+      DOM.modals.userEditMessage.textContent = ""
+    }, 1000)
+  }
+
+  function showUserEditMessage(message, type) {
+    DOM.modals.userEditMessage.textContent = message
+    DOM.modals.userEditMessage.style.color = type === "error" ? "#dc3545" : "#28a745"
+  }
+
   function setupUserDeleteButton() {
-    deleteAccountBtn.addEventListener('click', () => {
-      // Configurar o modal de confirmação
-      confirmationMessage.textContent = "Tem certeza que deseja excluir sua conta permanentemente? Esta ação não pode ser desfeita.";
-      confirmationModal.style.display = "flex";
-
-      // Remover listeners anteriores para evitar acumulação
-      confirmActionBtn.onclick = null;
-      cancelActionBtn.onclick = null;
-
-      // Referenciar novamente após clonagem
-      const newConfirmBtn = document.getElementById("confirmActionBtn");
-      const newCancelBtn = document.getElementById("cancelActionBtn");
-
-      // Adicionar novos eventos
-      newConfirmBtn.addEventListener('click', async () => {
-        try {
-          confirmationMessage.textContent = "Excluindo conta...";
-          newConfirmBtn.disabled = true;
-
-          // Chamar API para deletar conta
-          await fetchWithErrorHandling(`${apiUrl}api/usuarios/${currentUser._id}`, {
-            method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' }
-          });
-
-          // Limpar localStorage e redirecionar
-          localStorage.removeItem('user');
-          window.location.href = 'index.html';
-        } catch (error) {
-          console.error("Erro ao excluir conta:", error);
-          confirmationMessage.textContent = error.message || "Erro ao excluir conta. Tente novamente.";
-          newConfirmBtn.disabled = false;
-        }
-      });
-
-      newCancelBtn.addEventListener('click', () => {
-        confirmationModal.style.display = 'none';
-      });
-    });
+    DOM.modals.deleteAccountBtn.addEventListener("click", () => {
+      showConfirmationModal(currentUser._id, "deleteAccount")
+    })
   }
 
-  // Inicializar o modal de edição de usuário
-  setupUserEditModal();
+  async function deleteUserAccount() {
+    try {
+      const oldName = currentUser.name
+      const deletedUser = await fetchWithErrorHandling(`${window.env.API_URL}api/usuarios/${currentUser._id}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json", 'access-token': tokenExample },
+      })
+
+      if (!deletedUser.error) {
+        const appointments = await getClientAppointments(oldName);
+        appointments.data.forEach(async appointment => {
+          if (appointment.status == 'scheduled') {
+            await fetchWithErrorHandling(`${window.env.API_URL}api/agendamentos/${appointment._id}`, {
+              method: "DELETE",
+              headers: { "Content-Type": "application/json", 'access-token': tokenExample }
+            }, false)
+          }
+        });
+        localStorage.removeItem("user")
+        setTimeout(() => {
+          window.location.href = "login.html"
+        }, 500);
+      }
+    } catch (error) {
+      console.error("Erro ao excluir conta:", error)
+      alert("Erro ao excluir conta. Tente novamente.")
+    }
+  }
+
+  // 13. Inicialização
+  initializeComponents()
 }
 
 // Inicializar o módulo
 if (document.querySelector(".dashboard-container")) initializeDashboard()
+
+
+
+const horariosFixos = [
+  "08:00", "09:00", "10:00", "11:00",
+  "13:00", "14:00", "15:00", "16:00", "17:00", "18:00"
+];
+
+function atualizarHorariosDisponiveis() {
+  const dataSelecionada = dateInput.value;
+  const agora = new Date();
+  const horariosDisponiveis = [];
+
+  horariosFixos.forEach(horario => {
+    const [hora, minuto] = horario.split(":");
+    const dataHora = new Date(`${dataSelecionada}T${hora}:${minuto}:00`);
+
+    if (dataHora > agora) {
+      horariosDisponiveis.push(horario);
+    }
+  });
+
+  timeSelect.innerHTML = "";
+  horariosDisponiveis.forEach(horario => {
+    const option = document.createElement("option");
+    option.value = horario;
+    option.textContent = horario;
+    timeSelect.appendChild(option);
+  });
+}
+
+dateInput.addEventListener("change", atualizarHorariosDisponiveis);
+
+window.addEventListener("DOMContentLoaded", () => {
+  const hoje = new Date().toISOString().split("T")[0];
+  dateInput.value = hoje;
+  atualizarHorariosDisponiveis();
+});

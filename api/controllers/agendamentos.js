@@ -237,6 +237,30 @@ export const updateAgendamento = async (req, res) => {
     }
 }
 
+export const updateClientName = async (req,res) => {
+    const {id} = req.params
+    const {name} = req.body
+
+    const db = req.app.locals.db
+
+    const result = await db.collection(collectionAgendamentos).updateOne({
+        _id : new ObjectId(id)
+    }, {
+        $set : {client_name : name}
+    })
+
+    if(result.matchedCount == 0){
+        return res.status(404).json({
+            error: true,
+            message : 'Nenhum agendamento encontrado'
+        })
+    }
+
+    res.status(200).json({
+        message: 'Nome do cliente atualizado com sucesso'
+    })
+}
+
 // Delete agendamento
 export const deleteAgendamento = async (req, res) => {
     try {
@@ -263,15 +287,13 @@ export const deleteAgendamento = async (req, res) => {
     }
 }
 
-export const cancelarAgendamento = async (req,res) => mudarStatusAgendamento(req,res,"canceled")
-
-export const confirmarAgendamento = async (req,res) => mudarStatusAgendamento(req,res,"confirmed")
-
-const mudarStatusAgendamento = async (req, res, newStatus) => {
+export const mudarStatusAgendamento = async (req, res) => {
     try {
         const {id} = req.params
+        const {status} = req.body
+        
         const db = req.app.locals.db
-        const text = newStatus == 'canceled' ? 'cancelado' : 'confirmado' 
+        const text = status == 'canceled' ? 'cancelado' : 'confirmado' 
            
         const result = await db.collection(collectionAgendamentos).updateOne(
             {
@@ -280,7 +302,7 @@ const mudarStatusAgendamento = async (req, res, newStatus) => {
             },
             {
                 $set : {
-                    status : newStatus,
+                    status : status,
                     updated_at : new Date().toISOString()
                 }
             }

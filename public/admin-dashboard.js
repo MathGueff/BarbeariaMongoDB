@@ -1,8 +1,7 @@
 // admin-dashboard.js
-import { fetchWithErrorHandling } from "./script.js";
+import { fetchWithErrorHandling, toastNotification, tokenValidator } from "./script.js";
 
-const vercelUrl = "https://barbearia-mongo-db-liart.vercel.app/";
-const apiUrl = vercelUrl
+const tokenExample = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30"
 
 // Módulo do Dashboard de Administrador
 function initializeAdminDashboard() {
@@ -45,7 +44,7 @@ function initializeAdminDashboard() {
       clearFilters: document.getElementById("clearFiltersBtn"),
       prevPage: document.getElementById("prevPageBtn"),
       nextPage: document.getElementById("nextPageBtn"),
-      editUserBtn : document.getElementById("editUserBtn")
+      editUserBtn: document.getElementById("editUserBtn")
     },
     table: {
       body: document.getElementById("appointmentsTableBody"),
@@ -102,30 +101,20 @@ function initializeAdminDashboard() {
       state.itemsPerPage = Number.parseInt(DOM.table.itemsPerPage.value);
       const filters = buildFilters(page);
       const appointments = await fetchAppointments(filters);
-      
+      if(appointments.error){
+        //tokenValidator(appointments)
+      }
       const totalAppointments = appointments.total
       document.getElementById("totalAppointments").textContent = totalAppointments
-      
+
       updateStatistics(appointments);
       renderAppointments(appointments.data);
       setupActionButtons();
     } catch (error) {
       console.log("Não foi possível exibir dados da API " + error);
-      loadStatsSimulated(page);
     } finally {
       DOM.table.loading.style.display = "none";
     }
-  }
-
-  function loadStatsSimulated(page = 1) {
-    DOM.table.loading.style.display = "block";
-    DOM.table.body.innerHTML = "";
-    state.itemsPerPage = Number.parseInt(DOM.table.itemsPerPage.value);
-
-    const filteredAppointments = filterSimulatedAppointments();
-    updatePaginationState(filteredAppointments.length, page);
-    renderSimulatedAppointments(filteredAppointments, page);
-    DOM.table.loading.style.display = "none";
   }
 
   // 6. Funções auxiliares
@@ -169,8 +158,10 @@ function initializeAdminDashboard() {
 
   async function fetchAppointments(filters) {
     const queryString = new URLSearchParams(filters).toString();
-    const appointmentsUrl = `${apiUrl}api/agendamentos${queryString ? "?" + queryString : ""}`;
-    const appointments = await fetchWithErrorHandling(appointmentsUrl);
+    const appointmentsUrl = `${window.env.API_URL}api/agendamentos${queryString ? "?" + queryString : ""}`;
+    const appointments = await fetchWithErrorHandling(appointmentsUrl, {
+      headers : {'access-token' : tokenExample}
+    });
     return appointments
   }
 
@@ -195,12 +186,12 @@ function initializeAdminDashboard() {
         <td class='status-${appointment.status}'>${statusLabels[appointment.status] || appointment.status}</td>
         <td class='appointments-table-actions'>
           ${appointment.status === "scheduled"
-            ? `<button class="btn btn-confirm confirm-btn" data-id="${appointment._id}">Confirmar</button>
+          ? `<button class="btn btn-confirm confirm-btn" data-id="${appointment._id}">Confirmar</button>
                <button class="btn btn-secondary cancel-btn" data-id="${appointment._id}">Cancelar</button>`
-            : appointment.status === "canceled"
-              ? `<button class="btn btn-secondary delete-btn" data-id="${appointment._id}">Deletar</button>`
-              : "-"
-          }
+          : appointment.status === "canceled"
+            ? `<button class="btn btn-secondary delete-btn" data-id="${appointment._id}">Deletar</button>`
+            : "-"
+        }
         </td>
       `;
       DOM.table.body.appendChild(row);
@@ -222,71 +213,101 @@ function initializeAdminDashboard() {
   }
 
   // 7. Funções de manipulação de agendamentos
- 
- function showConfirmationModal(button, action) {
-  const appointmentId = button.getAttribute("data-id");
-  let message = "";
 
-  switch (action) {
-    case "confirmed": message = "Deseja confirmar este agendamento?"; break;
-    case "canceled": message = "Deseja cancelar este agendamento?"; break;
-    case "delete": message = "Deseja excluir este agendamento permanentemente?"; break;
+  function showConfirmationModal(button, action) {
+    const appointmentId = button.getAttribute("data-id");
+    let message = "";
+
+    switch (action) {
+      case "confirmed": message = "Deseja confirmar este agendamento?"; break;
+      case "canceled": message = "Deseja cancelar este agendamento?"; break;
+      case "delete": message = "Deseja excluir este agendamento permanentemente?"; break;
+    }
+
+    // Armazena a ação pendente no state
+    state.pendingAction = {
+      id: appointmentId,
+      action: action,
+      button: button
+    };
+
+    DOM.modals.confirmationMessage.textContent = message;
+    DOM.modals.confirmation.style.display = "flex";
+
+    // Remove todos os listeners antigos
+    DOM.modals.confirmAction.onclick = null;
+    DOM.modals.cancelAction.onclick = null;
+
+    // Adiciona os novos listeners
+    DOM.modals.confirmAction.addEventListener("click", executePendingAction);
+    DOM.modals.cancelAction.addEventListener("click", () => {
+      DOM.modals.confirmation.style.display = "none";
+      state.pendingAction = null;
+    });
   }
 
-  // Armazena a ação pendente no state
-  state.pendingAction = {
-    id: appointmentId,
-    action: action,
-    button: button
-  };
+  function executePendingAction() {
+    if (!state.pendingAction) return;
 
-  DOM.modals.confirmationMessage.textContent = message;
-  DOM.modals.confirmation.style.display = "flex";
-
-  // Remove todos os listeners antigos
-  DOM.modals.confirmAction.onclick = null;
-  DOM.modals.cancelAction.onclick = null;
-
-  // Adiciona os novos listeners
-  DOM.modals.confirmAction.addEventListener("click", executePendingAction);
-  DOM.modals.cancelAction.addEventListener("click", () => {
+    const { action, button } = state.pendingAction;
     DOM.modals.confirmation.style.display = "none";
-    state.pendingAction = null;
-  });
-}
 
-function executePendingAction() {
-  if (!state.pendingAction) return;
-  
-  const { id, action, button } = state.pendingAction;
-  DOM.modals.confirmation.style.display = "none";
-  
-  if (action === "delete") {
-    deleteAppointment(id, button);
-  } else {
-    updateAppointmentStatus(id, action, button);
+    if (action === "deleteAccount") {
+      deleteUserAccount();
+    } else if (action === "delete") {
+      deleteAppointment(button.getAttribute("data-id"), button);
+    } else {
+      updateAppointmentStatus(button.getAttribute("data-id"), action, button);
+    }
+
+    state.pendingAction = null;
   }
-  
-  state.pendingAction = null;
-}
+
+  async function deleteUserAccount() {
+    try {
+      DOM.modals.confirmationMessage.textContent = "Excluindo conta...";
+      DOM.modals.confirmAction.disabled = true;
+
+      const currentUser = JSON.parse(localStorage.getItem("user"));
+
+      // Chamar API para deletar conta
+      const response = await fetchWithErrorHandling(`${window.env.API_URL}api/usuarios/${currentUser._id}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json', 'access-token' : tokenExample}
+      });
+
+      if (!response || response.error) {
+        throw new Error(response.errors ? response.errors[0].msg : response.message || "Erro ao excluir conta");
+      }
+
+      // Limpar localStorage e redirecionar
+      localStorage.removeItem('user');
+      window.location.href = 'login.html';
+    } catch (error) {
+      console.error("Erro ao excluir conta:", error);
+      DOM.modals.confirmationMessage.textContent = "Erro ao excluir conta. Tente novamente.";
+      DOM.modals.confirmAction.disabled = false;
+    }
+  }
 
   async function updateAppointmentStatus(appointmentId, statusValue, button) {
     const row = button.closest("tr");
-    const action = statusValue == "canceled" ? "cancelar" : "confirmar";
     const statusTextContent = statusValue == "canceled" ? "Cancelado" : "Confirmado";
 
     try {
-      row.style.opacity = "0.7";
-      await fetchWithErrorHandling(`${apiUrl}api/agendamentos/${appointmentId}/${action}`, {
+      const response = await fetchWithErrorHandling(`${window.env.API_URL}api/agendamentos/${appointmentId}/status`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "access-token" : tokenExample},
+        body : JSON.stringify({status : statusValue})
       });
 
-      // Update DOM directly
-      row.cells[5].textContent = statusTextContent;
-      row.cells[5].classList.remove(`status-scheduled`);
-      row.cells[5].classList.add(`status-${statusValue}`);
-      row.cells[6].innerHTML = "-";
+      if(!response.error){
+        row.style.opacity = "0.7";
+        row.cells[5].textContent = statusTextContent;
+        row.cells[5].classList.remove(`status-scheduled`);
+        row.cells[5].classList.add(`status-${statusValue}`);
+        row.cells[6].innerHTML = "-";
+      }
     } catch (error) {
       console.error(`Falha ao ${action}:`, error);
       row.style.opacity = "1";
@@ -296,15 +317,16 @@ function executePendingAction() {
   async function deleteAppointment(appointmentId, button) {
     const row = button.closest("tr");
     try {
-      row.style.opacity = "0.4";
-      await fetchWithErrorHandling(`${apiUrl}api/agendamentos/${appointmentId}`, {
+      const response = await fetchWithErrorHandling(`${window.env.API_URL}api/agendamentos/${appointmentId}`, {
         method: "DELETE",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "access-token" : tokenExample},
       });
 
-      row.remove();
-      updateResultsCount(document.querySelectorAll("#appointmentsTableBody tr").length, state.totalItems - 1);
-      loadStats(state.currentPage)
+      if(!response.error){
+        row.remove();
+        updateResultsCount(document.querySelectorAll("#appointmentsTableBody tr").length, state.totalItems - 1);
+        loadStats(state.currentPage)
+      }
     } catch (error) {
       console.error(`Falha ao deletar:`, error);
       row.style.opacity = "1";
@@ -478,12 +500,12 @@ function executePendingAction() {
         <td class="status-${appointment.status}">${appointment.status}</td>
         <td>
           ${appointment.status === "scheduled"
-            ? `<button class="btn btn-confirm confirm-btn" data-id="${appointment._id}">Confirmar</button>
+          ? `<button class="btn btn-confirm confirm-btn" data-id="${appointment._id}">Confirmar</button>
                <button class="btn btn-secondary cancel-btn" data-id="${appointment._id}">Cancelar</button>`
-            : appointment.status === "canceled"
-              ? `<button class="btn btn-secondary delete-btn" data-id="${appointment._id}">Deletar</button>`
-              : "-"
-          }
+          : appointment.status === "canceled"
+            ? `<button class="btn btn-secondary delete-btn" data-id="${appointment._id}">Deletar</button>`
+            : "-"
+        }
         </td>
       `;
       DOM.table.body.appendChild(row);
@@ -535,12 +557,12 @@ function executePendingAction() {
         DOM.modals.adminMessage.style.color = "#dc3545";
         return;
       }
-      
+
       try {
         DOM.modals.adminMessage.textContent = "Cadastrando administrador...";
         DOM.modals.adminMessage.style.color = "#007bff";
 
-        const response = await fetchWithErrorHandling(`${apiUrl}api/usuarios`, {
+        const response = await fetchWithErrorHandling(`${window.env.API_URL}api/usuarios`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ name, email, password, nivel: 1 }),
@@ -556,7 +578,7 @@ function executePendingAction() {
             DOM.modals.adminMessage.textContent = "";
           }, 1000);
         } else {
-          DOM.modals.adminMessage.textContent = response.message || "Erro ao cadastrar administrador.";
+          DOM.modals.adminMessage.textContent = response.errors ? response.errors[0].msg : response.message || "Erro ao cadastrar administrador.";
           DOM.modals.adminMessage.style.color = "#dc3545";
         }
       } catch (error) {
@@ -572,119 +594,122 @@ function executePendingAction() {
   // Função para abrir o modal de edição de usuário
   async function openUserEditModal(userId) {
     try {
-        // Buscar os dados do usuário
-        const user = await fetchWithErrorHandling(`${apiUrl}api/usuarios/${userId}`);
-        
-        // Preencher o formulário com os dados do usuário
-        document.getElementById("userEditName").value = user.name;
-        document.getElementById("userEditEmail").value = user.email;
-        
-        // Limpar campos de senha e mensagens
-        document.getElementById("userEditCurrentPassword").value = "";
-        document.getElementById("userEditNewPassword").value = "";
-        document.getElementById("userEditConfirmPassword").value = "";
-        document.getElementById("userEditMessage").textContent = "";
-        
-        // Exibir o modal
-        document.getElementById("userEditModal").style.display = "flex";
-    } catch (error) {
-        console.error("Erro ao carregar dados do usuário:", error);
-        alert("Não foi possível carregar os dados do usuário. Tente novamente.");
-    }
-}
+      // Buscar os dados do usuário
+      const user = await fetchWithErrorHandling(`${window.env.API_URL}api/usuarios/${userId}`,{
+        headers : {"access-token" : tokenExample}
+      });
 
-// Função para configurar o modal de edição de usuário
-function setupUserEditModal() {
+      // Preencher o formulário com os dados do usuário
+      document.getElementById("userEditName").value = user.name;
+      document.getElementById("userEditEmail").value = user.email;
+
+      // Limpar campos de senha e mensagens
+      document.getElementById("userEditCurrentPassword").value = "";
+      document.getElementById("userEditNewPassword").value = "";
+      document.getElementById("userEditConfirmPassword").value = "";
+      document.getElementById("userEditMessage").textContent = "";
+
+      // Exibir o modal
+      document.getElementById("userEditModal").style.display = "flex";
+    } catch (error) {
+      console.error("Erro ao carregar dados do usuário:", error);
+      alert("Não foi possível carregar os dados do usuário. Tente novamente.");
+    }
+  }
+
+  // Função para configurar o modal de edição de usuário
+  function setupUserEditModal() {
     const userEditModal = document.getElementById("userEditModal");
     const userEditForm = document.getElementById("userEditForm");
     const cancelUserEdit = document.getElementById("cancelUserEdit");
     const userEditMessage = document.getElementById("userEditMessage");
-    
+
     // Fechar modal ao clicar no botão cancelar
     cancelUserEdit.addEventListener("click", () => {
-        userEditModal.style.display = "none";
-        userEditMessage.textContent = "";
+      userEditModal.style.display = "none";
+      userEditMessage.textContent = "";
     });
-    
+
     // Fechar modal ao clicar fora do conteúdo
     userEditModal.addEventListener("click", (e) => {
-        if (e.target === userEditModal) {
-            userEditModal.style.display = "none";
-            userEditMessage.textContent = "";
-        }
+      if (e.target === userEditModal) {
+        userEditModal.style.display = "none";
+        userEditMessage.textContent = "";
+      }
     });
-    
+
     // Lidar com o envio do formulário
     userEditForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        
-        const currentUser = JSON.parse(localStorage.getItem("user"));
-        const name = document.getElementById("userEditName").value.trim();
-        const email = document.getElementById("userEditEmail").value.trim();
-        const password = document.getElementById("userEditCurrentPassword").value;
-        const newPassword = document.getElementById("userEditNewPassword").value;
-        const confirmPassword = document.getElementById("userEditConfirmPassword").value;
-        
-        // Validações básicas
-        if (!name || !email || !password) {
-            userEditMessage.textContent = "Nome, email e senha atual são obrigatórios.";
-            userEditMessage.style.color = "#dc3545";
-            return;
+      e.preventDefault();
+
+      const currentUser = JSON.parse(localStorage.getItem("user"));
+      const name = document.getElementById("userEditName").value.trim();
+      const email = document.getElementById("userEditEmail").value.trim();
+      const password = document.getElementById("userEditCurrentPassword").value;
+      const newPassword = document.getElementById("userEditNewPassword").value;
+      const confirmPassword = document.getElementById("userEditConfirmPassword").value;
+
+      // Validações básicas
+      if (!name || !email || !password) {
+        userEditMessage.textContent = "Nome, email e senha atual são obrigatórios.";
+        userEditMessage.style.color = "#dc3545";
+        return;
+      }
+
+      if (newPassword && newPassword !== confirmPassword) {
+        userEditMessage.textContent = "As novas senhas não coincidem.";
+        toastNotification({ error: true, message: "As novas senhas não coincidem." })
+        userEditMessage.style.color = "#dc3545";
+        return;
+      }
+
+      try {
+        userEditMessage.textContent = "Atualizando dados...";
+        userEditMessage.style.color = "#007bff";
+
+        // Preparar dados para atualização
+        const updateData = {
+          name,
+          email,
+          password
+        };
+
+        if (newPassword) {
+          updateData.newPassword = newPassword;
         }
-        
-        if (newPassword && newPassword !== confirmPassword) {
-            userEditMessage.textContent = "As novas senhas não coincidem.";
-            userEditMessage.style.color = "#dc3545";
-            return;
+
+        // Chamar API para atualizar usuário
+        const response = await fetchWithErrorHandling(`${window.env.API_URL}api/usuarios/${currentUser._id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json", "access-token" : tokenExample},
+          body: JSON.stringify(updateData)
+        });
+
+        if (response.error) {
+          userEditMessage.textContent = response.errors ? response.errors[0].msg : response.message || "Erro ao atualizar dados.";
+          userEditMessage.style.color = "#dc3545";
+        } else {
+          // Atualizar dados no localStorage
+          const updatedUser = { ...currentUser, name, email };
+          localStorage.setItem("user", JSON.stringify(updatedUser));
+
+          // Atualizar nome exibido no dashboard
+          document.getElementById("adminName").textContent = name;
+
+          userEditMessage.textContent = "Dados atualizados com sucesso!";
+          userEditMessage.style.color = "#28a745";
+
+          // Fechar modal após 2 segundos
+          setTimeout(() => {
+            userEditModal.style.display = "none";
+            userEditMessage.textContent = "";
+          }, 1000);
         }
-        
-        try {
-            userEditMessage.textContent = "Atualizando dados...";
-            userEditMessage.style.color = "#007bff";
-            
-            // Preparar dados para atualização
-            const updateData = {
-                name,
-                email,
-                password
-            };
-            
-            if (newPassword) {
-                updateData.newPassword = newPassword;
-            }
-            
-            // Chamar API para atualizar usuário
-            const response = await fetchWithErrorHandling(`${apiUrl}api/usuarios/${currentUser._id}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(updateData)
-            });
-            
-            if (response.error) {
-                userEditMessage.textContent = response.message || "Erro ao atualizar dados.";
-                userEditMessage.style.color = "#dc3545";
-            } else {
-                // Atualizar dados no localStorage
-                const updatedUser = { ...currentUser, name, email };
-                localStorage.setItem("user", JSON.stringify(updatedUser));
-                
-                // Atualizar nome exibido no dashboard
-                document.getElementById("adminName").textContent = name;
-                
-                userEditMessage.textContent = "Dados atualizados com sucesso!";
-                userEditMessage.style.color = "#28a745";
-                
-                // Fechar modal após 2 segundos
-                setTimeout(() => {
-                    userEditModal.style.display = "none";
-                    userEditMessage.textContent = "";
-                }, 1000);
-            }
-        } catch (error) {
-            console.error("Erro ao atualizar usuário:", error);
-            userEditMessage.textContent = "Erro ao atualizar dados. Tente novamente.";
-            userEditMessage.style.color = "#dc3545";
-        }
+      } catch (error) {
+        console.error("Erro ao atualizar usuário:", error);
+        userEditMessage.textContent = "Erro ao atualizar dados. Tente novamente.";
+        userEditMessage.style.color = "#dc3545";
+      }
     });
 
     // Configurar botão de excluir conta
@@ -697,48 +722,28 @@ function setupUserEditModal() {
     const deleteAccountBtn = document.getElementById('deleteAccountBtn');
     const confirmationModal = document.getElementById('confirmationModal');
     const confirmationMessage = document.getElementById('confirmationMessage');
-    const confirmActionBtn = document.getElementById('confirmActionBtn');
-    const cancelActionBtn = document.getElementById('cancelActionBtn');
 
     deleteAccountBtn.addEventListener('click', () => {
-        // Configurar o modal de confirmação
-        confirmationMessage.textContent = "Tem certeza que deseja excluir sua conta permanentemente? Esta ação não pode ser desfeita.";
-        confirmationModal.style.display = "flex";
+      // Armazena a ação pendente no state
+      state.pendingAction = {
+        action: "deleteAccount",
+        button: deleteAccountBtn
+      };
 
-        // Remover listeners anteriores para evitar acumulação
-        confirmActionBtn.onclick = null;
-        cancelActionBtn.onclick = null;
+      // Configurar o modal de confirmação
+      confirmationMessage.textContent = "Tem certeza que deseja excluir sua conta permanentemente? Esta ação não pode ser desfeita.";
+      confirmationModal.style.display = "flex";
 
-        // Adicionar novos listeners
-        confirmActionBtn.addEventListener('click', async () => {
-            try {
-                const currentUser = JSON.parse(localStorage.getItem("user"));
-                confirmationMessage.textContent = "Excluindo conta...";
-                confirmActionBtn.disabled = true;
+      // Remove todos os listeners antigos
+      DOM.modals.confirmAction.onclick = null;
+      DOM.modals.cancelAction.onclick = null;
 
-                // Chamar API para deletar conta
-                const response = await fetchWithErrorHandling(`${apiUrl}api/usuarios/${currentUser._id}`, {
-                    method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json' }
-                });
-
-                if (response.error) {
-                    throw new Error(response.message || "Erro ao excluir conta");
-                }
-
-                // Limpar localStorage e redirecionar
-                localStorage.removeItem('user');
-                window.location.href = 'login.html';
-            } catch (error) {
-                console.error("Erro ao excluir conta:", error);
-                confirmationMessage.textContent = error.message || "Erro ao excluir conta. Tente novamente.";
-                confirmActionBtn.disabled = false;
-            }
-        });
-
-        cancelActionBtn.addEventListener('click', () => {
-            confirmationModal.style.display = 'none';
-        });
+      // Adicionar novos listeners
+      DOM.modals.confirmAction.addEventListener('click', executePendingAction);
+      DOM.modals.cancelAction.addEventListener('click', () => {
+        confirmationModal.style.display = 'none';
+        state.pendingAction = null;
+      });
     });
   }
 
@@ -753,7 +758,7 @@ function setupUserEditModal() {
     DOM.filters.sortColumn.addEventListener("change", () => loadStats(1));
     DOM.filters.startDate.addEventListener("change", syncDates);
     DOM.filters.endDate.addEventListener("change", syncDates);
-    DOM.filters.singleDay.addEventListener("change", function() {
+    DOM.filters.singleDay.addEventListener("change", function () {
       if (this.checked && DOM.filters.startDate.value) {
         DOM.filters.endDate.value = DOM.filters.startDate.value;
       } else if (this.checked && DOM.filters.endDate.value) {

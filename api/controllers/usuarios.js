@@ -44,7 +44,7 @@ export const login = async (req, res) => {
             })
         }
 
-        return res.status(400).json({
+        return res.status(401).json({
             error: true,
             message: 'O email ou a senha digitados estão incorretos'
         })
@@ -61,35 +61,42 @@ export const createUsuarios = async (req, res) => {
 
         const { name,email, password, nivel} = req.body
             //Checando se já existe um usuario
-        const existingUsuarioByEmail = await db.collection(collectionUsuarios).findOne(
-            {email}
-        )
-        if (existingUsuarioByEmail) {
-            return res.status(409).json({
-                error: true,
-                message: "Um cadastro já foi realizado com esse email"
-            })
-        }
 
-        const existingUsuarioByName = await db.collection(collectionUsuarios).findOne(
-            {name}
-        )
-        if (existingUsuarioByName) {
-            return res.status(409).json({
-                error: true,
-                message: "Um cadastro já foi realizado com esse nome"
-            })
-        }
-        //Criptografia da senha
-         const salt = await bcrypt.genSalt(10)
-        const passwordEncrypted = await bcrypt.hash(password, salt)
-
-        const result = await db.collection(collectionUsuarios).insertOne({
-            name : name,
-            email: email,
-            password : passwordEncrypted,
-            nivel : nivel
+        const existingUser = await db.collection(collectionUsuarios).findOne({
+            $or : [
+                {name : {$regex : name, $options : "i"}},
+                {email : email}
+            ]
         })
+        
+        if(existingUser){
+            if(name.toLowerCase() == existingUser.name.toLowerCase()){
+                res.status(409).json({
+                    error : true,
+                    message: 'Um cadastro já foi realizado com esse nome'
+                })
+                return;
+            }
+
+            if(email == existingUser.email){
+                res.status(409).json({
+                    error : true,
+                    message: 'Um cadastro já foi realizado com esse email'
+                })
+                return;
+            }
+        }
+// Criptografia da senha
+const salt = await bcrypt.genSalt(10)
+const passwordEncrypted = await bcrypt.hash(password, salt)
+
+const result = await db.collection(collectionUsuarios).insertOne({
+    name: name,
+    email: email,
+    password: passwordEncrypted,
+    nivel: nivel ? nivel : 0
+})
+
       
         res.status(201).json({
             error: false,
@@ -102,10 +109,11 @@ export const createUsuarios = async (req, res) => {
                 nivel : nivel
             }
         })
-        } catch (error) {
-            console.error("Erro inesperado ao cadastrar um usuário:", error)
-            res.status(500).json({ error: true, message: "Ocorreu um erro ao cadastrar, tente novamente" })
-          }
+
+    } catch (error) {
+        console.error("Erro inesperado ao cadastrar um usuário:", error)
+        res.status(500).json({ error: true, message: "Ocorreu um erro ao cadastrar, tente novamente" })
+    }
 }
 
  // Delete usuario
@@ -137,7 +145,7 @@ export const createUsuarios = async (req, res) => {
 export const editUsuario = async (req, res) => {
     try {
         const { id } = req.params
-        const {newPassword, ...updatedData} = req.body
+        const {newPassword, newName, ...updatedData} = req.body
 
         const db = req.app.locals.db
 
@@ -158,27 +166,28 @@ export const editUsuario = async (req, res) => {
             return;
         }
 
-        if(updatedData.name){
-            const existingUser = await db.collection(collectionUsuarios).findOne({
-                _id : {$ne : new ObjectId(id)},
-                name : updatedData.name
-            })
+        let existingUser;
 
-            if(existingUser){
+        if(updatedData.name || updatedData.email){
+            existingUser = await db.collection(collectionUsuarios).findOne({
+                _id : {$ne : new ObjectId(id)},
+                $or : [
+                    {name : {$regex : updatedData.name, $options : "i"}},
+                    {email : updatedData.email}
+                ]
+            })
+        }
+        
+        if(existingUser){
+            if(updatedData.name && updatedData.name.toLowerCase() == existingUser.name.toLowerCase()){
                 res.status(409).json({
                     error : true,
                     message: 'Já existe um usuário com esse nome'
                 })
                 return;
             }
-        }
 
-        if(updatedData.email){
-            const existingUser = await db.collection(collectionUsuarios).findOne({
-                _id : {$ne : new ObjectId(id)},
-                email : updatedData.email
-            })
-            if(existingUser){
+            if(updatedData.email && updatedData.email == existingUser.email){
                 res.status(409).json({
                     error : true,
                     message: 'Já existe um usuário com esse email'

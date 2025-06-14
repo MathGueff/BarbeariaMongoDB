@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 //PARA RODAR: npm run importUsuarios
-const uri =  process.env.MONGODB_URI || "mongodb://localhost:27017/barbearia"
+const uri = process.env.MONGODB_URI || "mongodb://localhost:27017/barbearia"
 const dbName = 'barbearia'
 const collectionName = 'usuarios'
 
@@ -20,6 +20,8 @@ async function importausuarios(){
 
         const db = client.db(dbName);
         const collection = db.collection(collectionName)
+        
+        console.log(`Alterando banco de dados em : ${uri}\n`)
         //Verificando se a collection já existe
         const collections = await db.listCollections({name : collectionName}).toArray()
         if(collections.length > 0){

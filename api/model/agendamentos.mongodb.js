@@ -40,4 +40,4 @@ db.agendamentos.updateMany({client_name :'Isabela Cardoso'},
 )
 
 use('barbearia')
-db.usuarios.find()
+db.usuarios.find({name : 'Ricardão'})

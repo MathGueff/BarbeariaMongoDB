@@ -78,4 +78,8 @@
 {"name":"Vitória Lopes","email":"vitória@gmail.com","password":"abcde","nivel":0},
 {"name":"Yasmin Silveira","email":"yasmin@gmail.com","password":"senha1","nivel":1},
 {"name":"Íris Fernandes","email":"íris@gmail.com","password":"senha2","nivel":1},
-{"name":"Matheus Gueff","email":"gueff@gmail.com","password":"math","nivel":2}]
+{"name":"Matheus Gueff","email":"gueff@gmail.com","password":"math","nivel":2},
+{"name":"Andreza Oliveira","email":"andreza@gmail.com","password":"andreza","nivel":2},
+{"name":"Gustavo Lopes","email":"gustavo@gmail.com","password":"gustavo","nivel":2},
+{"name":"Guilherme Pazetti","email":"guilherme@gmail.com","password":"guilherme","nivel":2}
+]

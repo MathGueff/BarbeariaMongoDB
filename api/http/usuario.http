@@ -1,6 +1,8 @@
 // Teste da API REST de agendamentos
 @baseURL = http://localhost:3000/api/usuarios
-@id = 6847209ba4cddb1f34452d24
+@id = 684995b3ddb7c842ce44e0ca
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30
+
 
 // ------------- GET ------------- //
 
@@ -97,6 +99,7 @@ Content-Type: application/json
 // PUT - Edição de um usuário
 PUT {{baseURL}}/{{id}}
 Content-Type: application/json
+access-token: {{token}}
 
 {
     "name" : "Matheus Gueff",
@@ -109,11 +112,12 @@ Content-Type: application/json
 // PUT - Edição de um usuário (Com erro de email existente e senha incorreta)
 PUT {{baseURL}}/{{id}}
 Content-Type: application/json
+access-token: {{token}}
 
 {
     "name" : "Matheus Gueff",
     "email" : "alice@gmail.com",
-    "password" : "maths",
+    "password" : "senhaErrada",
     "newPassword" : "math"
 }
 
@@ -122,8 +126,10 @@ Content-Type: application/json
 // DELETE - Remove o usuario pelo id
 DELETE {{baseURL}}/{{id}}
 Content-Type: application/json
+access-token: {{token}}
 
 ###
 // DELETE - Remove o usuario pelo id (com erro)
 DELETE {{baseURL}}/2
 Content-Type: application/json
+access-token: {{token}}

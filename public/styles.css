@@ -14,7 +14,7 @@ body {
 
 /* Header */
 .header {
-    background: linear-gradient(135deg, #f0a35a, #4A4A4A); /* Preto para cinza escuro */
+    background: linear-gradient(135deg, #000000, #000000); /* Preto para cinza escuro */
     color: #FFFFFF; /* Branco para texto */
     padding: 1rem 2rem;
     display: flex;
@@ -44,7 +44,7 @@ body {
 
 /* Botões */
 .btn {
-    color: #FFFFFF; /* Branco para texto */
+    color: #000000; /* Preto para texto */
     border: none;
     padding: 0.7rem 1.5rem;
     border-radius: 5px;
@@ -53,20 +53,20 @@ body {
     text-decoration: none;
 }
 
-.btn-primary { background-color: #D32F2F; } /* Vermelho */
-.btn-primary:hover { background-color: #B71C1C; }
+.btn-primary { background-color: #000000; font-weight: bold; } /* Preto (usado para agendar) */
+.btn-primary:hover { background-color: #000000; }
 
-.btn-secondary { background-color: #D32F2F; } /* Vermelho (usado para cancelar) */
+.btn-secondary { background-color: #e23232; font-weight: bold; } /* Vermelho (usado para cancelar) */
 .btn-secondary:hover { background-color: #B71C1C; }
 
-.btn-confirm { background-color: #28a745; } /* Verde para confirmar */
+.btn-confirm { background-color: #28a745; font-weight: bold; } /* Verde para confirmar */
 .btn-confirm:hover { background-color: #218838; }
 
-.btn-edit { background-color: #286ea7; } /* Verde para confirmar */
-.btn-edit :hover { background-color: #275072 !important; }
+.btn-edit { background-color: #ffffff; font-weight: bold; } /* Azul para editar */
+.btn-edit:hover { background-color: #aeaeae; }
 
-.btn-cta { background-color: #D32F2F; font-weight: bold; } /* Vermelho para CTA */
-.btn-cta:hover { background-color: #B71C1C; }
+.btn-cta { background-color: #989898; font-weight: bold; } /* Cinza para CTA */
+.btn-cta:hover { background-color: #575757; }
 
 /* Hero Section */
 .hero {
@@ -185,7 +185,7 @@ body {
 .testimonial-name {
     font-size: 1.5rem;
     font-weight: bold;
-    color: #D32F2F; /* Vermelho para o nome */
+    color: #000000; /* Preto para o nome */
     margin-bottom: 0.5rem;
 }
 
@@ -219,7 +219,7 @@ body {
 }
 
 .indicator.active {
-    background-color: #D32F2F; /* Vermelho para indicador ativo */
+    background-color: #000000; /* Preto para indicador ativo */
 }
 
 /* Benefícios */
@@ -335,7 +335,7 @@ body {
 .message {
     margin-top: 1rem;
     font-size: 1rem;
-    color: #D32F2F; /* Vermelho para mensagens */
+    color: #000000; /* Preto para mensagens */
 }
 
 .subscription-text, .benefits-text {
@@ -361,7 +361,7 @@ body {
 
 .appointment-card p strong {
     font-weight: bold;
-    color: #D32F2F; /* Vermelho para destaque */
+    color: #000000; /* Preto para destaque */
 }
 
 .appointment-card .btn {
@@ -392,7 +392,7 @@ body {
 }
 
 .appointments-table th {
-    background-color: #D32F2F; /* Vermelho para o cabeçalho */
+    background-color: #000000; /* Vermelho para o cabeçalho */
     color: #FFFFFF; /* Branco para texto */
 }
 
@@ -422,7 +422,7 @@ body {
 .stats-section {
     padding: 2rem 1rem; /* Reduzido o padding para a seção ser mais compacta */
     text-align: center;
-    background: linear-gradient(135deg, #f0a35a, #B0BEC5); /* Gradiente sutil */
+    background: linear-gradient(135deg, #ffffff, #B0BEC5); /* Gradiente sutil */
 }
 
 .stats-grid {
@@ -448,7 +448,7 @@ body {
 
 .stat-icon {
     font-size: 1.8rem; /* Tamanho do ícone */
-    color: #D32F2F; /* Vermelho para os ícones */
+    color: #000000; /* Preto para os ícones */
     margin-bottom: 0.5rem;
 }
 
@@ -600,7 +600,7 @@ body {
   }
   
   .page-number.active {
-    background-color: #e54646;
+    background-color: #000000;
     color: white;
   }
   
