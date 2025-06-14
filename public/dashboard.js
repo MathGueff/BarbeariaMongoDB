@@ -205,28 +205,41 @@ function initializeDashboard() {
   }
 
   function populateAvailableTimeSlots(occupiedTimes) {
+    const selectedDate = DOM.scheduling.dateInput.value
+    if(!selectedDate) return;
     const start = 8 * 60 // 8:00
     const end = 18 * 60 // 18:00
+    const now = new Date();
     let hasAvailableSlots = false
-
+    
     for (let i = start; i <= end; i += 30) {
       const hour = Math.floor(i / 60)
       const minute = i % 60
       const time = `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`
+
+      const dateStr = `${selectedDate}T${time}:00`;
+      const date = new Date(dateStr);
+      
+      const isNotAvailable = date < now
       const isOccupied = occupiedTimes.includes(time)
 
       const option = document.createElement("option")
       option.value = time
       option.textContent = time
 
-      if (isOccupied) {
-        option.disabled = true
-        option.textContent += " (Ocupado)"
-      } else {
-        hasAvailableSlots = true
+      if(isNotAvailable){
+        option.disabled = true;
+        option.textContent += " (Indisponível)"
       }
-
-      DOM.scheduling.timeSelect.appendChild(option)
+      else{
+        if (isOccupied) {
+          option.disabled = true
+          option.textContent += " (Ocupado)"
+        } else {
+          hasAvailableSlots = true
+          DOM.scheduling.timeSelect.appendChild(option)
+        }
+      }
     }
 
     if (!hasAvailableSlots) {
@@ -495,7 +508,7 @@ function initializeDashboard() {
       <td>${date.split("-").reverse().join("/")}</td>
       <td>${time}</td>
       <td>${appointment.barber_name}</td>
-      <td>${appointment.services.map((service) => service.name).join(", ")}</td>
+      <td><ul><li>${appointment.services.map((service) => service.name).join("</li> <li>")}</ul></td>
       <td>${appointment.total_price.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</td>
       <td class='status-${appointment.status}'>${statusLabels[appointment.status] || appointment.status}</td>
       <td class='appointments-table-actions'>
@@ -776,27 +789,51 @@ function initializeDashboard() {
   function populateEditTimeOptions(occupiedTimes, currentTime) {
     const start = 8 * 60 // 8:00
     const end = 18 * 60 // 18:00
+    const now = new Date();
+    const selectedDate = DOM.modals.editDateInput.value;
+    let hasAvailableSlots = false
 
     for (let i = start; i <= end; i += 30) {
       const hour = Math.floor(i / 60)
       const minute = i % 60
       const time = `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`
-      const isOccupied = occupiedTimes.includes(time)
 
       const option = document.createElement("option")
       option.value = time
       option.textContent = time
 
-      if (isOccupied) {
-        option.disabled = true
-        option.textContent += " (Ocupado)"
-      }
-
       if (time === currentTime) {
+        hasAvailableSlots = true;
         option.selected = true
+        option.textContent += " (Selecionado)"
+        DOM.modals.editTimeSelect.appendChild(option)
+        return;
       }
 
-      DOM.modals.editTimeSelect.appendChild(option)
+      const dateStr = `${selectedDate}T${time}:00`;
+      const date = new Date(dateStr);
+
+      const isNotAvailable = date < now
+      const isOccupied = occupiedTimes.includes(time)
+
+      if(isNotAvailable){
+        option.disabled = true;
+        option.textContent += " (Indisponível)"
+      }
+      else{
+        if (isOccupied) {
+          option.disabled = true
+          option.textContent += " (Ocupado)"
+        }
+        else{
+          hasAvailableSlots = true
+          DOM.modals.editTimeSelect.appendChild(option)
+        }
+      }
+    }
+
+    if (!hasAvailableSlots) {
+      DOM.modals.editTimeSelect.innerHTML = '<option value="">Nenhum horário disponível</option>'
     }
   }
 
@@ -1062,26 +1099,7 @@ const horariosFixos = [
 ];
 
 function atualizarHorariosDisponiveis() {
-  const dataSelecionada = dateInput.value;
-  const agora = new Date();
-  const horariosDisponiveis = [];
-
-  horariosFixos.forEach(horario => {
-    const [hora, minuto] = horario.split(":");
-    const dataHora = new Date(`${dataSelecionada}T${hora}:${minuto}:00`);
-
-    if (dataHora > agora) {
-      horariosDisponiveis.push(horario);
-    }
-  });
-
-  timeSelect.innerHTML = "";
-  horariosDisponiveis.forEach(horario => {
-    const option = document.createElement("option");
-    option.value = horario;
-    option.textContent = horario;
-    timeSelect.appendChild(option);
-  });
+  
 }
 
 dateInput.addEventListener("change", atualizarHorariosDisponiveis);
