@@ -14,7 +14,7 @@ body {
 
 /* Header */
 .header {
-    background: linear-gradient(135deg, #fda035, #4A4A4A); /* Preto para cinza escuro */
+    background: linear-gradient(135deg, #000000, #000000); /* Preto para cinza escuro */
     color: #FFFFFF; /* Branco para texto */
     padding: 1rem 2rem;
     display: flex;
@@ -44,7 +44,7 @@ body {
 
 /* Botões */
 .btn {
-    color: #FFFFFF; /* Branco para texto */
+    color: #000000; /* Preto para texto */
     border: none;
     padding: 0.7rem 1.5rem;
     border-radius: 5px;
@@ -53,17 +53,17 @@ body {
     text-decoration: none;
 }
 
-.btn-primary { background-color: #000000; } /* Preto (usado para agendar) */
+.btn-primary { background-color: #000000; font-weight: bold; } /* Preto (usado para agendar) */
 .btn-primary:hover { background-color: #000000; }
 
-.btn-secondary { background-color: #e23232; } /* Vermelho (usado para cancelar) */
+.btn-secondary { background-color: #e23232; font-weight: bold; } /* Vermelho (usado para cancelar) */
 .btn-secondary:hover { background-color: #B71C1C; }
 
-.btn-confirm { background-color: #28a745; } /* Verde para confirmar */
+.btn-confirm { background-color: #28a745; font-weight: bold; } /* Verde para confirmar */
 .btn-confirm:hover { background-color: #218838; }
 
-.btn-edit { background-color: #3387cd; } /* Azul para editar */
-.btn-edit:hover { background-color: #275072; }
+.btn-edit { background-color: #ffffff; font-weight: bold; } /* Azul para editar */
+.btn-edit:hover { background-color: #aeaeae; }
 
 .btn-cta { background-color: #989898; font-weight: bold; } /* Cinza para CTA */
 .btn-cta:hover { background-color: #575757; }
