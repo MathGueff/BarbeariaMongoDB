@@ -14,7 +14,7 @@ body {
 
 /* Header */
 .header {
-    background: linear-gradient(135deg, #f0a35a, #4A4A4A); /* Preto para cinza escuro */
+    background: linear-gradient(135deg, #fda035, #4A4A4A); /* Preto para cinza escuro */
     color: #FFFFFF; /* Branco para texto */
     padding: 1rem 2rem;
     display: flex;
@@ -422,7 +422,7 @@ body {
 .stats-section {
     padding: 2rem 1rem; /* Reduzido o padding para a seção ser mais compacta */
     text-align: center;
-    background: linear-gradient(135deg, #f0a35a, #B0BEC5); /* Gradiente sutil */
+    background: linear-gradient(135deg, #ffffff, #B0BEC5); /* Gradiente sutil */
 }
 
 .stats-grid {
