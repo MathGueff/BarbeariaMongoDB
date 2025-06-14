@@ -9,12 +9,17 @@
 </head>
 <body>
     <header class="header">
-        <a href="index.html" class="header-logo">
-            <img src="images/logo.png" alt="Barbearia MongoDB Logo" class="logo-img">
-        </a>
-        <h1 href="index.html" class="logo-text">Barbearia MongoDB</h1>
+       <div class="header-barbearia">
+            <!-- Logotipo clicável que redireciona para a home -->
+            <a href="index.html" class="header-logo">
+                <img src="images/logo_barbeariamongodb.png" alt="Barbearia MongoDB Logo" class="logo-img">
+            </a>
+            
+            <!-- Título da página com link para a home -->
+            <h1 href="index.html" class="logo-text">Barbearia MongoDB</h1>
+        </div>
         <nav class="header-nav">
-            <button id="editUserBtn" class="btn btn-edit">Editar Perfil</button>
+            <button id="editUserBtn" class="btn btn-primary">Editar Perfil</button>
             <button id="logoutBtn" class="btn btn-cta">Sair</button>
         </nav>
     </header>
@@ -73,7 +78,7 @@
                     </div>
                 </div>
 
-                <button type="submit" class="btn btn-edit">Agendar</button>
+                <button type="submit" class="btn btn-primary">Agendar</button>
             </form>
             <p id="scheduleMessage" class="message"></p>
         </div>
@@ -88,8 +93,8 @@
                 <p><strong>Serviço:</strong> <span id="appointmentService"></span></p>
                 <p><strong>Preço:</strong> <span id="appointmentPrice"></span></p>
                 <p><strong>Status do Agendamentos:</strong> <span id="appointmentStatus"></span></p>
-                <button id="editAppointmentOverviewBtn" class="btn btn-edit">Editar</button>
-                <button id="cancelAppointmentBtn" class="btn btn-secondary">Cancelar Agendamento</button>
+                <button id="editAppointmentOverviewBtn" class="btn btn-primary">Editar</button>
+                <button id="cancelAppointmentBtn" class="btn btn-cancel">Cancelar Agendamento</button>
             </div>
         </div>
 
@@ -121,7 +126,7 @@
             <h3>Confirmação</h3>
             <p id="confirmationMessage">Tem certeza que deseja cancelar este agendamento?</p>
             <div class="modal-actions">
-                <button id="cancelActionBtn" class="btn btn-secondary">Não</button>
+                <button id="cancelActionBtn" class="btn btn-cancel">Não</button>
                 <button id="confirmActionBtn" class="btn btn-confirm">Sim</button>
             </div>
         </div>
@@ -181,7 +186,7 @@
 
                 <div class="modal-actions">
                     <button type="submit" class="btn btn-confirm">Salvar</button>
-                    <button type="button" id="closeEditModalBtn" class="btn btn-secondary">Fechar</button>
+                    <button type="button" id="closeEditModalBtn" class="btn btn-cancel">Fechar</button>
                 </div>
             </form>
         </div>
@@ -206,7 +211,7 @@
             <hr>
             
             <div style="display: flex; justify-content: center; margin-top: 20px;">
-                <button type="button" id="deleteAccountBtn" class="btn btn-secondary">Excluir conta</button>
+                <button type="button" id="deleteAccountBtn" class="btn btn-cancel">Excluir conta</button>
             </div>
         </div>
     </div>

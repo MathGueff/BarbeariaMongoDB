@@ -69,7 +69,7 @@ export const getAgendamentos = async (req, res) => {
             .limit(Number.parseInt(limit))
             .toArray()
 
-        const total = await db.collection(collectionAgendamentos).find().count()
+        const total = await db.collection(collectionAgendamentos).find(query).count()
 
         res.status(200).json({
             data : agendamentos,

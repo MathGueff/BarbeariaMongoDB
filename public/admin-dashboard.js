@@ -180,16 +180,16 @@ function initializeAdminDashboard() {
       row.innerHTML = `
         <td>${new Date(appointment.date).toLocaleString("pt-BR")}</td>
         <td>${appointment.client_name}</td>
-        <td>${appointment.services.map(service => service.name).join(", ")}</td>
+        <td><ul><li>${appointment.services.map(service => service.name).join("</li> <li>")}</ul></td>
         <td>${appointment.barber_name}</td>
         <td>${appointment.total_price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
         <td class='status-${appointment.status}'>${statusLabels[appointment.status] || appointment.status}</td>
         <td class='appointments-table-actions'>
           ${appointment.status === "scheduled"
           ? `<button class="btn btn-confirm confirm-btn" data-id="${appointment._id}">Confirmar</button>
-               <button class="btn btn-secondary cancel-btn" data-id="${appointment._id}">Cancelar</button>`
+               <button class="btn btn-cancel cancel-btn" data-id="${appointment._id}">Cancelar</button>`
           : appointment.status === "canceled"
-            ? `<button class="btn btn-secondary delete-btn" data-id="${appointment._id}">Deletar</button>`
+            ? `<button class="btn btn-cancel delete-btn" data-id="${appointment._id}">Deletar</button>`
             : "-"
         }
         </td>
@@ -501,9 +501,9 @@ function initializeAdminDashboard() {
         <td>
           ${appointment.status === "scheduled"
           ? `<button class="btn btn-confirm confirm-btn" data-id="${appointment._id}">Confirmar</button>
-               <button class="btn btn-secondary cancel-btn" data-id="${appointment._id}">Cancelar</button>`
+               <button class="btn btn-cancel cancel-btn" data-id="${appointment._id}">Cancelar</button>`
           : appointment.status === "canceled"
-            ? `<button class="btn btn-secondary delete-btn" data-id="${appointment._id}">Deletar</button>`
+            ? `<button class="btn btn-cancel delete-btn" data-id="${appointment._id}">Deletar</button>`
             : "-"
         }
         </td>
