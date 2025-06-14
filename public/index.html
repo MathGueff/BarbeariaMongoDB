@@ -6,29 +6,34 @@
     <title>Barbearia MongoDB - Seu Estilo, Nosso Cuidado</title>
     <link rel="stylesheet" href="styles.css">
     <!-- Adicionando Font Awesome para ícones -->
-     <link rel="shortcut icon" href="images/favicon.png">
+    <link rel="shortcut icon" href="../public/images/favicon_barbearia.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 </head>
 <body>
     <header class="header">
-        <!-- Logotipo clicável que redireciona para a home -->
-        <a href="index.html" class="header-logo">
-            <img src="images/logo.png" alt="Barbearia MongoDB Logo" class="logo-img">
-        </a>
+        <div class="header-barbearia">
+            <!-- Logotipo clicável que redireciona para a home -->
+            <a href="index.html" class="header-logo">
+                <img src="images/logo_barbeariamongodb.png" alt="Barbearia MongoDB Logo" class="logo-img">
+            </a>
+            
+            <!-- Título da página com link para a home -->
+            <h1 href="index.html" class="logo-text">Barbearia MongoDB</h1>
+        </div>
         
-        <!-- Título da página com link para a home -->
-        <h1 href="index.html" class="logo-text">Barbearia MongoDB</h1>
 
         <nav class="header-nav">
-            <a href="login.html" class="btn btn-edit">Login / Cadastro</a>
+            <a href="login.html" class="btn btn-primary">Login / Cadastro</a>
         </nav>
     </header>
 
     <!-- Seção Hero com Chamada de Marketing -->
     <section class="hero">
-        <h2 class="hero-title">Transforme Seu Visual Hoje!</h2>
-        <p class="hero-subtitle">Corte e barba com estilo, preço justo e agendamento fácil.</p>
-        <a href="login.html" class="btn btn-cta">Agende Agora!</a>
+        <div class="hero-banner">
+            <h2 class="hero-title">Transforme Seu Visual Hoje!</h2>
+            <p class="hero-subtitle">Corte e barba com estilo, preço justo e agendamento fácil.</p>
+            <a href="login.html" class="btn btn-cta">Agende Agora!</a>
+        </div>
     </section>
 
     <!-- Seção de Contadores (ajustada com ícones) -->
@@ -59,7 +64,7 @@
     </section>
 
     <!-- Carrossel de Imagens -->
-    <section class="testimonials">
+    <section class="testimonials-new">
         <h2 class="section-title">Conheça Nosso Espaço</h2>
         <div class="carousel">
             <div class="carousel-slide active">
@@ -76,7 +81,7 @@
             </div>
         </div>
     </section>
-
+    <hr>
     <!-- Carrossel de Depoimentos -->
     <section class="testimonials-new">
         <h2 class="section-title">Depoimentos dos Nossos Clientes</h2>
@@ -111,6 +116,7 @@
         </div>
     </section>
 
+    <hr>
     <!-- Benefícios -->
     <section class="benefits">
         <h2 class="section-title">Por Que Escolher a Barbearia MongoDB?</h2>

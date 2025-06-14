@@ -513,7 +513,7 @@ function initializeDashboard() {
       <td class='status-${appointment.status}'>${statusLabels[appointment.status] || appointment.status}</td>
       <td class='appointments-table-actions'>
         ${appointment.status === "scheduled"
-        ? `<button class="btn btn-secondary cancel-client-btn" data-id="${appointment._id}">Cancelar</button> 
+        ? `<button class="btn btn-cancel cancel-client-btn" data-id="${appointment._id}">Cancelar</button> 
              <button class="btn btn-edit edit-client-btn" data-id="${appointment._id}">Editar</button>`
         : "-"
       }
@@ -551,7 +551,7 @@ function initializeDashboard() {
       <td>${appointment.status}</td>
       <td>
         ${appointment.status === "scheduled"
-        ? `<button class="btn btn-secondary cancel-client-btn" data-id="${appointment._id}">Cancelar</button>`
+        ? `<button class="btn btn-cancel cancel-client-btn" data-id="${appointment._id}">Cancelar</button>`
         : "-"
       }
       </td>

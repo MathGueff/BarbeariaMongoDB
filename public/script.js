@@ -4,7 +4,7 @@
 // http://localhost:3000/
 
 window.env = {
-    API_URL : 'https://barbearia-mongo-db-liart.vercel.app/'
+    API_URL : 'http://localhost:3000/'
 }
 
 // Função auxiliar para fazer requisições fetch com tratamento de erros

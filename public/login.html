@@ -8,12 +8,17 @@
 </head>
 <body>
     <header class="header">
-        <a href="index.html" class="header-logo">
-            <img src="images/logo.png" alt="Barbearia MongoDB Logo" class="logo-img">
-        </a>
-        <h1 href="index.html" class="logo-text">Barbearia MongoDB</h1>
+       <div class="header-barbearia">
+            <!-- Logotipo clicável que redireciona para a home -->
+            <a href="index.html" class="header-logo">
+                <img src="images/logo_barbeariamongodb.png" alt="Barbearia MongoDB Logo" class="logo-img">
+            </a>
+            
+            <!-- Título da página com link para a home -->
+            <h1 href="index.html" class="logo-text">Barbearia MongoDB</h1>
+        </div>
         <nav class="header-nav">
-            <a href="index.html" class="btn btn-edit">Voltar</a>
+            <a href="index.html" class="btn btn-primary">Voltar</a>
         </nav>
     </header>
 
@@ -21,9 +26,9 @@
         <div class="auth-box" id="loginBox">
             <h2 class="auth-title">Login</h2>
             <form id="loginForm" class="auth-form">
-                <input type="email" id="loginEmail" class="input-field" placeholder="Email" required>
+                <input type="email" id="loginEmail" class="input-field" placeholder="Email" required autofocus>
                 <input type="password" id="loginPassword" class="input-field" placeholder="Senha" required>
-                <button type="submit" class="btn btn-edit">Entrar</button>
+                <button type="submit" class="btn btn-secondary">ENTRAR</button>
                 <p id="loginMessage" class="message"></p> <!-- Mensagem de erro -->
             </form>
             <div class="auth-switch">
@@ -37,7 +42,7 @@
                 <input type="text" id="registerName" class="input-field" placeholder="Nome" required>
                 <input type="email" id="registerEmail" class="input-field" placeholder="Email" required>
                 <input type="password" id="registerPassword" class="input-field" placeholder="Senha" required>
-                <button type="submit" class="btn btn-edit">Cadastrar</button>
+                <button type="submit" class="btn btn-secondary">CADASTRAR</button>
             </form>
             <div class="auth-switch">
                 <p>Já tem uma conta? <a href="#" id="showLogin">Faça login</a></p>
