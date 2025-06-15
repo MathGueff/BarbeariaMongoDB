@@ -1,7 +1,13 @@
 import { ObjectId } from "mongodb"
+import bcrypt from 'bcryptjs'
+import jwt from 'jsonwebtoken'
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const collectionUsuarios = 'usuarios'
 const collectionAgendamentos = 'agendamentos'
+
 
 // Get usuarios by ID
 export const getUsuariosById = async (req, res) => {
@@ -34,19 +40,29 @@ export const login = async (req, res) => {
         })
         if (!existingUser) 
             return res.status(404).json({ error: true, message: "Esse email não foi cadastrado" })
-
-        if(existingUser.password == password){
-            return res.status(200).json({
-                error: false,
-                message: 'Login realizado com sucesso',
+              
+    const isPasswordCorrect = await bcrypt.compare(password, existingUser.password)
+        if(!isPasswordCorrect){
+            return res.status(403).json({
+                error: true,
+                message: 'Usuario ou Senha errado',
                 data: existingUser
             })
         }
 
-        return res.status(401).json({
-            error: true,
-            message: 'O email ou a senha digitados estão incorretos'
-        })
+               // // Gerar token JWT
+             const token = jwt.sign(
+            { usuario: { id: existingUser.id } },
+            process.env.SECRET_KEY,
+            { expiresIn: process.env.EXPIRES_IN },
+            (err, token) => {
+                if(err) throw err
+                res.status(200).json({
+                    access_token: token,
+                    msg: 'Login efetuado com sucesso'
+                })
+            }
+        )
     } catch (error) {
         console.error("Erro inesperado ao procurar usuário:", error)
         res.status(500).json({ error: true, message: "Erro inesperado ao procurar usuário, tente novamente" })
@@ -85,13 +101,17 @@ export const createUsuarios = async (req, res) => {
                 return;
             }
         }
+// Criptografia da senha
+const salt = await bcrypt.genSalt(10)
+const passwordEncrypted = await bcrypt.hash(password, salt)
 
-        const result = await db.collection(collectionUsuarios).insertOne({
-            name : name,
-            email: email,
-            password : password,
-            nivel : nivel ? nivel : 0
-        })
+const result = await db.collection(collectionUsuarios).insertOne({
+    name: name,
+    email: email,
+    password: passwordEncrypted,
+    nivel: nivel ? nivel : 0
+})
+
       
         res.status(201).json({
             error: false,
@@ -210,7 +230,11 @@ export const editUsuario = async (req, res) => {
 
         //Atualizando a senha para a nova senha informada
         if(newPassword){
-            updatedData.password = newPassword
+           //Criptografia da senha
+         const salt = await bcrypt.genSalt(10)
+        const passwordEncrypted = await bcrypt.hash(newPassword, salt)
+        
+            updatedData.password = passwordEncrypted
         }
 
         const result = await db.collection(collectionUsuarios).updateOne(
@@ -247,6 +271,9 @@ export const editUsuario = async (req, res) => {
             error : true,
             message : 'Ocorreu um erro inesperado ao atualizar o usuário, tente novamente'
         })
+        
         console.error(error)
     }
+
+    
 }
