@@ -1,6 +1,6 @@
 // Teste da API REST de agendamentos
 @baseURL = http://localhost:3000/api/usuarios
-@id = 684995b3ddb7c842ce44e0ca
+@id = 684e0543ec1c305141fa0fd9
 @token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30
 
 
@@ -10,11 +10,13 @@
 // GET - Lista o usuário pelo ID
 GET {{baseURL}}/{{id}}
 Content-Type: application/json
+access-token: {{token}}
 
 ###
 // GET - Lista o usuário pelo ID (com erro)
 GET {{baseURL}}/2
 Content-Type: application/json
+access-token: {{token}}
 
 // ------------- POST ------------- //
 ###

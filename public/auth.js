@@ -9,13 +9,14 @@ function initializeAuth() {
   const loginBox = document.getElementById("loginBox")
   const registerBox = document.getElementById("registerBox")
   const loginMessage = document.getElementById("loginMessage")
+  const registerMessage = document.getElementById("registerMessage")
 
   let currentUser;
 
-  const toastData = JSON.parse(sessionStorage.getItem('authError'));
+  const toastData = JSON.parse(sessionStorage.getItem('authMsg'));
   if (toastData) {
     toastNotification(toastData)
-    sessionStorage.removeItem("authError"); // limpa depois de usar
+    sessionStorage.removeItem("authMsg"); // limpa depois de usar
   }
 
   // Alternar entre login e cadastro
@@ -34,25 +35,37 @@ function initializeAuth() {
     const email = document.getElementById("loginEmail").value
     const password = document.getElementById("loginPassword").value
     try {
+      loginMessage.innerHTML = 'Aguarde um momento...'
+      loginMessage.style.color = "white";
       const response = await fetchWithErrorHandling(`${window.env.API_URL}api/usuarios/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       })
-      console.log(response)
+
       if (!response.error) {
         const userData = response.data
         currentUser = { ...userData }
         localStorage.setItem("user", JSON.stringify(currentUser))
+        sessionStorage.setItem("authMsg", JSON.stringify({
+              error: false,
+              message: response.message || "Login realizado com sucesso"
+        }));
+
         if (userData.nivel == 1 || userData.nivel == 2) {
+          
           window.location.href = "admin-dashboard.html"
           return;
         }
         window.location.href = "dashboard.html"
-        loginMessage.textContent = "Login realizado com sucesso!"
-        loginMessage.style.color = "#28a745" // Verde para sucesso
+      }
+      else{
+        console.log(response)
+        loginMessage.innerHTML = !response.errors ? response.message : response.errors[0].msg
+        loginMessage.style.color = "#e23232";
       }
     } catch (error) {
+      loginMessage.innerHTML = 'Algo deu errado, tente novamente'
       console.log(error)
     }
   })
@@ -65,6 +78,8 @@ function initializeAuth() {
     const nivel = 0
 
     try {
+      registerMessage.innerHTML = 'Aguarde um momento...'
+      registerMessage.style.color = "white";
       const response = await fetchWithErrorHandling(`${window.env.API_URL}api/usuarios`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -75,11 +90,18 @@ function initializeAuth() {
         const userData = response.data
         currentUser = { ...userData }
         localStorage.setItem("user", JSON.stringify(currentUser))
-        window.location.href = "dashboard.html"
-        loginMessage.textContent = "Cadastro realizado com sucesso!"
-        loginMessage.style.color = "#28a745" // Verde para sucesso
+        sessionStorage.setItem("authMsg", JSON.stringify({
+              error: false,
+              message: `${response.message}`|| "Cadastro realizado com sucesso, faça seu login"
+        }));
+        window.location.href = "login.html"
+      }
+      else{
+        registerMessage.innerHTML = !response.errors ? response.message : response.errors[0].msg
+        registerMessage.style.color = "#e23232";
       }
     } catch (error) {
+      loginMessage.innerHTML = 'Algo deu errado, tente novamente'
       console.log(error)
     }
   })

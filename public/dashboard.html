@@ -79,7 +79,9 @@
                     </div>
                 </div>
 
-                <button type="submit" class="btn btn-primary">Agendar</button>
+                <div style="display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                    <button type="submit" class="btn btn-confirm" style="width: 50%;">CONFIRMAR AGENDAMENTO</button>
+                </div>
             </form>
             <p id="scheduleMessage" class="message"></p>
         </div>
@@ -102,22 +104,24 @@
         <!-- Lista de Agendamentos do Cliente -->
         <div class="client-appointments">
             <h3 class="section-title">Meus Agendamentos</h3>
-            <table class="appointments-table">
-                <thead>
-                    <tr>
-                        <th>Data</th>
-                        <th>Horário</th>
-                        <th>Barbeiro</th>
-                        <th>Serviço</th>
-                        <th>Preço</th>
-                        <th>Status</th>
-                        <th>Ação</th>
-                    </tr>
-                </thead>
-                <tbody id="clientAppointmentsTableBody">
-                    <!-- Preenchido dinamicamente via JavaScript -->
-                </tbody>
-            </table>
+            <div class="table-client-appointments">
+                <table class="appointments-table">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Horário</th>
+                            <th>Barbeiro</th>
+                            <th>Serviço</th>
+                            <th>Preço</th>
+                            <th>Status</th>
+                            <th>Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody id="clientAppointmentsTableBody">
+                        <!-- Preenchido dinamicamente via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
         </div>
     </section>
 
@@ -204,13 +208,14 @@
                 <input type="password" id="userEditNewPassword" class="input-field" placeholder="Nova senha (opcional)">
                 <input type="password" id="userEditConfirmPassword" class="input-field" placeholder="Confirmar nova senha">
                 <div class="modal-actions">
-                    <button type="button" id="cancelUserEdit" class="btn btn-cta">Cancelar</button>
+                    <button type="button" id="cancelUserEdit" class="btn btn-cancel">Cancelar</button>
                     <button type="submit" class="btn btn-confirm">Salvar Alterações</button>
                 </div>
                 <p id="userEditMessage" class="message"></p>
             </form>
             <hr>
             
+            <p id="userDeleteMessage" class="message"></p>
             <div style="display: flex; justify-content: center; margin-top: 20px;">
                 <button type="button" id="deleteAccountBtn" class="btn btn-cancel">Excluir conta</button>
             </div>

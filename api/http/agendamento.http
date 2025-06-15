@@ -296,24 +296,3 @@ access-token : {{token}}
 {
     "status" : "invalidStatus"
 }
-
-###
-//PATCH - Atualiza o nome do cliente (feito quando o nome de usuário é alterado, desencadeando na renomeação do client_name de agendamentos ligados a ele
-PATCH {{baseURL}}/{{id}}/rename
-Content-Type: application/json
-access-token : {{token}}
-
-{
-    "name" : "Albert Einstein"
-}
-
-
-###
-//PATCH - Atualiza o nome do cliente (erro de validação)
-PATCH {{baseURL}}/{{id}}/rename
-Content-Type: application/json
-access-token : {{token}}
-
-{
-    "name" : ""
-}

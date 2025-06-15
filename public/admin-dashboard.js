@@ -25,6 +25,12 @@ function initializeAdminDashboard() {
     openUserEditModal(currentUser._id);
   })
 
+  const toastData = JSON.parse(sessionStorage.getItem('authMsg'));
+  if (toastData) {
+    toastNotification(toastData)
+    sessionStorage.removeItem("authMsg"); // limpa depois de usar
+  }
+
   // 2. Seleção de elementos DOM
   const DOM = {
     filters: {
@@ -61,7 +67,8 @@ function initializeAdminDashboard() {
       adminRegistration: document.getElementById("adminRegistrationModal"),
       adminForm: document.getElementById("adminRegistrationForm"),
       cancelAdmin: document.getElementById("cancelAdminRegistration"),
-      adminMessage: document.getElementById("adminRegisterMessage")
+      adminMessage: document.getElementById("adminRegisterMessage"),
+      deleteMessage : document.getElementById('userDeleteMessage')
     },
     adminFormFields: {
       name: document.getElementById("adminRegisterName"),
@@ -166,7 +173,7 @@ function initializeAdminDashboard() {
   }
 
   function updateStatistics(appointments) {
-    state.totalItems = appointments.total;
+    state.totalItems = appointments.pagination.total;
     state.totalPages = appointments.pagination.pages;
     state.currentPage = appointments.pagination.page;
     state.itemsPerPage = appointments.pagination.limit;
@@ -270,6 +277,7 @@ function initializeAdminDashboard() {
 
       const currentUser = JSON.parse(localStorage.getItem("user"));
 
+      DOM.modals.deleteMessage.innerHTML = 'Aguarde enquanto excluímos sua conta...'
       // Chamar API para deletar conta
       const response = await fetchWithErrorHandling(`${window.env.API_URL}api/usuarios/${currentUser._id}`, {
         method: 'DELETE',
@@ -281,6 +289,10 @@ function initializeAdminDashboard() {
       }
 
       // Limpar localStorage e redirecionar
+      sessionStorage.setItem("authMsg", JSON.stringify({
+            error: false,
+            message: `${response.message}`|| "Conta exclúida com sucesso"
+      }));
       localStorage.removeItem('user');
       window.location.href = 'login.html';
     } catch (error) {
@@ -594,11 +606,15 @@ function initializeAdminDashboard() {
   // Função para abrir o modal de edição de usuário
   async function openUserEditModal(userId) {
     try {
+      const btnInner = DOM.buttons.editUserBtn.innerHTML
+      DOM.buttons.editUserBtn.innerHTML = 'Carregando informações...'
       // Buscar os dados do usuário
       const user = await fetchWithErrorHandling(`${window.env.API_URL}api/usuarios/${userId}`,{
         headers : {"access-token" : tokenExample}
       });
-
+      setTimeout(() => {
+        DOM.buttons.editUserBtn.innerHTML = btnInner
+      }, 250);
       // Preencher o formulário com os dados do usuário
       document.getElementById("userEditName").value = user.name;
       document.getElementById("userEditEmail").value = user.email;

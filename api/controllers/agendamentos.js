@@ -15,7 +15,7 @@ export const getAgendamentos = async (req, res) => {
             status, 
             sort, 
             page = 1, 
-            limit = 0, 
+            limit = 20, 
             order = "asc"
         } = req.query
         const skip = (page - 1) * limit
@@ -70,16 +70,17 @@ export const getAgendamentos = async (req, res) => {
             .toArray()
 
         const total = await db.collection(collectionAgendamentos).find(query).count()
+        const allAppointments = await db.collection(collectionAgendamentos).find().count()
 
         res.status(200).json({
             data : agendamentos,
             pagination : {
-                total : agendamentos.length,
+                total,
                 page: Number.parseInt(page),
                 pages: limit != 0 ? Math.ceil(total / limit) : 1,
                 limit: Number.parseInt(limit)
             },
-            total
+            total : allAppointments
         })
     } catch (error) {
         console.error("Erro ao buscar agendamentos:", error)

@@ -160,7 +160,8 @@
             </div>
             
             <p id="loadingMessage" style="display: none;">Carregando agendamentos...</p>
-            <table class="appointments-table">
+            <div class="appointments-table-container">
+                <table class="appointments-table">
                 <thead>
                     <tr>
                         <th>Data e Horário</th>
@@ -176,6 +177,8 @@
 
                 </tbody>
             </table>
+            
+            </div>
             
             <div class="pagination-container">
                 <button id="prevPageBtn" class="btn btn-primary btn-pagination">&laquo; Anterior</button>
@@ -217,6 +220,7 @@
             </form>
             <hr>
             
+            <p id="userDeleteMessage" class="message"></p>
             <div style="display: flex; justify-content: center; margin-top: 20px;">
                 <button type="button" id="deleteAccountBtn" class="btn btn-cancel">Excluir conta</button>
             </div>

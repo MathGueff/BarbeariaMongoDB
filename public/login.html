@@ -27,9 +27,9 @@
             <h2 class="auth-title">Login</h2>
             <form id="loginForm" class="auth-form">
                 <input type="email" id="loginEmail" class="input-field" placeholder="Email" required autofocus>
-                <input type="password" id="loginPassword" class="input-field" placeholder="Senha" required>
+                <input type="password" id="loginPassword" class="input-field" placeholder="Senha" required autocomplete="off">
                 <button type="submit" class="btn btn-secondary">ENTRAR</button>
-                <p id="loginMessage" class="message"></p> <!-- Mensagem de erro -->
+                <span id="loginMessage" class="message" style="color: white; text-align: center;"></span> <!-- Mensagem de erro -->
             </form>
             <div class="auth-switch">
                 <p>Não tem uma conta? <a href="#" id="showRegister">Cadastre-se</a></p>
@@ -41,7 +41,8 @@
             <form id="registerForm" class="auth-form">
                 <input type="text" id="registerName" class="input-field" placeholder="Nome" required>
                 <input type="email" id="registerEmail" class="input-field" placeholder="Email" required>
-                <input type="password" id="registerPassword" class="input-field" placeholder="Senha" required>
+                <input type="password" id="registerPassword" class="input-field" placeholder="Senha" required autocomplete="off">
+                <span id="registerMessage" class="message" style="color: white; text-align: center;"></span> <!-- Mensagem de erro -->
                 <button type="submit" class="btn btn-secondary">CADASTRAR</button>
             </form>
             <div class="auth-switch">

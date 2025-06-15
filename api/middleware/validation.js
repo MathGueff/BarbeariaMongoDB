@@ -217,15 +217,6 @@ export const validateUpdateAgendamento = [
   validateRequest,
 ]
 
-export const validateClientNameUpdate = [
-  check('name')
-  .notEmpty()
-  .withMessage('O nome do cliente é obrigatório')
-  .isLength({max : 50})
-  .withMessage('O nome do cliente deve ter no máximo 50 caracteres'),
-  validateRequest
-]
-
 export const validateUser = [
   //Nome do Cliente
   check('name')
