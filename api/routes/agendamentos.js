@@ -5,10 +5,9 @@ import {
     createAgendamento,
     updateAgendamento,
     deleteAgendamento,
-    mudarStatusAgendamento,
-    updateClientName
+    mudarStatusAgendamento
 } from "../controllers/agendamentos.js"
-import { validateAgendamento, validateClientNameUpdate, validateObjectId, validateStatusChange, validateUpdateAgendamento } from "../middleware/validation.js"
+import { validateAgendamento, validateObjectId, validateStatusChange, validateUpdateAgendamento } from "../middleware/validation.js"
 import auth from "../middleware/auth.js"
 
 const router = express.Router()
@@ -29,9 +28,6 @@ router.put("/:id",validateObjectId, validateUpdateAgendamento, updateAgendamento
 
 // Patch status de um agendamento para cancelado
 router.patch("/:id/status",validateObjectId, validateStatusChange, mudarStatusAgendamento)
-
-// Patch nome do cliente do agendamento
-router.patch("/:id/rename",validateObjectId, validateClientNameUpdate, updateClientName)
 
 // // Delete agendamento
 router.delete("/:id", validateObjectId, deleteAgendamento)

@@ -30,7 +30,7 @@ export async function fetchWithErrorHandling(url, options = {}, notificate = tru
 }
 
 export function tokenValidator(response){
-    sessionStorage.setItem("authError", JSON.stringify({
+    sessionStorage.setItem("authMsg", JSON.stringify({
         error: true,
         message: response.message || "Sessão expirada"
     }));
@@ -50,19 +50,35 @@ export function toastNotification(data) {
         // Estiliza o toast
         Object.assign(toast.style, {
             position: "fixed",
-            bottom: "20px",
-            right: "20px",
+            top: "20px", // Distância do topo
+            left: "50%", // Centraliza horizontalmente (referência)
             padding: "12px 20px",
             borderRadius: "4px",
+            fontSize: "18px",
             color: "white",
             boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)",
             zIndex: "9999",
-            minWidth: "250px",
-            maxWidth: "350px",
-            backgroundColor: data.error ? "#f44336" : "#4caf50",
-            fontFamily: "system-ui, -apple-system, sans-serif",
-            animation: "fadeIn 0.3s, fadeOut 0.3s 2.7s",
-        })
+            minWidth: "350px",
+            maxWidth: "450px",
+            backgroundColor: data.error ? "#e23232" : "#28a745",
+            fontFamily: "system-ui, -apple-system, sans-serif", 
+            opacity: "0", // Inicia invisível
+            transform: "translateX(-50%) scale(0.95)", // Posição central + escala reduzida
+            transition: "opacity 0.3s, transform 0.3s", // Transição suave
+        });
+
+        // Força a renderização antes de animar
+        setTimeout(() => {
+            toast.style.opacity = "1";
+            toast.style.transform = "translateX(-50%) scale(1)";
+        }, 10);
+
+        // Remove após 3 segundos (equivalente ao fadeOut)
+        setTimeout(() => {
+            toast.style.opacity = "0";
+            toast.style.transform = "translateX(-50%) scale(0.95)";
+            setTimeout(() => toast.remove(), 300); // Espera a animação terminar
+        }, 3000);
 
         if(data.errors)
             toast.textContent = data.errors[0].msg

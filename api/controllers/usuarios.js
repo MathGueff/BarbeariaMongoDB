@@ -1,6 +1,7 @@
 import { ObjectId } from "mongodb"
 
 const collectionUsuarios = 'usuarios'
+const collectionAgendamentos = 'agendamentos'
 
 // Get usuarios by ID
 export const getUsuariosById = async (req, res) => {
@@ -94,7 +95,7 @@ export const createUsuarios = async (req, res) => {
       
         res.status(201).json({
             error: false,
-            message: "Usuário cadastrado com sucesso",
+            message: "Cadastro realizado com sucesso",
             data:{
                 _id: result.insertedId,
                 name : name,
@@ -115,16 +116,28 @@ export const createUsuarios = async (req, res) => {
     try {
         const {id} = req.params
         const db = req.app.locals.db
-        const result = await db.collection(collectionUsuarios).deleteOne({
-            _id : new ObjectId(id)
-        })
+        
+        const user = await db.collection(collectionUsuarios).findOne({_id : new ObjectId(id)})
 
-        if(result.deletedCount === 0)
+        if(!user){
             return res.status(404).json({
                 error : true,
                 message : 'Nenhum usuario encontrado'
             })
+        }
+        const result = await db.collection(collectionUsuarios).deleteOne({
+            _id : new ObjectId(id)
+        })
 
+        if(result.deletedCount === 0){
+            throw new Error();
+        }
+
+        await db.collection(collectionAgendamentos).deleteMany({
+            client_name : user.name,
+            status : 'scheduled'
+        })
+            
         res.status(200).json({
             error : false,
             message : 'Usuário excluído com sucesso'
@@ -147,11 +160,13 @@ export const editUsuario = async (req, res) => {
             _id : new ObjectId(id)
         })
 
+        //Verificação de usuário encontrado
         if(!user){
             res.status(404).json({error : true, message : 'Nenhum usuário encontrado'})
             return;
         }
 
+        //Verificação de Senha correta
         if(updatedData.password != user.password){
             res.status(401).json({
                 error : true,
@@ -162,6 +177,7 @@ export const editUsuario = async (req, res) => {
 
         let existingUser;
 
+        //Verificação de nome ou email duplicados
         if(updatedData.name || updatedData.email){
             existingUser = await db.collection(collectionUsuarios).findOne({
                 _id : {$ne : new ObjectId(id)},
@@ -173,6 +189,7 @@ export const editUsuario = async (req, res) => {
         }
         
         if(existingUser){
+            //Nome duplicado
             if(updatedData.name && updatedData.name.toLowerCase() == existingUser.name.toLowerCase()){
                 res.status(409).json({
                     error : true,
@@ -181,6 +198,7 @@ export const editUsuario = async (req, res) => {
                 return;
             }
 
+            //Email duplicado
             if(updatedData.email && updatedData.email == existingUser.email){
                 res.status(409).json({
                     error : true,
@@ -190,6 +208,7 @@ export const editUsuario = async (req, res) => {
             }
         }
 
+        //Atualizando a senha para a nova senha informada
         if(newPassword){
             updatedData.password = newPassword
         }
@@ -210,6 +229,13 @@ export const editUsuario = async (req, res) => {
         const updated = await db.collection(collectionUsuarios).findOne({
             _id : new ObjectId(id)
         })
+
+        //Verificando se um novo nome foi passado para corrigir o nome do cliente 
+        if(updatedData.name){
+            await db.collection(collectionAgendamentos).updateMany({
+                client_name : user.name //Nome antigo
+            }, {$set : {client_name : updated.name}}) //Nome novo
+        }
 
         res.status(200).json({
             error : false,

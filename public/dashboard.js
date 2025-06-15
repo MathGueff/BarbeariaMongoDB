@@ -16,6 +16,13 @@ function initializeDashboard() {
     window.location.href = "login.html"
   })
 
+  const toastData = JSON.parse(sessionStorage.getItem('authMsg'));
+    if (toastData) {
+      toastNotification(toastData)
+      sessionStorage.removeItem("authMsg"); // limpa depois de usar
+    }
+  
+
   // 2. Seleção de elementos DOM
   const DOM = {
     user: {
@@ -64,6 +71,7 @@ function initializeDashboard() {
       cancelUserEdit: document.getElementById("cancelUserEdit"),
       userEditMessage: document.getElementById("userEditMessage"),
       deleteAccountBtn: document.getElementById("deleteAccountBtn"),
+      userDeleteMessage : document.getElementById('userDeleteMessage')
     },
   }
 
@@ -259,7 +267,12 @@ function initializeDashboard() {
 
     try {
       const response = await submitAppointment(formData)
-      handleScheduleSuccess()
+      if(response.error){
+        DOM.scheduling.message.innerHTML = response.errors ? response.errors[0].msg : response.message
+      }
+      else{
+        handleScheduleSuccess()
+      }
     } catch (error) {
       console.error("Erro ao agendar:", error)
       handleScheduleError(formData)
@@ -369,6 +382,8 @@ function initializeDashboard() {
     DOM.scheduling.serviceCheckboxes.forEach((checkbox) => {
       checkbox.checked = false
     })
+    DOM.scheduling.dateInput.value = '';
+    DOM.scheduling.timeSelect.value = '';
     updateTotalPrice()
   }
 
@@ -805,7 +820,7 @@ function initializeDashboard() {
       if (time === currentTime) {
         hasAvailableSlots = true;
         option.selected = true
-        option.textContent += " (Selecionado)"
+        option.textContent += " (Horário atual)"
         DOM.modals.editTimeSelect.appendChild(option)
         return;
       }
@@ -927,8 +942,21 @@ function initializeDashboard() {
 
   async function openUserEditModal(userId) {
     try {
-      document.getElementById("userEditName").value = currentUser.name
-      document.getElementById("userEditEmail").value = currentUser.email
+      const btnInner = DOM.user.editBtn.innerHTML;
+      DOM.user.editBtn.innerHTML = 'Carregando informações...'
+      const user = await fetchWithErrorHandling(`${window.env.API_URL}api/usuarios/${userId}`, 
+        {headers: {'access-token' : tokenExample}})
+
+      setTimeout(() => {
+        DOM.user.editBtn.innerHTML = btnInner
+      }, 250);
+      if(!user){
+        DOM.modals.userEdit.style.display = "none"
+        DOM.modals.userEditMessage.textContent = ""
+        return;
+      }
+      document.getElementById("userEditName").value = user.name
+      document.getElementById("userEditEmail").value = user.email
 
       // Limpar campos
       document.getElementById("userEditCurrentPassword").value = ""
@@ -995,8 +1023,6 @@ function initializeDashboard() {
         updateData.newPassword = formData.newPassword
       }
 
-      const oldClientName = currentUser.name
-
       const response = await fetchWithErrorHandling(`${window.env.API_URL}api/usuarios/${currentUser._id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", 'access-token': tokenExample },
@@ -1007,24 +1033,10 @@ function initializeDashboard() {
         throw new Error(response.errors ? response.errors[0].msg : response.message || "Erro ao atualizar dados.")
       }
 
-      if (!response.error) {
-        const appointments = await fetchWithErrorHandling(
-          `${window.env.API_URL}api/agendamentos?client_name=${encodeURIComponent(oldClientName)}`, {
-            headers : {'access-token' : tokenExample}
-          })
-        appointments.data.forEach(async ap => {
-          await fetchWithErrorHandling(`${window.env.API_URL}api/agendamentos/${ap._id}/rename`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json", 'access-token': tokenExample },
-            body: JSON.stringify({ name: response.data.name }),
-          }, false)
-        },);
-      }
-
       return response
     } catch (error) {
       console.log('Erro ao atualizar usuário: ' + error)
-      throw error; // <- Isso é ESSENCIAL
+      throw error; 
     }
   }
 
@@ -1057,22 +1069,17 @@ function initializeDashboard() {
 
   async function deleteUserAccount() {
     try {
-      const oldName = currentUser.name
+      DOM.modals.userDeleteMessage.innerHTML = 'Aguarde enquanto excluímos sua conta...'
       const deletedUser = await fetchWithErrorHandling(`${window.env.API_URL}api/usuarios/${currentUser._id}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json", 'access-token': tokenExample },
       })
 
       if (!deletedUser.error) {
-        const appointments = await getClientAppointments(oldName);
-        appointments.data.forEach(async appointment => {
-          if (appointment.status == 'scheduled') {
-            await fetchWithErrorHandling(`${window.env.API_URL}api/agendamentos/${appointment._id}`, {
-              method: "DELETE",
-              headers: { "Content-Type": "application/json", 'access-token': tokenExample }
-            }, false)
-          }
-        });
+        sessionStorage.setItem("authMsg", JSON.stringify({
+              error: false,
+              message: `${deletedUser.message}`|| "Conta exclúida com sucesso"
+        }));
         localStorage.removeItem("user")
         setTimeout(() => {
           window.location.href = "login.html"

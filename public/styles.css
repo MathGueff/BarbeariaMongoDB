@@ -421,6 +421,11 @@ body {
   max-width: 400px;
 }
 
+.auth-box img{
+  width: 250px;
+  height: 350px;
+}
+
 .auth-title {
   font-size: var(--font-size-3xl);
   margin-bottom: var(--spacing-lg);
@@ -429,6 +434,7 @@ body {
 }
 
 .auth-form {
+  color: var(--text-light);
   display: flex;
   flex-direction: column;
   gap: var(--spacing-md);
@@ -459,9 +465,12 @@ body {
 /* Dashboard */
 .dashboard-container {
   padding: var(--spacing-2xl) var(--spacing-xl);
-  max-width: 800px;
   margin: 0 auto;
   background-color: var(--white);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
 }
 
 .dashboard-title {
@@ -469,6 +478,10 @@ body {
   margin-bottom: var(--spacing-xl);
   text-align: center;
   color: var(--text-primary);
+}
+
+.schedule-section{
+  max-width: 800px;
 }
 
 .schedule-section,
@@ -529,14 +542,22 @@ body {
 
 /* Lista de Agendamentos do Cliente */
 .client-appointments {
+  max-width: 1200px;
+  width: 100vw;
   background: var(--gray-light);
   padding: var(--spacing-lg);
   border-radius: var(--border-radius-lg);
   box-shadow: var(--shadow-sm);
+  text-align: center;
+}
+
+.table-client-appointments{
+  overflow-x: scroll;
 }
 
 .appointments-table {
   width: 100%;
+  overflow: auto;
   border-collapse: collapse;
   margin-top: var(--spacing-md);
 }
@@ -648,6 +669,10 @@ body {
   padding: var(--spacing-lg);
   border-radius: var(--border-radius-lg);
   box-shadow: var(--shadow-sm);
+}
+
+.appointments-table-container{
+  overflow: scroll;
 }
 
 .admin-controls {
