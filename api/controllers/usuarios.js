@@ -8,28 +8,26 @@ dotenv.config();
 const collectionUsuarios = 'usuarios'
 const collectionAgendamentos = 'agendamentos'
 
-
-// Get usuarios by ID
-export const getUsuariosById = async (req, res) => {
+// Retorna o usuário autenticado
+export const getActiveUser = async (req, res) => {
     try {
-        const {id} = req.params
+        const {id} = req.usuario
         const db = req.app.locals.db
 
-        const usuarios = await db.collection(collectionUsuarios).findOne({
+        const usuario = await db.collection(collectionUsuarios).findOne({
             _id : new ObjectId(id)
         })
 
-        if (!usuarios) 
+        if (!usuario) 
             return res.status(404).json({ error: true, message: "Nenhum usuário encontrado" })
         
-        res.status(200).json(usuarios)
+        res.status(200).json(usuario)
     } catch (error) {
         console.error("Erro inesperado ao procurar usuário:", error)
         res.status(500).json({ error: true, message: "Erro inesperado ao procurar usuário, tente novamente" })
     }
 }
 
-// Get usuarios by ID
 export const login = async (req, res) => {
     try {
         const {email, password} = req.body
@@ -38,29 +36,26 @@ export const login = async (req, res) => {
         const existingUser = await db.collection(collectionUsuarios).findOne({
             email : email
         })
+        
         if (!existingUser) 
             return res.status(404).json({ error: true, message: "Esse email não foi cadastrado" })
               
-    const isPasswordCorrect = await bcrypt.compare(password, existingUser.password)
+        const isPasswordCorrect = await bcrypt.compare(password, existingUser.password)
         if(!isPasswordCorrect){
-            return res.status(403).json({
+            return res.status(401).json({
                 error: true,
-                message: 'Usuario ou Senha errado',
-                data: existingUser
+                message: 'Email ou senha informados estão incorretos'
             })
         }
 
-               // // Gerar token JWT
-             const token = jwt.sign(
-            { usuario: { id: existingUser.id } },
+        // // Gerar token JWT
+        const token = jwt.sign( 
+            { usuario: { id: existingUser._id, nivel : existingUser.nivel}},
             process.env.SECRET_KEY,
-            { expiresIn: process.env.EXPIRES_IN },
+            { expiresIn: process.env.EXPIRES_IN},
             (err, token) => {
                 if(err) throw err
-                res.status(200).json({
-                    access_token: token,
-                    msg: 'Login efetuado com sucesso'
-                })
+                res.status(200).json({access_token: token})
             }
         )
     } catch (error) {
@@ -101,18 +96,18 @@ export const createUsuarios = async (req, res) => {
                 return;
             }
         }
-// Criptografia da senha
-const salt = await bcrypt.genSalt(10)
-const passwordEncrypted = await bcrypt.hash(password, salt)
+        
+        // Criptografia da senha
+        const salt = await bcrypt.genSalt(10)
+        const passwordEncrypted = await bcrypt.hash(password, salt)
 
-const result = await db.collection(collectionUsuarios).insertOne({
-    name: name,
-    email: email,
-    password: passwordEncrypted,
-    nivel: nivel ? nivel : 0
-})
+        const result = await db.collection(collectionUsuarios).insertOne({
+            name: name,
+            email: email,
+            password: passwordEncrypted,
+            nivel: nivel ? nivel : 0
+        })
 
-      
         res.status(201).json({
             error: false,
             message: "Cadastro realizado com sucesso",
@@ -120,7 +115,6 @@ const result = await db.collection(collectionUsuarios).insertOne({
                 _id: result.insertedId,
                 name : name,
                 email: email,
-                password : password,
                 nivel : nivel
             }
         })
@@ -131,10 +125,10 @@ const result = await db.collection(collectionUsuarios).insertOne({
     }
 }
 
- // Delete usuario
- export const deleteUsuario = async (req, res) => {
+// Delete usuario autenticado
+export const deleteUsuario = async (req, res) => {
     try {
-        const {id} = req.params
+        const {id} = req.usuario
         const db = req.app.locals.db
         
         const user = await db.collection(collectionUsuarios).findOne({_id : new ObjectId(id)})
@@ -145,13 +139,12 @@ const result = await db.collection(collectionUsuarios).insertOne({
                 message : 'Nenhum usuario encontrado'
             })
         }
+
         const result = await db.collection(collectionUsuarios).deleteOne({
             _id : new ObjectId(id)
         })
 
-        if(result.deletedCount === 0){
-            throw new Error();
-        }
+        if(result.deletedCount === 0) throw new Error();
 
         await db.collection(collectionAgendamentos).deleteMany({
             client_name : user.name,
@@ -162,7 +155,6 @@ const result = await db.collection(collectionUsuarios).insertOne({
             error : false,
             message : 'Usuário excluído com sucesso'
         })
-        
     } catch (error) {
         console.error("Erro inesperado ao excluir usuário:", error)
         res.status(500).json({ error: true, message: "Erro inesperado ao excluir usuário, tente novamente" })
@@ -171,14 +163,14 @@ const result = await db.collection(collectionUsuarios).insertOne({
 
 export const editUsuario = async (req, res) => {
     try {
-        const { id } = req.params
-        const {newPassword, newName, ...updatedData} = req.body
+        const { id } = req.usuario
+        const {password, newPassword, newName, ...updatedData} = req.body
 
+        console.log(updatedData)
+        console.log(password)
         const db = req.app.locals.db
 
-        const user = await db.collection(collectionUsuarios).findOne({
-            _id : new ObjectId(id)
-        })
+        const user = await db.collection(collectionUsuarios).findOne({_id : new ObjectId(id)})
 
         //Verificação de usuário encontrado
         if(!user){
@@ -186,8 +178,9 @@ export const editUsuario = async (req, res) => {
             return;
         }
 
+        const isPasswordCorrect = await bcrypt.compare(password, user.password)
         //Verificação de Senha correta
-        if(updatedData.password != user.password){
+        if(!isPasswordCorrect){
             res.status(401).json({
                 error : true,
                 message : 'A senha informada está incorreta'
@@ -230,9 +223,9 @@ export const editUsuario = async (req, res) => {
 
         //Atualizando a senha para a nova senha informada
         if(newPassword){
-           //Criptografia da senha
-         const salt = await bcrypt.genSalt(10)
-        const passwordEncrypted = await bcrypt.hash(newPassword, salt)
+            //Criptografia da senha
+            const salt = await bcrypt.genSalt(10)
+            const passwordEncrypted = await bcrypt.hash(newPassword, salt)
         
             updatedData.password = passwordEncrypted
         }
@@ -256,9 +249,10 @@ export const editUsuario = async (req, res) => {
 
         //Verificando se um novo nome foi passado para corrigir o nome do cliente 
         if(updatedData.name){
-            await db.collection(collectionAgendamentos).updateMany({
-                client_name : user.name //Nome antigo
-            }, {$set : {client_name : updated.name}}) //Nome novo
+            await db.collection(collectionAgendamentos).updateMany(
+                {client_name : user.name}, //Nome antigo
+                {$set : {client_name : updated.name}} //Nome novo
+            ) 
         }
 
         res.status(200).json({
@@ -266,6 +260,7 @@ export const editUsuario = async (req, res) => {
             message : 'Usuário atualizado com sucesso',
             data : updated
         })
+
     } catch (error) {
         res.status(500).json({
             error : true,
@@ -274,6 +269,4 @@ export const editUsuario = async (req, res) => {
         
         console.error(error)
     }
-
-    
 }

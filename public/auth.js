@@ -44,20 +44,31 @@ function initializeAuth() {
       })
 
       if (!response.error) {
-        const userData = response.data
-        currentUser = { ...userData }
-        localStorage.setItem("user", JSON.stringify(currentUser))
-        sessionStorage.setItem("authMsg", JSON.stringify({
-              error: false,
-              message: response.message || "Login realizado com sucesso"
-        }));
+        const token = response.access_token
 
-        if (userData.nivel == 1 || userData.nivel == 2) {
+        if(token){
+          localStorage.setItem("token", token)
           
-          window.location.href = "admin-dashboard.html"
-          return;
+          const currentUser = await fetchWithErrorHandling(`${window.env.API_URL}api/usuarios`, {
+            headers : {"access_token" : token}
+          })
+
+          console.log(currentUser)
+
+          sessionStorage.setItem("authMsg", JSON.stringify({
+                error: false,
+                message: response.message || "Login realizado com sucesso"
+          }));
+
+          if (currentUser.nivel == 1 || currentUser.nivel == 2) {
+            window.location.href = "admin-dashboard.html"
+            return;
+          }
+          window.location.href = "dashboard.html"
         }
-        window.location.href = "dashboard.html"
+        else{
+          throw new Error('Token JWT não recebido')
+        }
       }
       else{
         console.log(response)
@@ -87,9 +98,6 @@ function initializeAuth() {
       })
 
       if (!response.error) {
-        const userData = response.data
-        currentUser = { ...userData }
-        localStorage.setItem("user", JSON.stringify(currentUser))
         sessionStorage.setItem("authMsg", JSON.stringify({
               error: false,
               message: `${response.message}`|| "Cadastro realizado com sucesso, faça seu login"

@@ -1,22 +1,35 @@
 // Teste da API REST de agendamentos
 @baseURL = http://localhost:3000/api/usuarios
-@id = 684e0543ec1c305141fa0fd9
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c3VhcmlvIjp7ImlkIjoiNjg0ZjIwN2FkNGQwZTNlOTRkNDdmMjcxIiwibml2ZWwiOjJ9LCJpYXQiOjE3NTAwMTYxNTJ9.CKcdHV6AnOe1zyG8Pa6hn7HQUM13LK3L8m922P8kIgQ
+@tokenToUpdate = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c3VhcmlvIjp7ImlkIjoiNjg0ZjIwN2FkNGQwZTNlOTRkNDdmMjc1Iiwibml2ZWwiOjJ9LCJpYXQiOjE3NTAwMTYzNDl9.Re3uTkUeWlZz75agngNXikMqHrDI6FGmz7KUP5ZLjD8
+@invalidToken = 23
 
+@expiredToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c3VhcmlvIjp7ImlkIjoiNjg0ZjIwN2FkNGQwZTNlOTRkNDdmMjcxIiwibml2ZWwiOjJ9LCJpYXQiOjE3NTAwMTYxODgsImV4cCI6MTc1MDAxNjE4OX0.tUYKr5P9VKMcB-i2wAGaY8LC-C-YFep-L3VCP0pHKXY
 
 // ------------- GET ------------- //
 
 ###
-// GET - Lista o usuário pelo ID
-GET {{baseURL}}/{{id}}
+// GET - Lista o usuário pelo ID decodificado do Token JWT
+GET {{baseURL}}
 Content-Type: application/json
-access-token: {{token}}
+access_token: {{token}}
 
 ###
-// GET - Lista o usuário pelo ID (com erro)
-GET {{baseURL}}/2
+// GET - Lista o usuário pelo ID decodificado do Token JWT(com erro de token expirado)
+GET {{baseURL}}
 Content-Type: application/json
-access-token: {{token}}
+access_token: {{expiredToken}}
+
+###
+// GET - Lista o usuário pelo ID decodificado do Token JWT(com erro de token inválido)
+GET {{baseURL}}
+Content-Type: application/json
+access_token: {{invalidToken}}
+
+###
+// GET - Lista o usuário pelo ID decodificado do Token JWT (com erro)
+GET {{baseURL}}
+Content-Type: application/json
 
 // ------------- POST ------------- //
 ###
@@ -26,7 +39,7 @@ Content-Type: application/json
 
 {
     "email" : "gueff@gmail.com",
-    "password" : "math"
+    "password" : "Gueff12*"
 }
 
 ###
@@ -65,10 +78,10 @@ POST {{baseURL}}
 Content-Type: application/json
 
 {
-    "name" : "Matheus A S Gueff",
-    "email" : "gueff@gmail.com",
-    "password" : "math",
-    "nivel" : 2
+    "name" : "Admin nivel 2",
+    "email" : "admin2@gmail.com",
+    "password" : "Senha12*",
+    "nivel" : 1
 }
 
 ###
@@ -79,12 +92,12 @@ Content-Type: application/json
 {
     "name" : "Davy Oliveira",
     "email" : "davy@gmail.com",
-    "password" : "davy",
+    "password" : "Davy12*",
     "nivel" : 1
 }
 
 ###
-// POST - Insere um novo usuario Admin (Com erros)
+// POST - Insere um novo usuario Admin nivel 1 (Com erros)
 POST {{baseURL}}
 Content-Type: application/json
 
@@ -98,23 +111,23 @@ Content-Type: application/json
 // ------------- PUT ------------- //
 
 ###
-// PUT - Edição de um usuário
-PUT {{baseURL}}/{{id}}
+// PUT - Edição de um usuário adquirido pelo ID do token JWT enviado
+PUT {{baseURL}}
 Content-Type: application/json
-access-token: {{token}}
+access_token: {{tokenToUpdate}}
 
 {
     "name" : "Matheus Gueff",
     "email" : "gueff@gmail.com",
-    "password" : "math",
-    "newPassword" : "math"
+    "password" : "Gueff12*",
+    "newPassword" : "Math12*"
 }
 
 ###
 // PUT - Edição de um usuário (Com erro de email existente e senha incorreta)
-PUT {{baseURL}}/{{id}}
+PUT {{baseURL}}
 Content-Type: application/json
-access-token: {{token}}
+access_token: {{token}}
 
 {
     "name" : "Matheus Gueff",
@@ -125,13 +138,12 @@ access-token: {{token}}
 
 // ------------- DELETE ------------- //
 ###
-// DELETE - Remove o usuario pelo id
-DELETE {{baseURL}}/{{id}}
+// DELETE - Remove o usuario pelo id adquirido do token JWT enviado
+DELETE {{baseURL}}
 Content-Type: application/json
-access-token: {{token}}
+access_token: {{tokenToUpdate}}
 
 ###
-// DELETE - Remove o usuario pelo id (com erro)
-DELETE {{baseURL}}/2
+// DELETE - Remove o usuario pelo id adquirido do token JWT enviado (sem token passado)
+DELETE {{baseURL}}
 Content-Type: application/json
-access-token: {{token}}

@@ -1,13 +1,18 @@
 // admin-dashboard.js
-import { fetchWithErrorHandling, toastNotification, tokenValidator } from "./script.js";
-
-const tokenExample = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30"
+import { fetchWithErrorHandling, toastNotification} from "./script.js";
 
 // Módulo do Dashboard de Administrador
-function initializeAdminDashboard() {
+async function initializeAdminDashboard() {
   // 1. Verificação de autenticação e configuração inicial
-  const currentUser = JSON.parse(localStorage.getItem("user"));
-  if (!currentUser || (currentUser.nivel != 1 && currentUser.nivel != 2)) window.location.href = "login.html";
+  const token = localStorage.getItem('token')
+
+  if(!token) { window.location.href = 'login.html';return;}
+
+  const currentUser = await fetchWithErrorHandling(`${window.env.API_URL}api/usuarios`, {
+    headers : {access_token : token}
+  }, false)
+
+  if (!currentUser || currentUser.error || (currentUser.nivel != 1 && currentUser.nivel != 2)){ window.location.href = "login.html"; return}
 
   if (currentUser && currentUser.nivel === 2) {
     document.getElementById("addAdmin").style.display = "inline-block";
@@ -15,7 +20,7 @@ function initializeAdminDashboard() {
   }
 
   // Configurar informações do administrador
-  document.getElementById("adminName").textContent = currentUser.name;
+  document.getElementById("adminName").textContent = "Bem vindo "+ currentUser.name + "!";
   document.getElementById("logoutBtn").addEventListener("click", () => {
     localStorage.removeItem("user");
     window.location.href = "login.html";
@@ -167,7 +172,7 @@ function initializeAdminDashboard() {
     const queryString = new URLSearchParams(filters).toString();
     const appointmentsUrl = `${window.env.API_URL}api/agendamentos${queryString ? "?" + queryString : ""}`;
     const appointments = await fetchWithErrorHandling(appointmentsUrl, {
-      headers : {'access-token' : tokenExample}
+      headers : {'access_token' : token}
     });
     return appointments
   }
@@ -194,9 +199,9 @@ function initializeAdminDashboard() {
         <td class='appointments-table-actions'>
           ${appointment.status === "scheduled"
           ? `<button class="btn btn-confirm confirm-btn" data-id="${appointment._id}">Confirmar</button>
-               <button class="btn btn-cancel cancel-btn" data-id="${appointment._id}">Cancelar</button>`
+               <button class="btn btn-danger cancel-btn" data-id="${appointment._id}">Cancelar</button>`
           : appointment.status === "canceled"
-            ? `<button class="btn btn-cancel delete-btn" data-id="${appointment._id}">Deletar</button>`
+            ? `<button class="btn btn-danger delete-btn" data-id="${appointment._id}">Deletar</button>`
             : "-"
         }
         </td>
@@ -275,13 +280,11 @@ function initializeAdminDashboard() {
       DOM.modals.confirmationMessage.textContent = "Excluindo conta...";
       DOM.modals.confirmAction.disabled = true;
 
-      const currentUser = JSON.parse(localStorage.getItem("user"));
-
       DOM.modals.deleteMessage.innerHTML = 'Aguarde enquanto excluímos sua conta...'
       // Chamar API para deletar conta
-      const response = await fetchWithErrorHandling(`${window.env.API_URL}api/usuarios/${currentUser._id}`, {
+      const response = await fetchWithErrorHandling(`${window.env.API_URL}api/usuarios`, {
         method: 'DELETE',
-        headers: { 'Content-Type': 'application/json', 'access-token' : tokenExample}
+        headers: { 'Content-Type': 'application/json', 'access_token' : token}
       });
 
       if (!response || response.error) {
@@ -293,7 +296,8 @@ function initializeAdminDashboard() {
             error: false,
             message: `${response.message}`|| "Conta exclúida com sucesso"
       }));
-      localStorage.removeItem('user');
+      
+      localStorage.removeItem('token');
       window.location.href = 'login.html';
     } catch (error) {
       console.error("Erro ao excluir conta:", error);
@@ -309,7 +313,7 @@ function initializeAdminDashboard() {
     try {
       const response = await fetchWithErrorHandling(`${window.env.API_URL}api/agendamentos/${appointmentId}/status`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json", "access-token" : tokenExample},
+        headers: { "Content-Type": "application/json", "access_token" : token},
         body : JSON.stringify({status : statusValue})
       });
 
@@ -331,7 +335,7 @@ function initializeAdminDashboard() {
     try {
       const response = await fetchWithErrorHandling(`${window.env.API_URL}api/agendamentos/${appointmentId}`, {
         method: "DELETE",
-        headers: { "Content-Type": "application/json", "access-token" : tokenExample},
+        headers: { "Content-Type": "application/json", "access_token" : token},
       });
 
       if(!response.error){
@@ -513,9 +517,9 @@ function initializeAdminDashboard() {
         <td>
           ${appointment.status === "scheduled"
           ? `<button class="btn btn-confirm confirm-btn" data-id="${appointment._id}">Confirmar</button>
-               <button class="btn btn-cancel cancel-btn" data-id="${appointment._id}">Cancelar</button>`
+               <button class="btn btn-danger cancel-btn" data-id="${appointment._id}">Cancelar</button>`
           : appointment.status === "canceled"
-            ? `<button class="btn btn-cancel delete-btn" data-id="${appointment._id}">Deletar</button>`
+            ? `<button class="btn btn-danger delete-btn" data-id="${appointment._id}">Deletar</button>`
             : "-"
         }
         </td>
@@ -609,8 +613,8 @@ function initializeAdminDashboard() {
       const btnInner = DOM.buttons.editUserBtn.innerHTML
       DOM.buttons.editUserBtn.innerHTML = 'Carregando informações...'
       // Buscar os dados do usuário
-      const user = await fetchWithErrorHandling(`${window.env.API_URL}api/usuarios/${userId}`,{
-        headers : {"access-token" : tokenExample}
+      const user = await fetchWithErrorHandling(`${window.env.API_URL}api/usuarios`,{
+        headers : {"access_token" : token}
       });
       setTimeout(() => {
         DOM.buttons.editUserBtn.innerHTML = btnInner
@@ -695,9 +699,9 @@ function initializeAdminDashboard() {
         }
 
         // Chamar API para atualizar usuário
-        const response = await fetchWithErrorHandling(`${window.env.API_URL}api/usuarios/${currentUser._id}`, {
+        const response = await fetchWithErrorHandling(`${window.env.API_URL}api/usuarios`, {
           method: "PUT",
-          headers: { "Content-Type": "application/json", "access-token" : tokenExample},
+          headers: { "Content-Type": "application/json", "access_token" : token},
           body: JSON.stringify(updateData)
         });
 
@@ -705,12 +709,8 @@ function initializeAdminDashboard() {
           userEditMessage.textContent = response.errors ? response.errors[0].msg : response.message || "Erro ao atualizar dados.";
           userEditMessage.style.color = "#dc3545";
         } else {
-          // Atualizar dados no localStorage
-          const updatedUser = { ...currentUser, name, email };
-          localStorage.setItem("user", JSON.stringify(updatedUser));
-
           // Atualizar nome exibido no dashboard
-          document.getElementById("adminName").textContent = name;
+          document.getElementById("adminName").textContent = "Bem vindo "+ name + "!";;
 
           userEditMessage.textContent = "Dados atualizados com sucesso!";
           userEditMessage.style.color = "#28a745";
