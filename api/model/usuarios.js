@@ -1,6 +1,8 @@
 import { MongoClient } from 'mongodb'
 import { readFileSync } from 'fs'// File System -> acessa arquivos
+import bcrypt from 'bcryptjs'
 import dotenv from 'dotenv';
+
 
 dotenv.config();
 //PARA RODAR: npm run importUsuarios
@@ -8,7 +10,7 @@ const uri = process.env.MONGODB_URI || "mongodb://localhost:27017/barbearia"
 const dbName = 'barbearia'
 const collectionName = 'usuarios'
 
-async function importausuarios(){
+async function importUsuarios(){
     const client = new MongoClient(uri);
     try {
         await client.connect()
@@ -28,7 +30,16 @@ async function importausuarios(){
             await collection.drop()
             console.log(`⚠ Coleção ${collectionName} foi dropada`)
         }
-        const resultado = await collection.insertMany(usuarios)
+        console.log('Criptografando usuários...')
+        const usuariosCriptografados = await Promise.all(
+            usuarios.map(async (user) => {
+                // Criptografia da senha
+                const salt = await bcrypt.genSalt(10)
+                user.password = await bcrypt.hash(user.password, salt)
+                return user;
+            })
+        )
+        const resultado = await collection.insertMany(usuariosCriptografados)
         console.log(`${resultado.insertedCount} documentos inseridos`)
     } catch(error){
         console.log('❌ Erro ao importar ', error.message)
@@ -37,4 +48,4 @@ async function importausuarios(){
     }
 }
 
-importausuarios();
+importUsuarios();

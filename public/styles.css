@@ -152,6 +152,31 @@ body {
   font-size: 0.9rem;
 }
 
+.btn-cancel {
+  background-color: var(--bege-classico); /* #F5E6C8 */
+  color: var(--text-primary);             /* #212121 */
+  font-weight: bold;
+  border: 1px solid var(--gray-medium);
+  transition: var(--transition-all);
+}
+
+.btn-cancel:hover {
+  background-color: #e6d6b8;
+  color: var(--black);
+}
+
+.btn-neutral {
+  background-color: var(--gray-dark);
+  color: var(--text-light);
+  font-weight: bold;
+  transition: var(--transition-all);
+}
+
+.btn-neutral:hover {
+  opacity: 0.85;
+  transform: translateY(2px);
+}
+
 .btn-secondary {
   background-color: var(--gray-light);
   color: var(--text-primary);
@@ -173,12 +198,12 @@ body {
   background-color: var(--success-hover);
 }
 
-.btn-cancel {
+.btn-danger {
   background-color: var(--danger);
   font-weight: bold;
 }
 
-.btn-cancel:hover {
+.btn-danger:hover {
   background-color: var(--danger-hover);
 }
 
@@ -873,7 +898,7 @@ body {
 }
 
 #editAppointmentModal .modal-content {
-  background-color: var(--white);
+  background-color: var(--gray-light);
   margin: 10vh auto !important;
   padding: 25px;
   border-radius: var(--border-radius-lg);

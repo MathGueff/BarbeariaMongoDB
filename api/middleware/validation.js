@@ -6,7 +6,7 @@ export const validateRequest = (req, res, next) => {
   if (!errors.isEmpty()) {
     return res.status(400).json({
       error: true,
-      message: "Ocorreu um erro de validação",
+      message: "Houve um erro de validação",
       errors: errors.array(),
     })
   }
@@ -230,17 +230,20 @@ export const validateUser = [
   .withMessage('Email inválido'),
 
   check('password')
-  .notEmpty()
-  .withMessage('A senha não pode ser vazia')
-  .isLength({min:3})
-  .withMessage('A senha é muito pequena'),
+  .not().isEmpty().trim().withMessage('A senha é obrigatória')
+  .isLength({min:6}).withMessage('A senha deve ter no mínimo 6 caracteres')
+  .isStrongPassword({
+    minLength: 6,
+    minLowercase: 1, minUppercase: 1,
+    minSymbols: 1, minNumbers: 1
+  }).withMessage('A senha não é segura. Informe no mínimo 1 caractere maiúsculo, 1 minúsculo, 1 número e 1 caractere especial'),
 
   check('nivel')
   .optional()
   .notEmpty()
-  .withMessage('O campo é obrigatório')
+  .withMessage('O nível é obrigatório')
   .isInt({min : 0, max: 2})
-  .withMessage('O campo deve ser um valor entre 0 e 2'),
+  .withMessage('O nível deve ser um valor entre 0 e 2'),
   validateRequest
 ]
 
@@ -260,17 +263,18 @@ export const validateUpdateUser = [
 
   check('password')
   .optional()
-  .notEmpty()
-  .withMessage('A senha não pode ser vazia')
-  .isLength({min:3})
-  .withMessage('A senha é muito pequena'),
+  .not().isEmpty().trim().withMessage('A senha é obrigatória')
+  .isLength({min:6}).withMessage('A senha deve ter no mínimo 6 caracteres'),
 
   check('newPassword')
   .optional()
-  .notEmpty()
-  .withMessage('A nova senha não pode ser vazia')
-  .isLength({min:3})
-  .withMessage('A senha é muito pequena'),
+  .not().isEmpty().trim().withMessage('A senha é obrigatória')
+  .isLength({min:6}).withMessage('A senha deve ter no mínimo 6 caracteres')
+  .isStrongPassword({
+    minLength: 6,
+    minLowercase: 1, minUppercase: 1,
+    minSymbols: 1, minNumbers: 1
+  }).withMessage('A senha não é segura. Informe no mínimo 1 caractere maiúsculo, 1 minúsculo, 1 número e 1 caractere especial'),
 
   check('nivel')
   .optional()

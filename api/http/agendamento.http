@@ -11,13 +11,13 @@
 // GET - Lista todos os agendamentos 
 GET {{baseURL}}?limit=2
 Content-Type: application/json
-access-token: {{token}}
+access_token: {{token}}
 
 ###
 // GET - Lista todos os agendamentos (token inválido)
 GET {{baseURL}}
 Content-Type: application/json
-access-token: invalidtoken
+access_token: invalidtoken
 
 ###
 // GET - Lista todos os agendamentos (acesso negado)
@@ -28,61 +28,61 @@ Content-Type: application/json
 // GET - Lista todos os agendamentos (com limite de 10)
 GET {{baseURL}}?limit={{limit}}
 Content-Type: application/json
-access-token: {{token}}
+access_token: {{token}}
 
 ###
 // GET - Lista todos os agendamentos, pegando os de outra página (página 2 no exemplo)
 GET {{baseURL}}?limit={{limit}}&page={{page}}
 Content-Type: application/json
-access-token: {{token}}
+access_token: {{token}}
 
 ###
 // GET - Lista o agendamento pelo ID
 GET {{baseURL}}/{{id}}
 Content-Type: application/json
-access-token: {{token}}
+access_token: {{token}}
 
 ###
 // GET - Lista o agendamento pelo ID (utilizando um ID inválido)
 GET {{baseURL}}/1
 Content-Type: application/json
-access-token: {{token}}
+access_token: {{token}}
 
 ###
 // GET - Lista todos os agendamentos em ordem desc (começa da data mais distante até a mais próxima)
 GET {{baseURL}}?sort=date&order=desc
 Content-Type: application/json
-access-token: {{token}}
+access_token: {{token}}
 
 ###
 // GET - Lista de agendamentos com o barbeiro (query param barber_name)
 GET {{baseURL}}?barber_name=Pedro Oliveira
 Content-Type: application/json
-access-token: {{token}}
+access_token: {{token}}
 
 ###
 // GET - Lista de agendamentos ordenado por nome do cliente (query param sort)
 GET {{baseURL}}?sort=client_name
 Content-Type: application/json
-access-token: {{token}}
+access_token: {{token}}
 
 ###
 // GET - Lista de agendamentos para serviço de depilação facial
 GET {{baseURL}}?service=corte de cabelo infantil
 Content-Type: application/json
-access-token: {{token}}
+access_token: {{token}}
 
 ###
 // GET - Lista de agendamentos em um dia específico
 GET {{baseURL}}?date=2025-04-02
 Content-Type: application/json
-access-token: {{token}}
+access_token: {{token}}
 
 ###
 // GET - Lista de agendamentos em um intervalo de dias
 GET {{baseURL}}?start_date=2025-04-02&end_date=2025-04-10&limit=100
 Content-Type: application/json
-access-token: {{token}}
+access_token: {{token}}
 
 // ------------- POST ------------- //
 
@@ -90,7 +90,7 @@ access-token: {{token}}
 // POST - Insere um novo agendamento (Sem erros)
 POST {{baseURL}}
 Content-Type: application/json
-access-token: {{token}}
+access_token: {{token}}
 
 {
     "client_name": "Louis",
@@ -109,7 +109,7 @@ access-token: {{token}}
 // POST - Tentando cadastrar um vazio
 POST {{baseURL}}
 Content-Type: application/json
-access-token: {{token}}
+access_token: {{token}}
 
 {
    
@@ -128,7 +128,7 @@ Content-Type: application/json
 // POST - Insere um novo agendamento (Todos campos errados)
 POST {{baseURL}}
 Content-Type: application/json
-access-token: {{token}}
+access_token: {{token}}
 
 {
     "client_name": "",
@@ -155,7 +155,7 @@ access-token: {{token}}
 // PUT - Altera um agendamento já existente (Sem erros)
 PUT {{baseURL}}/{{id}}
 Content-Type: application/json
-access-token: {{token}}
+access_token: {{token}}
 
 {
     "barber_name" : "Pedro Ribeiro",
@@ -170,7 +170,7 @@ access-token: {{token}}
 // PUT - Altera o nome do cliente (usado quando ocorre alteração de nome de usuário)
 PUT {{baseURL}}/{{id}}
 Content-Type: application/json
-access-token: {{token}}
+access_token: {{token}}
 
 {
     "updated_client_name" : "Roberto Carlos"
@@ -180,7 +180,7 @@ access-token: {{token}}
 // PUT - Altera um agendamento já existente (Com erro de ID)
 PUT {{baseURL}}/2
 Content-Type: application/json
-access-token: {{token}}
+access_token: {{token}}
 
 {
     "barber_name" : "Pedro Oliveira",
@@ -195,7 +195,7 @@ access-token: {{token}}
 // PUT - Altera um agendamento já existente (Com erro de entrada)
 PUT {{baseURL}}/{{id}}
 Content-Type: application/json
-access-token: {{token}}
+access_token: {{token}}
 
 {
     "client_name" : "Outro cliente",
@@ -216,7 +216,7 @@ access-token: {{token}}
 // PUT - Altera um agendamento já existente (Com erro de entrada)
 PUT {{baseURL}}/{{id}}
 Content-Type: application/json
-access-token: {{token}}
+access_token: {{token}}
 
 {
     "services" : "Serviço único"
@@ -236,13 +236,13 @@ Content-Type: application/json
 // DELETE - Remove o agendamento pelo id
 DELETE {{baseURL}}/{{id}}
 Content-Type: application/json
-access-token: {{token}}
+access_token: {{token}}
 
 ###
 // DELETE - Remove o agendamento pelo id (erro de ID)
 DELETE {{baseURL}}/3
 Content-Type: application/json
-access-token: {{token}}
+access_token: {{token}}
 
 ###
 // DELETE - Erro de autenticação
@@ -253,7 +253,7 @@ Content-Type: application/json
 // DELETE - Erro de autenticação
 DELETE {{baseURL}}/3
 Content-Type: application/json
-access-token: autenticado
+access_token: autenticado
 
 // ------------- PATCH ------------- //
 
@@ -261,7 +261,7 @@ access-token: autenticado
 //PATCH - Atualiza status do agendamento para confirmado
 PATCH {{baseURL}}/{{id}}/status
 Content-Type: application/json
-access-token : {{token}}
+access_token : {{token}}
 
 {
     "status" : "confirmed"
@@ -271,7 +271,7 @@ access-token : {{token}}
 //PATCH - Atualiza status do agendamento para cancelado
 PATCH {{baseURL}}/{{id}}/status
 Content-Type: application/json
-access-token : {{token}}
+access_token : {{token}}
 
 {
     "status" : "canceled"
@@ -281,7 +281,7 @@ access-token : {{token}}
 //PATCH - Atualiza status do agendamento para confirmado (erro de validação)
 PATCH {{baseURL}}/{{id}}/status
 Content-Type: application/json
-access-token : {{token}}
+access_token : {{token}}
 
 {
     
@@ -291,7 +291,7 @@ access-token : {{token}}
 //PATCH - Atualiza status do agendamento para confirmado (status inválido)
 PATCH {{baseURL}}/{{id}}/status
 Content-Type: application/json
-access-token : {{token}}
+access_token : {{token}}
 
 {
     "status" : "invalidStatus"

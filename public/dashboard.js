@@ -1,16 +1,22 @@
 // dashboard.js
-import { fetchWithErrorHandling, toastNotification, tokenValidator } from "./script.js"
+import { fetchWithErrorHandling, toastNotification, tokenValidator } from "./script.js";
 
-const tokenExample = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30"
 
 // Módulo do Dashboard de Cliente
-function initializeDashboard() {
+async function initializeDashboard() {
   // 1. Verificação de autenticação e configuração inicial
-  const currentUser = JSON.parse(localStorage.getItem("user"))
-  if (!currentUser) window.location.href = "login.html"
+  const token = localStorage.getItem('token')
+
+  if(!token) { window.location.href = 'login.html';return;}
+
+  const currentUser = await fetchWithErrorHandling(`${window.env.API_URL}api/usuarios`, {
+    headers : {access_token : token}
+  }, false)
+
+  if (!currentUser || currentUser.error || currentUser.nivel !== 0){ window.location.href = "login.html"; return}
 
   // Configurar informações do usuário
-  document.getElementById("userName").textContent = currentUser.name
+  document.getElementById("userName").textContent = "Bem vindo " + currentUser.name + "!"
   document.getElementById("logoutBtn").addEventListener("click", () => {
     localStorage.removeItem("user")
     window.location.href = "login.html"
@@ -21,7 +27,6 @@ function initializeDashboard() {
       toastNotification(toastData)
       sessionStorage.removeItem("authMsg"); // limpa depois de usar
     }
-  
 
   // 2. Seleção de elementos DOM
   const DOM = {
@@ -202,7 +207,7 @@ function initializeDashboard() {
     if (!barber || !date) return { data: [] }
 
     const url = `${window.env.API_URL}api/agendamentos?barber_name=${encodeURIComponent(barber)}&start_date=${date}&end_date=${date}&status=scheduled&status=confirmed`
-    return await fetchWithErrorHandling(url, { headers: { 'access-token': tokenExample } })
+    return await fetchWithErrorHandling(url, { headers: { 'access_token': token } })
   }
 
   function extractOccupiedTimes(appointments) {
@@ -229,6 +234,7 @@ function initializeDashboard() {
       const date = new Date(dateStr);
       
       const isNotAvailable = date < now
+
       const isOccupied = occupiedTimes.includes(time)
 
       const option = document.createElement("option")
@@ -245,8 +251,8 @@ function initializeDashboard() {
           option.textContent += " (Ocupado)"
         } else {
           hasAvailableSlots = true
-          DOM.scheduling.timeSelect.appendChild(option)
         }
+        DOM.scheduling.timeSelect.appendChild(option)
       }
     }
 
@@ -322,7 +328,7 @@ function initializeDashboard() {
 
     return await fetchWithErrorHandling(`${window.env.API_URL}api/agendamentos`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", 'access-token': tokenExample },
+      headers: { "Content-Type": "application/json", 'access_token': token },
       body: JSON.stringify(agendamento),
     })
   }
@@ -345,8 +351,6 @@ function initializeDashboard() {
       populateTimeSlots()
       return
     }
-
-    handleSimulatedSchedule(formData)
   }
 
   function checkSimulatedConflict(formData) {
@@ -357,25 +361,6 @@ function initializeDashboard() {
         appointment.date === appointmentDateTime &&
         (appointment.status === "scheduled" || appointment.status === "confirmed"),
     )
-  }
-
-  function handleSimulatedSchedule(formData) {
-    const simulatedId = `simulated_${Date.now()}`
-    const simulatedAppointment = {
-      _id: simulatedId,
-      client_name: currentUser.name,
-      barber_name: formData.barber,
-      services: formData.services,
-      date: `${formData.date} ${formData.time}:00`,
-      status: "scheduled",
-    }
-
-    state.simulatedAppointments.push(simulatedAppointment)
-    localStorage.setItem("simulatedAppointments", JSON.stringify(state.simulatedAppointments))
-
-    showScheduleMessage("Agendamento realizado com sucesso (simulação).", "success")
-    resetScheduleForm()
-    refreshAppointmentData()
   }
 
   function resetScheduleForm() {
@@ -431,7 +416,7 @@ function initializeDashboard() {
         `${window.env.API_URL}api/agendamentos?client_name=${encodeURIComponent(currentUser.name)}
             &status=scheduled&status=confirmed&sort=date&order=desc`,
         {
-          headers: { 'access-token': tokenExample }
+          headers: { 'access_token': token }
         }
       )
 
@@ -486,7 +471,7 @@ function initializeDashboard() {
   async function getClientAppointments(name) {
     return await fetchWithErrorHandling(
       `${window.env.API_URL}api/agendamentos?client_name=${encodeURIComponent(name)}&status=scheduled&status=confirmed`, {
-      headers: { 'access-token': tokenExample }
+      headers: { 'access_token': token }
     }
     )
   }
@@ -528,7 +513,7 @@ function initializeDashboard() {
       <td class='status-${appointment.status}'>${statusLabels[appointment.status] || appointment.status}</td>
       <td class='appointments-table-actions'>
         ${appointment.status === "scheduled"
-        ? `<button class="btn btn-cancel cancel-client-btn" data-id="${appointment._id}">Cancelar</button> 
+        ? `<button class="btn btn-danger cancel-client-btn" data-id="${appointment._id}">Cancelar</button> 
              <button class="btn btn-edit edit-client-btn" data-id="${appointment._id}">Editar</button>`
         : "-"
       }
@@ -566,7 +551,7 @@ function initializeDashboard() {
       <td>${appointment.status}</td>
       <td>
         ${appointment.status === "scheduled"
-        ? `<button class="btn btn-cancel cancel-client-btn" data-id="${appointment._id}">Cancelar</button>`
+        ? `<button class="btn btn-danger cancel-client-btn" data-id="${appointment._id}">Cancelar</button>`
         : "-"
       }
       </td>
@@ -640,7 +625,7 @@ function initializeDashboard() {
     try {
       await fetchWithErrorHandling(`${window.env.API_URL}api/agendamentos/${appointmentId}/status`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json", 'access-token': tokenExample },
+        headers: { "Content-Type": "application/json", 'access_token': token },
         body: JSON.stringify({ status: 'canceled' })
       })
 
@@ -736,10 +721,12 @@ function initializeDashboard() {
 
     try {
       const appointment = await fetchWithErrorHandling(`${window.env.API_URL}api/agendamentos/${appointmentId}`, {
-        headers: { 'access-token': tokenExample }
+        headers: { 'access_token': token }
       })
-      populateEditForm(appointment)
-      DOM.modals.editAppointment.style.display = "block"
+      if(appointment){
+        populateEditForm(appointment)
+        DOM.modals.editAppointment.style.display = "block"
+      }
     } catch (error) {
       console.error("Erro ao buscar dados do agendamento:", error)
       alert("Não foi possível carregar os dados do agendamento. Tente novamente mais tarde.")
@@ -780,7 +767,7 @@ function initializeDashboard() {
     try {
       const url = `${window.env.API_URL}api/agendamentos?barber_name=${encodeURIComponent(selectedBarber)}&start_date=${selectedDate}&end_date=${selectedDate}&status=scheduled&status=confirmed`
       const existingAppointments = await fetchWithErrorHandling(url, {
-        headers: { 'access-token': tokenExample }
+        headers: { 'access_token': token }
       })
 
       if (existingAppointments.data) {
@@ -822,7 +809,7 @@ function initializeDashboard() {
         option.selected = true
         option.textContent += " (Horário atual)"
         DOM.modals.editTimeSelect.appendChild(option)
-        return;
+        continue;
       }
 
       const dateStr = `${selectedDate}T${time}:00`;
@@ -907,7 +894,7 @@ function initializeDashboard() {
   async function updateAppointment(formData) {
     return await fetchWithErrorHandling(`${window.env.API_URL}api/agendamentos/${state.currentEditingAppointmentId}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json", 'access-token': tokenExample },
+      headers: { "Content-Type": "application/json", 'access_token': token },
       body: JSON.stringify(formData),
     })
   }
@@ -944,8 +931,8 @@ function initializeDashboard() {
     try {
       const btnInner = DOM.user.editBtn.innerHTML;
       DOM.user.editBtn.innerHTML = 'Carregando informações...'
-      const user = await fetchWithErrorHandling(`${window.env.API_URL}api/usuarios/${userId}`, 
-        {headers: {'access-token' : tokenExample}})
+      const user = await fetchWithErrorHandling(`${window.env.API_URL}api/usuarios`, 
+        {headers: {'access_token' : token}})
 
       setTimeout(() => {
         DOM.user.editBtn.innerHTML = btnInner
@@ -1023,9 +1010,9 @@ function initializeDashboard() {
         updateData.newPassword = formData.newPassword
       }
 
-      const response = await fetchWithErrorHandling(`${window.env.API_URL}api/usuarios/${currentUser._id}`, {
+      const response = await fetchWithErrorHandling(`${window.env.API_URL}api/usuarios`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json", 'access-token': tokenExample },
+        headers: { "Content-Type": "application/json", 'access_token': token },
         body: JSON.stringify(updateData),
       })
 
@@ -1041,12 +1028,8 @@ function initializeDashboard() {
   }
 
   function handleUserEditSuccess(formData) {
-    // Atualizar dados no localStorage
-    const updatedUser = { ...currentUser, name: formData.name, email: formData.email }
-    localStorage.setItem("user", JSON.stringify(updatedUser))
-
     // Atualizar nome exibido
-    DOM.user.name.textContent = formData.name
+    DOM.user.name.textContent = "Bem vindo " + formData.name + "!"
 
     showUserEditMessage("Dados atualizados com sucesso!", "success")
 
@@ -1070,9 +1053,9 @@ function initializeDashboard() {
   async function deleteUserAccount() {
     try {
       DOM.modals.userDeleteMessage.innerHTML = 'Aguarde enquanto excluímos sua conta...'
-      const deletedUser = await fetchWithErrorHandling(`${window.env.API_URL}api/usuarios/${currentUser._id}`, {
+      const deletedUser = await fetchWithErrorHandling(`${window.env.API_URL}api/usuarios`, {
         method: "DELETE",
-        headers: { "Content-Type": "application/json", 'access-token': tokenExample },
+        headers: { "Content-Type": "application/json", 'access_token': token },
       })
 
       if (!deletedUser.error) {

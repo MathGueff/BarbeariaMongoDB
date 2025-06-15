@@ -7,32 +7,40 @@ const dotenv = require('dotenv')
 dotenv.config() //carrega os valores do .env
 
 const baseURL = 'http://localhost:3000/api'
-let token = process.env.EXAMPLE_TOKEN
+const token = process.env.UNEXPERIDED_TOKEN
 
 describe('REGISTRO DE USUÁRIO', () => {
-    let idUsuarioCriado;
-
+    let tokenCreated;
+    const userToCreate = {name : 'Usuário Novo', email : 'newuser@gmail.com', password : 'novoUsuario12*'}
     it('POST - Verificar se um novo usuário pode ser registrado com sucesso,', async () => {
         const response = await request(baseURL)
             .post("/usuarios")
             .set('Content-type', 'application/json')
-            .send({name : 'Usuário Novo', email : 'newuser@gmail.com', password : 'novoUsuario'})
+            .send(userToCreate)
             .expect(201) //Cadastrado com sucesso
 
             //Verificando se o usuário foi cadastrado e se o atributo _id está correto
             expect(response.body.data).toHaveProperty("_id")
             expect(typeof response.body.data._id).toBe("string")
             expect(response.body.data._id.length).toBeGreaterThan(0)
+    })
 
-            //Atribui o _id do usuário criado para a let para que possa ser acessado por outros testes
-            idUsuarioCriado = response.body.data._id
+    it('POST - Realiza login com o usuário criado', async() => {
+        const login = await request(baseURL)
+            .post(`/usuarios/login`)
+            .send({email : userToCreate.email, password : userToCreate.password})
+            .set('Content-type', 'application/json')
+            .expect(200) //Usuário encontrado com sucesso
+        
+        expect(login.body.access_token).toBeDefined()
+        tokenCreated = login.body.access_token
     })
 
     it('DELETE - Realiza a exclusão do usuário', async () => {
         const response = await request(baseURL)
-            .delete(`/usuarios/${idUsuarioCriado}`)
+            .delete(`/usuarios`)
             .set('Content-type', 'application/json')
-            .set('access-token', token)
+            .set('access_token', tokenCreated)
             .expect(200) //Excluído com sucesso
         
         //Verificando se a exclusão está retornando o feedback correto
@@ -45,13 +53,13 @@ describe('REGISTRO DE USUÁRIO', () => {
         const emailExistente = await request(baseURL)
             .post(`/usuarios`)
             .set('Content-type', 'application/json')
-            .send({name : 'Nome Novo', email : 'gueff@gmail.com', password : 'senha12345'})
+            .send({name : 'Nome Novo', email : 'gueff@gmail.com', password : 'Senha12345*'})
             .expect(409) //Email já existente
 
         const nomeExistente = await request(baseURL)
             .post(`/usuarios`)
             .set('Content-type', 'application/json')
-            .send({name : 'Matheus Gueff', email : 'emailnovo@gmail.com', password : 'senha12345'})
+            .send({name : 'Matheus Augusto Santos Gueff', email : 'emailnovo@gmail.com', password : 'Senha12345*'})
             .expect(409) //Nome já existente
 
         //Verificando se o feedback de email existente está funcionando
@@ -76,7 +84,7 @@ describe('AUTENTICAÇÃO DE USUÁRIO', () => {
             .expect(200) //Usuário autenticado com sucesso
 
         //Garantindo que um token JWT válido seja gerado para o usuário
-        const token = response.body.data //TODO: alterar para .token
+        const token = response.body.access_token //TODO: alterar para .token
         expect(token).toBeDefined()
     })
 
@@ -88,7 +96,7 @@ describe('AUTENTICAÇÃO DE USUÁRIO', () => {
             .expect(401) //Unauthorized
 
         //Veficando se o feedback de login incorreto está sendo exibido corretamente
-        expect(response.body.message).toBe("O email ou a senha digitados estão incorretos")
+        expect(response.body.message).toBe("Email ou senha informados estão incorretos")
         expect(response.body.error).toBe(true)
     })
 
@@ -102,7 +110,7 @@ describe('VALIDAÇÃO DE TOKEN JWT', () => {
     it('GET - Validar se um token JWT válido permite o acesso a rotas protegidas', async () => {
         const response = await request(baseURL)
             .get("/agendamentos")
-            .set('access-token', token)
+            .set('access_token', token)
             .expect(200) //Token válido
         
         //Verificando se houve o retorno dos dados do agendamento e se é o retorno correto (array)
@@ -112,13 +120,21 @@ describe('VALIDAÇÃO DE TOKEN JWT', () => {
 
     it('GET - Verificar se um token JWT inválido ou expirado é recusado', async () => {
         const tokenInvalido = "tokenInvalido"
+        //Token JWT com 1 segundo de expiração desde sua criação
+        const tokenExpirado = process.env.EXPIRED_TOKEN
 
-        const response = await request(baseURL)
+        const invalid = await request(baseURL)
             .get("/agendamentos")
-            .set('access-token', tokenInvalido)
+            .set('access_token', tokenInvalido)
             .expect(403) //Token inválido
 
-        //TODO: utilizar um token expirado
+        const expired = await request(baseURL)
+            .get("/agendamentos")
+            .set('access_token', tokenExpirado)
+            .expect(403) //Token inválido
+
+        expect(invalid.body.message).toBe("O token JWT fornecido é inválido")
+        expect(expired.body.message).toBe("O token JWT está expirado")
     })
 })
 
@@ -126,7 +142,7 @@ describe('ROTAS PROTEGIDAS', () => {
     it('GET - Verificar se o acesso a rotas protegidas é restrito a usuários autenticados', async () => {
         const acessoComToken = await request(baseURL)
             .get('/agendamentos')
-            .set('access-token', token)
+            .set('access_token', token)
             .expect(200) //Acesso com token
 
         const acessoSemToken = await request(baseURL)

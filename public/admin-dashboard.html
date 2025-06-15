@@ -26,7 +26,7 @@
     </header>
 
     <section class="admin-dashboard-container">
-        <h2 class="dashboard-title">Bem-vindo, <span id="adminName"></span>!</h2>
+        <h2 class="dashboard-title"><span id="adminName"></span></h2>
 
         <!-- Estatísticas -->
         <div class="admin-stats">
@@ -34,11 +34,6 @@
                 <span class="stat-icon">📅</span>
                 <div class="stat-number" id="totalAppointments">0</div>
                 <div class="stat-label">Total de Agendamentos</div>
-            </div>
-            <div class="stat-item">
-                <span class="stat-icon">👥</span>
-                <div class="stat-number" id="totalClients">0</div>
-                <div class="stat-label">Total de Clientes</div>
             </div>
         </div>
 
@@ -149,8 +144,8 @@
                     </div>
                     
                     <div class="action-buttons">
-                        <button id="clearFiltersBtn" class="btn btn-primary">Limpar Filtros</button>
-                        <button id="refreshBtn" class="btn btn-primary">Recarregar</button>
+                        <button id="clearFiltersBtn" class="btn btn-neutral">Limpar Filtros</button>
+                        <button id="refreshBtn" class="btn btn-neutral">Recarregar</button>
                     </div>
                 </div>
             </div>
@@ -197,7 +192,7 @@
             <p id="confirmationMessage">Tem certeza que deseja realizar esta ação?</p>
             <div class="modal-actions">
                 <button id="cancelActionBtn" class="btn btn-cancel">Cancelar</button>
-                <button id="confirmActionBtn" class="btn btn-confirm">Confirmar</button>
+                <button id="confirmActionBtn" class="btn btn-danger">Confirmar</button>
             </div>
         </div>
     </div>
@@ -222,7 +217,7 @@
             
             <p id="userDeleteMessage" class="message"></p>
             <div style="display: flex; justify-content: center; margin-top: 20px;">
-                <button type="button" id="deleteAccountBtn" class="btn btn-cancel">Excluir conta</button>
+                <button type="button" id="deleteAccountBtn" class="btn btn-danger">Excluir conta</button>
             </div>
         </div>
     </div>

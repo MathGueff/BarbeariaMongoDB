@@ -25,7 +25,7 @@
     </header>
 
     <section class="dashboard-container">
-        <h2 class="dashboard-title">Bem-vindo, <span id="userName"></span>!</h2>
+        <h2 class="dashboard-title"><span id="userName"></span></h2>
 
         <!-- Sistema de Agendamento -->
         <div class="schedule-section">
@@ -97,7 +97,7 @@
                 <p><strong>Preço:</strong> <span id="appointmentPrice"></span></p>
                 <p><strong>Status do Agendamentos:</strong> <span id="appointmentStatus"></span></p>
                 <button id="editAppointmentOverviewBtn" class="btn btn-primary">Editar</button>
-                <button id="cancelAppointmentBtn" class="btn btn-cancel">Cancelar Agendamento</button>
+                <button id="cancelAppointmentBtn" class="btn btn-danger">Cancelar Agendamento</button>
             </div>
         </div>
 
@@ -132,7 +132,7 @@
             <p id="confirmationMessage">Tem certeza que deseja cancelar este agendamento?</p>
             <div class="modal-actions">
                 <button id="cancelActionBtn" class="btn btn-cancel">Não</button>
-                <button id="confirmActionBtn" class="btn btn-confirm">Sim</button>
+                <button id="confirmActionBtn" class="btn btn-danger">Sim</button>
             </div>
         </div>
     </div>
@@ -190,8 +190,8 @@
                 </div>
 
                 <div class="modal-actions">
+                    <button type="button" id="closeEditModalBtn" class="btn btn-cancel">Cancelar</button>
                     <button type="submit" class="btn btn-confirm">Salvar</button>
-                    <button type="button" id="closeEditModalBtn" class="btn btn-cancel">Fechar</button>
                 </div>
             </form>
         </div>
@@ -217,7 +217,7 @@
             
             <p id="userDeleteMessage" class="message"></p>
             <div style="display: flex; justify-content: center; margin-top: 20px;">
-                <button type="button" id="deleteAccountBtn" class="btn btn-cancel">Excluir conta</button>
+                <button type="button" id="deleteAccountBtn" class="btn btn-danger">Excluir conta</button>
             </div>
         </div>
     </div>

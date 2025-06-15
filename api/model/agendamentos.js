@@ -13,7 +13,7 @@ async function importaAgendamentos(){
     const client = new MongoClient(uri);
     try {
         await client.connect()
-        const dados =  readFileSync('./api/json/agendamento.json', 'utf-8')
+        const dados =  readFileSync('./api/json/agendamentos.json', 'utf-8')
         const agendamentos = JSON.parse(dados);
 
         if(!Array.isArray(agendamentos))

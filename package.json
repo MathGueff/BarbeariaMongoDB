@@ -28,12 +28,13 @@
   "homepage": "https://github.com/MathGueff/BarbeariaMongoDB#readme",
   "dependencies": {
     "@types/jest": "^29.5.14",
+    "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "express-validator": "^7.2.1",
-    "bcryptjs": "^3.0.2",
     "jsonwebtoken": "^9.0.2",
+    "jwt-decode": "^4.0.0",
     "mongodb": "^6.15.0"
   },
   "devDependencies": {
