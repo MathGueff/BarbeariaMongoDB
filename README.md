@@ -2,6 +2,28 @@
 
 Para conseguir acesso às funcionalidades do site, <a href="#tabela"> clique aqui para ver a tabela de usuários para teste </a>
 
+## 📑 Índice
+
+- [🔸 Membros do grupo](#membros-do-grupo)
+- [🔸 Link do Projeto e API pública](#link-do-projeto-e-api-pública)
+- [🔸 Propósito do projeto](#propósito-do-projeto)
+- [🔸 Como funciona o projeto](#como-funciona-o-projeto)
+  - [📌 Categorização dos agendamentos](#categorização-dos-agendamentos)
+  - [📌 Horários ocupados](#horários-ocupados)
+  - [📌 Excluindo um usuário](#excluindo-um-usuário)
+- [🔸 Estrutura do projeto](#estrutura-do-projeto)
+- [🔸 Instalação e Execução](#instalação-e-execução)
+- [🔸 Rotas da API](#rotas-da-api)
+  - [🔐 Autenticação (Usuários)](#-autenticação-usuários)
+  - [📅 Agendamentos](#-agendamentos)
+  - [📖 Documentação](#-documentação)
+- [🔸 Usuários do sistema](#usuários-do-sistema)
+  - [👥 Dados gerais de usuários gerados por mockaroo](#dados-gerais-de-usuários-gerados-por-mockaroo)
+  - [👤 Usuários de teste por nível](#usuários-de-teste-por-nível)
+  - [🧑‍💻 Usuários do nosso grupo](#usuários-do-nosso-grupo)
+
+
+
 ## Membros do grupo:
 
 * Andreza de Oliveira Carlos
@@ -24,6 +46,137 @@ O nosso projeto é um sistema de cadastro de agendamentos de uma barbearia, perm
 ## Como funciona o projeto
 
 Nosso projeto é um site de barbearia, onde clientes podem realizar seu agendamento marcando um horário com um barbeiro e dia escolhidos.
+
+## Estrutura do projeto
+
+```
+├── __tests__/
+│   └── testes.js/           # Arquivos de testes Jest para usuários e agendamentos
+├── api/
+│   ├── config/
+│   │   └── db.js                    # Configuração do MongoDB
+│   ├── controllers/
+│   │   ├── agendamento.js           # Lógica de negócio dos agendamentos
+│   │   └── usuario.js               # Lógica de autenticação
+│   ├── middlewares/
+│   │   ├── validation.js            # Validações para usuários e agendamentos                      
+│   │   └── auth.js                  # Validação de token JWT    
+│   ├── http/  
+│   │   ├── agendamentos.http        # Arquivo de documentação REST CLIENT para agendamentos      
+│   │   └── usuario.http             # Arquivo de documentação REST CLIENT para agendamentos    
+│   ├── json/  
+│   │   ├── agendamentos.js          # Mock de agendamentos para preenchimento inicial       
+│   │   └── usuarios.js              # Mock de usuarios para preenchimento inicial                       
+│   ├── models/
+│   │   ├── agendamentos.js          # Script de importação de json de agendamentos
+│   │   └── usuarios.js              # Script de importação de json de usuários
+│   ├── routes/
+│   │   ├── agendamentos.js          # Rotas de agendamentos
+│   │   └── usuarios.js              # Rotas de usuários
+│   ├── swagger/
+│   │   └── swagger_output.json      # Arquivo de documentação gerado
+│   └── index.js                     # Arquivo principal do servidor
+├── public/
+│   └── images/
+│       └── favicon.png              # Ícone da aplicação
+│   └── ...                          # Arquivos do frontend
+├── .env                             # Variáveis de ambiente 
+├── package.json                     # Dependências e scripts do projeto
+├── README.md                        # Documentação do projeto
+├── swagger.js.md                    # Script de geração de documentação swagger
+└── vercel.json                      # Deploy no Vercel
+```
+
+## Instalação e Execução
+
+1. **Clone o repositório:**
+```bash
+git clone https://github.com/MathGueff/BarbeariaMongoDB.git
+
+```
+
+2. **Instale as dependências:**
+```bash
+npm install
+```
+
+3. **Configure as variáveis de ambiente:**
+   Crie um arquivo `.env` na raiz do projeto:
+```env
+//Necessários para rodar o site
+MONGODB_URI = stringConexao
+BASE_URL = urlDoSite
+SECRET_KEY = sua_chave_secreta
+EXPIRES_IN = 7 days
+
+//Usados para teste e documentação:
+UNEXPERIDED_TOKEN = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c3VhcmlvIjp7ImlkIjoiNjg0ZjIwN2FkNGQwZTNlOTRkNDdmMjcxIiwibml2ZWwiOjJ9LCJpYXQiOjE3NTAwMTY1MDV9.ng7AA5ZSu3p5nQnNfBvE7sYtHTtBwtgRywChaTKRso0
+EXPIRED_TOKEN = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c3VhcmlvIjp7ImlkIjoiNjg0ZjIwN2FkNGQwZTNlOTRkNDdmMjcxIiwibml2ZWwiOjJ9LCJpYXQiOjE3NTAwMTY1MzgsImV4cCI6MTc1MDAxNjUzOX0.QpnbqqkoDRr-fGtg6CbpYz5Xuw741DA8jJoZEKiHXUo
+SENHA_USUARIO = Gueff12*
+```
+
+4. **Inicie o servidor:**
+```bash
+npm start
+```
+
+**Para desenvolvimento:**
+```bash
+npm run dev
+```
+
+6. **Acesse a aplicação:**
+   - Frontend: `http://localhost:3000`
+   - Documentação Swagger: `http://localhost:3000/api-docs`
+
+## Rotas da API
+
+#### 🔐 Autenticação (Usuários)
+
+- **POST** `/api/usuarios`  
+  Registra um novo usuário
+
+- **POST** `/api/usuarios/login`  
+  Autentica um usuário
+
+- **GET** `/api/usuarios`  
+  Obtém informações do usuário autenticado (**exige autenticação**)
+
+- **PUT** `/api/usuarios`  
+  Atualiza os dados do usuário autenticado (**exige autenticação**)
+
+- **DELETE** `/api/usuarios`  
+  Remove o usuário autenticado (**exige autenticação**)
+
+---
+
+#### 📅 Agendamentos  
+**Todas as rotas protegidas por JWT**
+
+- **GET** `/api/agendamentos`  
+  Retorna todos os agendamentos (**exige autenticação**)
+
+- **GET** `/api/agendamentos/:id`  
+  Retorna um agendamento específico pelo ID (**exige autenticação**)
+
+- **POST** `/api/agendamentos`  
+  Cria um novo agendamento (**exige autenticação**)
+
+- **PUT** `/api/agendamentos/:id`  
+  Atualiza um agendamento existente (**exige autenticação**)
+
+- **PATCH** `/api/agendamentos/:id/status`  
+  Altera o status de um agendamento (ex: para "cancelado") (**exige autenticação**)
+
+- **DELETE** `/api/agendamentos/:id`  
+  Remove um agendamento (**exige autenticação**)
+
+---
+
+#### 📖 Documentação
+
+- **GET** `/api/doc`  
+  Acessa a documentação interativa via Swagger
 
 #### Categorização dos agendamentos
 No sistema, armazenamos agendamentos como agendado, confirmado e cancelado
