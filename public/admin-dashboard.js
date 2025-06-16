@@ -231,9 +231,21 @@ async function initializeAdminDashboard() {
     let message = "";
 
     switch (action) {
-      case "confirmed": message = "Deseja confirmar este agendamento?"; break;
-      case "canceled": message = "Deseja cancelar este agendamento?"; break;
-      case "delete": message = "Deseja excluir este agendamento permanentemente?"; break;
+      case "confirmed":
+        message = "Deseja confirmar este agendamento?";
+        DOM.modals.confirmAction.classList.remove("btn-danger");
+        DOM.modals.confirmAction.classList.add("btn-confirm");
+        break;
+      case "canceled":
+        message = "Deseja cancelar este agendamento?";
+        DOM.modals.confirmAction.classList.remove("btn-confirm");
+        DOM.modals.confirmAction.classList.add("btn-danger");
+        break;
+      case "delete":
+        message = "Deseja excluir este agendamento permanentemente?";
+        DOM.modals.confirmAction.classList.remove("btn-confirm");
+        DOM.modals.confirmAction.classList.add("btn-danger");
+        break;
     }
 
     // Armazena a ação pendente no state

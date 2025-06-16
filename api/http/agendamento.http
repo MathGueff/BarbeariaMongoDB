@@ -1,15 +1,15 @@
 // Teste da API REST de agendamentos
 @baseURL = http://localhost:3000/api/agendamentos
-@id = 684ad42117865ae663f6b0f4
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30
+@id = 684f1d63c347cfd8a97624aa
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c3VhcmlvIjp7ImlkIjoiNjg0ZjIwN2FkNGQwZTNlOTRkNDdmMjcxIiwibml2ZWwiOjJ9LCJpYXQiOjE3NTAwMTYxNTJ9.CKcdHV6AnOe1zyG8Pa6hn7HQUM13LK3L8m922P8kIgQ
 @page = 2
-@limit = 10
+@limit = 5
 
 // ------------- GET ------------- //
 
 ###
-// GET - Lista todos os agendamentos 
-GET {{baseURL}}?limit=2
+// GET - Lista todos os agendamentos (padrão limite de 20)
+GET {{baseURL}}
 Content-Type: application/json
 access_token: {{token}}
 
@@ -25,7 +25,7 @@ GET {{baseURL}}
 Content-Type: application/json
 
 ###
-// GET - Lista todos os agendamentos (com limite de 10)
+// GET - Lista todos os agendamentos (com limite de 5)
 GET {{baseURL}}?limit={{limit}}
 Content-Type: application/json
 access_token: {{token}}
@@ -74,13 +74,13 @@ access_token: {{token}}
 
 ###
 // GET - Lista de agendamentos em um dia específico
-GET {{baseURL}}?date=2025-04-02
+GET {{baseURL}}?date=2025-06-02
 Content-Type: application/json
 access_token: {{token}}
 
 ###
 // GET - Lista de agendamentos em um intervalo de dias
-GET {{baseURL}}?start_date=2025-04-02&end_date=2025-04-10&limit=100
+GET {{baseURL}}?start_date=2025-06-02&end_date=2025-06-03&limit=100
 Content-Type: application/json
 access_token: {{token}}
 
@@ -164,16 +164,6 @@ access_token: {{token}}
         {"name" : "mais um serviço", "price" : 20.00}
     ],
     "date" : "2025-04-30 14:30:00"
-}
-
-###
-// PUT - Altera o nome do cliente (usado quando ocorre alteração de nome de usuário)
-PUT {{baseURL}}/{{id}}
-Content-Type: application/json
-access_token: {{token}}
-
-{
-    "updated_client_name" : "Roberto Carlos"
 }
 
 ###

@@ -4,6 +4,9 @@ import { fetchWithErrorHandling, toastNotification, tokenValidator } from "./scr
 
 // Módulo do Dashboard de Cliente
 async function initializeDashboard() {
+  const MIN_ANTECEDENCIA_HORAS = 24;
+  const INICIO_EXPEDIENTE = 8
+  const FIM_EXPEDIENTE = 18
   // 1. Verificação de autenticação e configuração inicial
   const token = localStorage.getItem('token')
 
@@ -41,6 +44,7 @@ async function initializeDashboard() {
       barberSelect: document.getElementById("barberSelect"),
       dateInput: document.getElementById("dateInput"),
       message: document.getElementById("scheduleMessage"),
+      timeMessage: document.getElementById('timeMessage'),
       serviceCheckboxes: document.querySelectorAll(".service-checkbox"),
       totalPriceDisplay: document.getElementById("totalPriceDisplay"),
     },
@@ -79,6 +83,15 @@ async function initializeDashboard() {
       userDeleteMessage : document.getElementById('userDeleteMessage')
     },
   }
+
+  const hoje = new Date();
+  const yyyy = hoje.getFullYear();
+  const mm = String(hoje.getMonth() + 1).padStart(2, '0');
+  const dd = String(hoje.getDate() + 1).padStart(2, '0');
+  const dataMinima = `${yyyy}-${mm}-${dd}`;
+
+  DOM.scheduling.dateInput.min = dataMinima
+  DOM.modals.editDateInput.min = dataMinima
 
   // 3. Estado da aplicação
   const state = {
@@ -219,11 +232,23 @@ async function initializeDashboard() {
 
   function populateAvailableTimeSlots(occupiedTimes) {
     const selectedDate = DOM.scheduling.dateInput.value
-    if(!selectedDate) return;
-    const start = 8 * 60 // 8:00
-    const end = 18 * 60 // 18:00
-    const now = new Date();
     let hasAvailableSlots = false
+    if(!selectedDate) return;
+
+    const start = INICIO_EXPEDIENTE * 60 // 8:00
+    const end = FIM_EXPEDIENTE * 60 // 18:00
+
+    const now = new Date();
+    const horarioMinimoAgendamento = new Date(now.getTime() + MIN_ANTECEDENCIA_HORAS * 60 * 60 * 1000);
+
+    const selectedDateStr = `${selectedDate}T${FIM_EXPEDIENTE}:00:00`;
+    const selectedDateTime = new Date(selectedDateStr);
+
+    if(selectedDateTime <= horarioMinimoAgendamento){
+      DOM.scheduling.timeSelect.innerHTML = '<option value="">Não é possível realizar agendamentos para esse dia</option>'
+      toastNotification({error: true, message: `Agendamentos devem ser realizados com 1 dia de antecedência`})
+      return;
+    }
     
     for (let i = start; i <= end; i += 30) {
       const hour = Math.floor(i / 60)
@@ -233,7 +258,7 @@ async function initializeDashboard() {
       const dateStr = `${selectedDate}T${time}:00`;
       const date = new Date(dateStr);
       
-      const isNotAvailable = date < now
+      const isAvailable = date > horarioMinimoAgendamento
 
       const isOccupied = occupiedTimes.includes(time)
 
@@ -241,11 +266,7 @@ async function initializeDashboard() {
       option.value = time
       option.textContent = time
 
-      if(isNotAvailable){
-        option.disabled = true;
-        option.textContent += " (Indisponível)"
-      }
-      else{
+      if(isAvailable){
         if (isOccupied) {
           option.disabled = true
           option.textContent += " (Ocupado)"
@@ -258,6 +279,7 @@ async function initializeDashboard() {
 
     if (!hasAvailableSlots) {
       DOM.scheduling.timeSelect.innerHTML = '<option value="">Nenhum horário disponível</option>'
+      toastNotification({error: true, message: `Nenhum horário disponível para ${DOM.scheduling.barberSelect.value} nesta data. Tente outro barbeiro ou outra data.`})
       showScheduleMessage(
         `Nenhum horário disponível para ${DOM.scheduling.barberSelect.value} nesta data. Tente outro barbeiro ou outra data.`,
         "error",
@@ -789,11 +811,25 @@ async function initializeDashboard() {
   }
 
   function populateEditTimeOptions(occupiedTimes, currentTime) {
-    const start = 8 * 60 // 8:00
-    const end = 18 * 60 // 18:00
-    const now = new Date();
-    const selectedDate = DOM.modals.editDateInput.value;
     let hasAvailableSlots = false
+
+    const start = INICIO_EXPEDIENTE * 60 // 8:00
+    const end = FIM_EXPEDIENTE * 60 // 18:00
+
+    const now = new Date();
+    const horarioMinimoAgendamento = new Date(now.getTime() + MIN_ANTECEDENCIA_HORAS * 60 * 60 * 1000);
+
+    const selectedDate = DOM.modals.editDateInput.value;
+
+    const selectedDateStr = `${selectedDate}T${FIM_EXPEDIENTE}:00:00`;
+    const selectedDateTime = new Date(selectedDateStr);
+
+    if(selectedDateTime <= horarioMinimoAgendamento){
+      DOM.modals.editTimeSelect.innerHTML = '<option value="">Não é possível realizar agendamentos para esse dia</option>'
+      toastNotification({error: true, message: `Agendamentos devem ser realizados com 1 dia de antecedência`})
+      return;
+    }
+
 
     for (let i = start; i <= end; i += 30) {
       const hour = Math.floor(i / 60)
@@ -815,22 +851,18 @@ async function initializeDashboard() {
       const dateStr = `${selectedDate}T${time}:00`;
       const date = new Date(dateStr);
 
-      const isNotAvailable = date < now
+      const isAvailable = date > horarioMinimoAgendamento
       const isOccupied = occupiedTimes.includes(time)
 
-      if(isNotAvailable){
-        option.disabled = true;
-        option.textContent += " (Indisponível)"
-      }
-      else{
+      if(isAvailable){
         if (isOccupied) {
           option.disabled = true
           option.textContent += " (Ocupado)"
         }
         else{
           hasAvailableSlots = true
-          DOM.modals.editTimeSelect.appendChild(option)
         }
+        DOM.modals.editTimeSelect.appendChild(option)
       }
     }
 
