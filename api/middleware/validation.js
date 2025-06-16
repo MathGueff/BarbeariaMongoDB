@@ -49,7 +49,8 @@ export const validateAgendamento = [
   check('services')
     .notEmpty()
     .withMessage("O campo services é obrigatório")
-    .isArray(),
+    .isArray()
+    .withMessage('O campo services deve ser um array'),
 
   check('services.*.name')
     .notEmpty()
@@ -62,11 +63,10 @@ export const validateAgendamento = [
     .withMessage("O preço deve ser maior do que zero"),
 
   check('date')
-    .notEmpty().withMessage("A data é obrigatória")
+    .notEmpty().withMessage("A data é obrigatória").bail()
     .matches(/^(\d{4})\-(\d{2})\-(\d{2}) (\d{2}):(\d{2}):(\d{2})$/)
     .withMessage('A data precisa estar no formato YYYY-MM-DD HH:mm:ss')
     .custom((date) => {
-      if (!date) return
       const hours = date.substring(11, 13)
       const minutes = date.substring(14, 16)
       const seconds = date.substring(17, 19)
@@ -74,9 +74,10 @@ export const validateAgendamento = [
       const hourCondition = hours >= 8 && hours <= 18
       const minuteCondition = hours == 18 ? minutes == 0 : minutes == 0 || minutes == 30
       const secondsCondition = seconds == 0
-      if (hourCondition && minuteCondition && secondsCondition) return true
-      throw new Error("Data inválida, deve estar entre 08:00:00 e 18:00:00")
+      if (!(hourCondition && minuteCondition && secondsCondition)) 
+        throw new Error("Data inválida, deve estar entre 08:00:00 e 18:00:00")
 
+      return true;
     }),
 
   check('total_price')

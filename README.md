@@ -32,7 +32,7 @@ No sistema, armazenamos agendamentos como agendado, confirmado e cancelado
 - Cancelado: o agendamento foi cancelado (pelo cliente ou pelo barbeiro)
 
 #### Horários ocupados
-Ao realizar seu agendamento, horários já ocupados por outros clientes são marcados em cinza e não podem ser selecionados. Agendamentos que foram cancelados não são considerados no momento de escolher um horário.
+Ao realizar seu agendamento, horários já ocupados por outros clientes são marcados em cinza e não podem ser selecionados. Agendamentos que foram cancelados não são considerados no momento de escolher um horário. Agendamentos só podem ser realizados com 1 dia de antecedência mínimo
 
 #### Excluindo um usuário
 Quando um cliente excluir sua conta de usuário, todos os agendamentos marcados como "agendado" são exclúidos para a liberação dos horários
@@ -45,6 +45,7 @@ Quando um cliente excluir sua conta de usuário, todos os agendamentos marcados 
   - Nomes únicos (todos com agendamentos cadastrados)
   - Emails relacionados aos nomes
   - Padrão de senhas: `Senha12*`, `Senha34*`, `Senha56*`, `Senha78*`, `Senha910*`
+Foram adicionados agendamentos de 01/06 até 25/06 no banco de dados via mock (500 registros)
 
 <span id='tabela'>
 
